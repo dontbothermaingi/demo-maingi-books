@@ -94,8 +94,8 @@ function Login({ onLogin }) {
                         textAlign='center'
                     >
                         We're glad to see you again. Please enter your credentials to continue accessing your account.
-                        username: demo@demo.info
-                        password: demo2024
+                        <br/>username: demo@demo.info
+                        <br/>password: demo2024
                     </Typography>
 
                     <form onSubmit={handleSubmit}>
