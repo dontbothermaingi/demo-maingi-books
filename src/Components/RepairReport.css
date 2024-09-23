@@ -1,0 +1,18 @@
+@media print {
+    .a4-print {
+        width: 210mm; /* A4 width */
+        height: 297mm; /* A4 height */
+        margin: 0;
+        padding: 0mm; /* Adjusted padding for larger content */
+        box-sizing: border-box;
+    }
+
+    .a4-print * {
+        font-size: 14pt; /* Larger font size for better readability */
+    }
+
+    @page {
+        size: A4;
+        margin: 20mm; /* Margins for the printed page */
+    }
+}

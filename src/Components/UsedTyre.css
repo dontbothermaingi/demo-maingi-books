@@ -1,0 +1,235 @@
+.used-tyre-container{
+    display: flex;
+    flex-direction: column;
+}
+
+.used-tyre-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+  }
+  
+  .used-tyre-table th,
+  .used-tyre-table td {
+    border: 1px solid #ddd; /* Add borders to table cells */
+    padding: 12px;
+    text-align: left;
+    border: none;
+  }
+  
+  .used-tyre-table th {
+    background-color: #f2f2f2; /* Add background color to table header */
+  }
+  
+  .used-tyre-table tr:nth-child(even) {
+    background-color: #f9f9f9; /* Add alternating background color to table rows */
+  }
+  
+  .used-tyre-table tr:hover {
+    background-color: #f5f5f5; /* Change background color on hover for better interactivity */
+  }
+  .used-tyre-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+/* Button styling */
+.used-tyre-more-button {
+    padding: 8px 16px;
+    border: none;
+    cursor: pointer;
+    color: white;
+    font-weight: bold;
+    border-radius: 5px;
+    transition: background-color 0.3s ease;
+}
+
+.used-tyre-more-button-orange {
+  background-color: white;
+  color: orange;
+  padding: 5px 10px;
+  border: none;
+  border-radius: 4px;
+  font-weight: 800;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.used-tyre-more-button-green {
+  background-color: white;
+  color: green;
+  padding: 5px 10px;
+  border: none;
+  font-weight: 800;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.used-tyre-more-button-red {
+  background-color: white;
+  color: red;
+  padding: 5px 10px;
+  border: none;
+  font-weight: 800;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.used-tyre-button {
+  padding: 8px 16px;
+  border: none;
+  width: 100%;
+  cursor: pointer;
+  color: white;
+  font-weight: bold;
+  border-radius: 5px;
+  transition: background-color 0.3s ease;
+}
+
+.used-tyre-button-orange {
+background-color: orange;
+color: white;
+padding: 5px 10px;
+border: none;
+border-radius: 4px;
+font-weight: 800;
+cursor: pointer;
+font-size: 14px;
+}
+
+.used-tyre-button-green {
+background-color: green;
+color: white;
+padding: 5px 10px;
+border: none;
+font-weight: 800;
+border-radius: 4px;
+cursor: pointer;
+font-size: 14px;
+}
+
+.used-tyre-button-red {
+background-color: red;
+color: white;
+padding: 5px 10px;
+border: none;
+font-weight: 800;
+border-radius: 4px;
+cursor: pointer;
+font-size: 14px;
+}
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  padding: 10px 0;
+  list-style: none;
+}
+
+.page-item {
+  margin: 0 5px;
+}
+
+.page-link {
+  display: inline-block;
+  padding: 10px 15px;
+  color: #007bff;
+  text-decoration: none;
+  background-color: #fff;
+  border: 1px solid #dee2e6;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s, color 0.3s;
+}
+
+.page-link:hover {
+  background-color: #f8f9fa;
+  color: #0056b3;
+}
+
+.page-link:disabled {
+  color: #6c757d;
+  background-color: #e9ecef;
+  border-color: #dee2e6;
+  cursor: not-allowed;
+}
+
+.page-item.active .page-link {
+  color: #fff;
+  background-color: #007bff;
+  border-color: #007bff;
+}
+
+.used-tyre-button-green:disabled {
+  cursor: not-allowed;
+}
+
+/* .search-form{
+    background-color: white;
+    width: 174px;
+    border-radius: 10px;
+    height: 2.5rem;
+    padding: 0 15px;
+    box-shadow: 0px 0px 8px #ddd;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+  } */
+  .search-input{
+    background-color: transparent;
+    border: none;
+    height: 100%;
+    font-size: 1rem;
+    width: auto;
+    margin-left: 5px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    
+  }
+
+  .search-button {
+    text-decoration: none; /* Remove underline */
+    background-color: #007bff; /* Button background color */
+    color: #fff; /* Button text color */
+    padding: 10px 20px; /* Button padding */
+    border-radius: 5px; /* Button border radius */
+    display: inline-block; /* Display as inline-block to respect padding */
+    border: none; /* Remove border */
+    cursor: pointer; /* Show pointer cursor on hover */
+    text-align: center; /* Align text in center */
+    font-size: 16px; /* Font size */
+  }
+  
+  .search-button:hover {
+    background-color: #0056b3; /* Change background color on hover */
+  }
+
+  .search-button-home{
+    text-decoration: none; /* Remove underline */
+    background-color: #007bff; /* Button background color */
+    color: #fff; /* Button text color */
+    padding: 10px 20px; /* Button padding */
+    border-radius: 5px; /* Button border radius */
+    display: inline-block; /* Display as inline-block to respect padding */
+    border: none; /* Remove border */
+    cursor: pointer; /* Show pointer cursor on hover */
+    text-align: center; /* Align text in center */
+    font-size: 16px; /* Font size */
+  }
+
+  .search{
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+  }
+
+  .another-search{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }

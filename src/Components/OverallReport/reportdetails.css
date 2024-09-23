@@ -1,0 +1,18 @@
+@media print {
+  .monetary-summary {
+    width: 21cm; /* A4 width */
+    height: 29.7cm; /* A4 height */
+    margin: auto;
+    padding: 20px;
+    border: 1px solid black;
+  }
+
+  .monetary-summary h4, .monetary-summary h5, .monetary-summary h6 {
+    margin: 0;
+    padding: 5px 0;
+  }
+
+  .monetary-summary .divider {
+    border-bottom: 1px solid black;
+  }
+}

@@ -1,0 +1,12 @@
+.bank-form {
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    background-color: #fff;
+    width: 450px;
+    max-width: 1300px;
+    margin: 20px auto;
+  }

@@ -1,0 +1,63 @@
+
+.shop-more-button-orange {
+    background-color: orange;
+    color: white;
+    padding: 5px 10px;
+    font-weight: bold;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+  }
+  
+  .shop-more-button-green {
+    background-color: green;
+    color: white;
+    padding: 5px 10px;
+    border: none;
+    font-weight: bold;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+  }
+  
+  .shop-more-button-red {
+    background-color: red;
+    color: white;
+    padding: 5px 10px;
+    font-weight: bold;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+  }
+  .stock-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+  }
+  
+  .stock-table th,
+  .stock-table td {
+    border: 1px solid #ddd; /* Add borders to table cells */
+    padding: 12px;
+    text-align: left;
+  }
+  
+  .stock-table th {
+    background-color: #f2f2f2; /* Add background color to table header */
+  }
+  
+  .stock-table tr:nth-child(even) {
+    background-color: #f9f9f9; /* Add alternating background color to table rows */
+  }
+  
+  .stock-table tr:hover {
+    background-color: #f5f5f5; /* Change background color on hover for better interactivity */
+  }
+  .stock-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+  }
