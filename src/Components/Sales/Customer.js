@@ -1,12 +1,13 @@
 import { useEffect, useState } from "react";
-import { Box, Typography } from "@mui/material";
+import { Box, Button, Card, CardContent, FormControl, MenuItem, Pagination, Select, TextField, Typography, useMediaQuery } from "@mui/material";
 import { DataGrid, GridToolbar } from "@mui/x-data-grid";
-import './Customer.css'
 import { useNavigate } from "react-router-dom";
 
 function Customer() {
     const [customers, setCustomers] = useState([]);
     const [isVatInclusive, setIsVatInclusive] = useState([])
+    const token = localStorage.getItem('access_token')
+    const navigate = useNavigate()
     const [formData, setFormData] = useState({
         customer_name: "",
         customer_type: "",
@@ -19,13 +20,20 @@ function Customer() {
         amount_paid: "",
     });
 
-    const navigate = useNavigate()
+    const [currentPage, setCurrentPage] = useState(1)
+    const itemsPerPage = 16;
 
     useEffect(() => {
-        fetch('https://db-demo-u07o.onrender.com/customers')
+        fetch('https://db-demo-u07o.onrender.com/customers', {
+            method:'GET',
+            headers:{
+                'Authorization':`Bearer ${token}`
+            },
+            credentials:'include'
+        })
             .then(response => response.json())
             .then((data) => setCustomers(data));
-    }, []);
+    }, [token]);
 
     function handleChange(event){
         const {name, value} = event.target
@@ -43,8 +51,10 @@ function Customer() {
         fetch('https://db-demo-u07o.onrender.com/customers', {
             method: "POST",
             headers: {
-                "Content-Type": "application/json"
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${token}`
             },
+            credentials:'include',
             body: JSON.stringify({
                 ...formData,
                 amount_paid: 0,
@@ -53,7 +63,13 @@ function Customer() {
             .then(response => response.json())
             .then(() => {
                 // Refetch customers after successful submission
-                fetch('https://maingi-server-3.onrender.com/customers')
+                fetch('https://db-demo-u07o.onrender.com/customers', {
+                    method:'GET',
+                    headers:{
+                        'Authorization':`Bearer ${token}`
+                    },
+                    credentials:'include'
+                })
                     .then(response => response.json())
                     .then((data) => setCustomers(data));
                 
@@ -400,143 +416,221 @@ function Customer() {
         }
       ];
 
+    const isMobile = useMediaQuery('(max-width: 768px)');
+
+    const totalPages = Math.ceil(customers.length / itemsPerPage)
+    const displayedItems = customers.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
+
+    const handlePageChange = (event, value) => {
+        setCurrentPage(value);
+    };
+
     return (
-        <div>
-            <div className="bill-content">
-                        <button
+        <Box>
+            <Box>
+                        <Button
                                 type="button"
-                                className="button"
+                                variant="contained"
+                                color="secondary"
                                 onClick={handleToggleVat}
+                                sx={{ml:'40px', mt:'20px', mb:'20px'}}
                                 >
                                 {isVatInclusive ? "New Customer" : "All Customers"}
-                        </button>
-        {isVatInclusive ? "" : <div>
-                    <h2 className="h2">NEW CUSTOMER</h2>
-                    <form className="bill-form" onSubmit={handleSubmit}>
-                    <div className="bill-input">
-                        <label>Customer Name</label>
-                        <input
-                            type="text"
-                            name="customer_name"
-                            placeholder="Customer Name"
-                            className="bill-inputfield"
-                            value={formData.customer_name}
-                            onChange={handleChange}
-                            required
-                        />
-                    </div>
+                        </Button>
 
-                    <div className="bill-input">
-                        <label>Customer Type</label>
-                        <select value={formData.customer_type} className="bill-inputfield" name="customer_type" onChange={handleChange}>
-                            <option value="">Select Customer Type</option>
-                            <option value="Business">Business</option>
-                            <option value="Individual">Individual</option>
-                        </select>
-                    </div>
+        {isVatInclusive ? "" : 
+        
+            <Box 
+                sx={{borderRadius: '15px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    height: 'auto', // Adjust height for better flexibility
+                    boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
+                    padding: '10px',
+                    margin: '30px',
+                    backgroundColor: '#fff'
+                }}
+            >
+                        <Typography fontSize={'30px'} fontWeight={'bold'} textAlign={'center'} mt={'20px'}>NEW CUSTOMER</Typography>
+                        <form onSubmit={handleSubmit}>
+                            <FormControl sx={{display:'flex', margin:'30px'}}>
 
-                    <div className="bill-input">
-                        <label>Company Name</label>
-                        <input
-                            type="text"
-                            name="company_name"
-                            placeholder="Company Name"
-                            className="bill-inputfield"
-                            value={formData.company_name}
-                            onChange={handleChange}
-                            required
-                        />
-                    </div>
-
-                    <div className="bill-input">
-                        <label>Customer Email</label>
-                        <input
-                            type="text"
-                            name="customer_email"
-                            placeholder="Customer Email"
-                            className="ibill-inputfield"
-                            value={formData.customer_email}
-                            onChange={handleChange}
-                            required
-                        />
-                    </div>
-
-                    <div className="bill-input">
-                        <label>Customer Phone</label>
-                        <input
-                            type="text"
-                            name="customer_phone"
-                            placeholder="Customer Phone"
-                            className="bill-inputfield"
-                            value={formData.customer_phone}
-                            onChange={handleChange}
-                            required
-                        />
-                    </div>
-
-                    <div className="bill-input">
-                        <label>KRA Pin</label>
-                        <input
-                            type="text"
-                            name="kra_pin"
-                            placeholder="KRA Pin"
-                            className="bill-inputfield"
-                            value={formData.kra_pin}
-                            onChange={handleChange}
-                            required
-                        />
-                    </div>
-
-                    <div className="bill-input">
-                                <label>Currency</label>
-                                <select
-                                    value={formData.currency}
-                                    name="currency"
-                                    onChange={handleChange}
-                                    label="Currency"
-                                >
-                                    <option value="">Select Currency</option>
-                                    {currencyOptions.map((option) => (
-                                        <option key={option.code} value={option.code}>
-                                            {option.label}
-                                        </option>
-                                    ))}
-                                </select>
-                    </div>
-
-
-                    
-
-                    <div className="bill-input">
-                            <label>Total Amount Owed</label>
-                            <input
-                                type="number"
-                                name="total_amount_owed"
-                                placeholder="Total Amount Owed"
-                                value={formData.total_amount_owed}
+                            <TextField
+                                type="text"
+                                name="customer_name"
+                                label="Customer Name"
+                                value={formData.customer_name}
                                 onChange={handleChange}
+                                required
                                 variant="outlined"
+                                sx={{marginBottom:'20px'}}
                             />
-                    </div>
 
-                    <div className="bill-input">
-                        <label>Payment Terms</label>
-                        <select value={formData.payment_terms} className="bill-inputfield" name="payment_terms" onChange={handleChange}>
-                            <option value="">Select Invoice Term</option>
-                            <option value="Cash">Cash</option>
-                            <option value="15 days">15 days</option>
-                            <option value="30 days">30 days</option>
-                            <option value="45 days">45 days</option>
-                            <option value="60 days">60 days</option>
-                        </select>
+                            <Typography fontWeight={'bold'}>Customer Type</Typography>
+                            <Select value={formData.customer_type} name="customer_type" onChange={handleChange}  sx={{mb:'20px'}}>
+                                <MenuItem value="">Select Customer Type</MenuItem>
+                                <MenuItem value="Business">Business</MenuItem>
+                                <MenuItem value="Individual">Individual</MenuItem>
+                            </Select>
 
-                    </div>
+                            <TextField
+                                type="text"
+                                name="company_name"
+                                label="Company Name"
+                                value={formData.company_name}
+                                onChange={handleChange}
+                                required
+                                variant="outlined"
+                                sx={{marginBottom:'20px'}}
+                            />
 
-                        <button type="submit" className="button">Save</button>
-                    </form>
-                </div> }
-            </div>
-            <Box m="20px">
+                            <TextField
+                                type="text"
+                                name="customer_email"
+                                label="Customer Email"
+                                value={formData.customer_email}
+                                onChange={handleChange}
+                                required
+                                variant="outlined"
+                                sx={{marginBottom:'20px'}}
+                            />
+
+                            <TextField
+                                type="text"
+                                name="customer_phone"
+                                label="Customer Phone"
+                                value={formData.customer_phone}
+                                onChange={handleChange}
+                                required
+                                variant="outlined"
+                                sx={{marginBottom:'20px'}}
+                            />
+
+                            <TextField
+                                type="text"
+                                name="kra_pin"
+                                label="KRA Pin"
+                                value={formData.kra_pin}
+                                onChange={handleChange}
+                                required
+                                variant="outlined"
+                                sx={{marginBottom:'20px'}}
+                            />
+
+                                    <Typography fontWeight={'bold'}>Currency</Typography>
+                                    <Select
+                                        value={formData.currency}
+                                        name="currency"
+                                        onChange={handleChange}
+                                        label="Currency"
+                                        sx={{marginBottom:'20px'}}
+                                    >
+                                        <MenuItem value="">Select Currency</MenuItem>
+                                        {currencyOptions.map((option) => (
+                                            <MenuItem key={option.code} value={option.code}>
+                                                {option.label}
+                                            </MenuItem>
+                                        ))}
+                                    </Select>
+
+
+                        
+
+                                <TextField
+                                    type="number"
+                                    name="total_amount_owed"
+                                    placeholder="Total Amount Owed"
+                                    value={formData.total_amount_owed}
+                                    onChange={handleChange}
+                                    variant="outlined"
+                                    sx={{marginBottom:'20px'}}
+                                />
+
+                            <Typography fontWeight={'bold'}>Payment Terms</Typography>
+                            <Select value={formData.payment_terms} name="payment_terms" onChange={handleChange} sx={{mb:'20px'}}>
+                                <MenuItem value="">Select Invoice Term</MenuItem>
+                                <MenuItem value="Cash">Cash</MenuItem>
+                                <MenuItem value="15 days">15 days</MenuItem>
+                                <MenuItem value="30 days">30 days</MenuItem>
+                                <MenuItem value="45 days">45 days</MenuItem>
+                                <MenuItem value="60 days">60 days</MenuItem>
+                            </Select>
+
+                            <Button type="submit" color="secondary" variant="contained" sx={{justifyContent:'center', display:'flex'}}>Save</Button>
+
+                            </FormControl>
+                        </form>
+            </Box> 
+        }
+            </Box>
+
+            {isMobile ? (
+                <Box>
+                    <Typography fontSize={'27px'} fontWeight={'bold'} textAlign={'center'}>CUSTOMERS</Typography>
+                    <Box
+                        display={'grid'}
+                        gridTemplateColumns={{xs:'repeat(1,1fr)', sm:'repeat(2,1fr)'}}
+                        gap="10px"
+                        margin="0 10px"
+                    >
+
+                        {displayedItems.map((item) => (
+                            <Card
+                                key={item.id}
+                                onClick={() => handleViewDetails(item.customer_name)}
+                                sx={{
+                                    borderRadius: '15px',
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    height: 'auto', // Adjust height for better flexibility
+                                    boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
+                                    padding: '10px',
+                                    margin: '30px',
+                                    backgroundColor: '#fff',
+                                    transition: 'transform 0.3s ease-in-out',
+                                    '&:hover': {
+                                        transform: 'scale(1.03)',
+                                        boxShadow: '0 8px 30px rgba(0,0,0,0.15)',
+                                    },
+                                }}
+                            >
+                                <CardContent>
+                                        <Box display={'flex'} gap={'3px'}>
+                                            <Typography>Name:</Typography>
+                                            <Typography fontWeight={'bold'}>{item.customer_name}</Typography>
+                                        </Box>
+
+                                        <Box display={'flex'} gap={'3px'}>
+                                            <Typography>Phone Number:</Typography>
+                                            <Typography  fontWeight={'bold'}>{item.customer_phone}</Typography>
+                                        </Box>
+
+                                        <Box display={'flex'} gap={'3px'}>
+                                            <Typography>Email:</Typography>
+                                            <Typography fontWeight={'bold'}>{item.customer_email}</Typography>
+                                        </Box>
+
+                                        <Box display={'flex'} gap={'3px'}>
+                                            <Typography>KRA Pin:</Typography>
+                                            <Typography fontWeight={'bold'}>{item.kra_pin}</Typography>
+                                        </Box>
+
+                                        <Box display={'flex'} gap={'3px'}>
+                                            <Typography>Currency:</Typography>
+                                            <Typography fontWeight={'bold'}>{item.currency}</Typography>
+                                        </Box>
+
+                                </CardContent>
+
+                            </Card>
+                        ))}
+                        <Box display="flex" justifyContent="center" mt="20px">
+                                <Pagination count={totalPages} page={currentPage} onChange={handlePageChange} color="secondary" />
+                        </Box>
+                    </Box>
+                </Box>
+            ):(
+                <Box m="20px">
                 <Typography 
                     fontSize='30px'
                     fontWeight='bold'
@@ -545,8 +639,6 @@ function Customer() {
                     CUSTOMERS
                 </Typography>
                 <Box
-                    m="40px 0 0 0"
-                    height="75vh"
                     sx={{
                     "& .MuiDataGrid-root": {
                         border: "none",
@@ -586,7 +678,9 @@ function Customer() {
                     />
                 </Box>
             </Box>
-        </div>
+            )}
+                
+        </Box>
     );
 }
 

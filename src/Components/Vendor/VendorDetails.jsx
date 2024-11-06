@@ -10,11 +10,18 @@ const VendorDetails = () => {
   const [amountPaid, setAmountPaid] = useState([]);
   const [overallTotal, setOverallTotal] = useState([]);
   const [billItems, setBillItems] = useState([]);
+  const token = localStorage.getItem('access_token')
   const [billTotal, setBillTotal] = useState([]);
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    fetch(`https://db-demo-u07o.onrender.com/vendors/${vendorId}`)
+    fetch(`https://db-demo-u07o.onrender.com/vendors/${vendorId}`, {
+            method:'GET',
+            headers:{
+                'Authorization':`Bearer ${token}`
+            },
+            credentials:'include'
+    })
       .then((response) => response.json())
       .then((data) => {
         const billItems = data.bills.flatMap((bill) =>
@@ -28,19 +35,19 @@ const VendorDetails = () => {
 
         const billTotal = calculateTotal(billItems);
 
-        const overallTotal = new Intl.NumberFormat().format(
+        const overallTotal = new Intl.NumberFormat('en-KE', {style:'currency', currency:'KES'}).format(
           parseFloat(billTotal)
         );
 
         setBillItems(billItems);
         setBillTotal(billTotal);
         setTruckDetails(data);
-        setAmountOwed(new Intl.NumberFormat().format(data.total_amount_owed));
-        setAmountPaid(new Intl.NumberFormat().format(data.amount_paid));
+        setAmountOwed(new Intl.NumberFormat('en-KE', {style:'currency', currency:'KES'}).format(data.total_amount_owed));
+        setAmountPaid(new Intl.NumberFormat('en-KE', {style:'currency', currency:'KES'}).format(data.amount_paid));
         setOverallTotal(overallTotal);
       })
       .catch((error) => setError(error));
-  }, [vendorId]);
+  }, [vendorId,token]);
 
   if (error) return <div>Error fetching truck details: {error.message}</div>;
   if (!truckDetails) return <div>No truck data available</div>;

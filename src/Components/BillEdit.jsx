@@ -1,19 +1,16 @@
 import { useEffect, useState } from "react";
-import { Box, Button, Typography,IconButton, FormControl, MenuItem, Select, TextField, Divider, ListSubheader, Radio, RadioGroup, FormControlLabel, TableContainer, Table, TableHead, TableRow, TableBody, TableCell, useMediaQuery, Card, CardContent, Pagination } from "@mui/material";
-import { DataGrid, GridToolbar } from "@mui/x-data-grid";
+import { Box, Button, Typography,IconButton, FormControl, MenuItem, Select, TextField, Divider, ListSubheader, Radio, RadioGroup, FormControlLabel, TableContainer, Table, TableHead, TableRow, TableBody, TableCell} from "@mui/material";
 import CloseIcon from '@mui/icons-material/Close';
-import { Dialog, DialogActions, DialogContent, DialogTitle } from '@mui/material';
-import './Bill.css';
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
+import EditIcon from '@mui/icons-material/Edit';
 
-function CustomBill() {
-    const [bills, setBills] = useState([]);
-    const [openDialog, setOpenDialog] = useState(false);
-    const [currentPage, setCurrentPage] = useState(1)
-    const itemsPerPage = 16;
-    const isMobile = useMediaQuery('(max-width: 768px)');
+function BillEdit() {
+    const [bills, setBills] = useState(null);
+    const { billId } = useParams();
     const token = localStorage.getItem('access_token')
+    const [editItemIndex, setEditItemIndex] = useState([])
     const [vendors, setVendors] = useState([]);
+    const [originalAmount, setOriginalAmount] = useState([]);
     const [isVatInclusive, setIsVatInclusive] = useState(true); // true for inclusive, false for exclusive
     const [formData, setFormData] = useState({
         vendor_name: "",
@@ -30,12 +27,14 @@ function CustomBill() {
         amount_paid:0,
         currency:"",
         amount_owed:0,
+        bill_total:"",
+        original_amount:"",
+        vendor_amount:"",
         status:"",
+        previous_category_name:"",
         type_vat: "Inclusive VAT",
         items: [],
     });
-
-    const paymentNumber = bills.length + 1;
 
     const [newItem, setNewItem] = useState({
         item_details: "",
@@ -49,7 +48,7 @@ function CustomBill() {
     });
 
     useEffect(() => {
-        fetch('https://db-demo-u07o.onrender.com/newbills',{
+        fetch(`https://db-demo-u07o.onrender.com/newbills/${billId}`,{
             method:'GET',
             headers:{
                 'Authorization':`Bearer ${token}`
@@ -58,16 +57,31 @@ function CustomBill() {
         })
             .then(response => response.json())
             .then((data) => {
-
-                const sort = data.sort((a,b) => b.id - a.id)
-                const invoiceTotal = sort.map((invoice) => {
-                    const totalAmount = (invoice.items.reduce((total, item) => total + item.amount, 0));
-                    return { ...invoice, totalAmount };
-
+                setBills(data);
+                setOriginalAmount(data.items.reduce((total,bill) => bill.amount + total, 0))
+                console.log(originalAmount)
+                console.log(data)
+                setFormData({
+                    vendor_name: data.vendor_name,
+                    vendor_phone: data.vendor_phone,
+                    vendor_email: data.vendor_email,
+                    vendor_pin: data.vendor_pin,
+                    bill_number: data.bill_number,
+                    account_name: data.account_name,
+                    order_number: data.order_number,
+                    bill_date: data.bill_date,
+                    due_date: data.due_date,
+                    category_name: data.category_name,
+                    payment_terms: data.payment_terms,
+                    amount_paid: data.amount_paid,
+                    currency: data.currency,
+                    amount_owed: data.amount_owed,
+                    status: data.status,
+                    type_vat: data.type_vat,
+                    items: data.items,
                 })
-                setBills(invoiceTotal);
             });
-    }, [token]);
+    }, [token, originalAmount,billId]);
     
 
     useEffect(() => {
@@ -167,13 +181,26 @@ function CustomBill() {
       }
     
       
-      // Ensure to include VAT and rate_vat when adding an item
-      function addItem() {
+    // Ensure to include VAT and rate_vat when adding an item
+    function addItem() {
+
+        if (editItemIndex !== null){
+            const updatedItems = formData.items
+            updatedItems[editItemIndex] = newItem
+            setFormData((prev) => ({ ...prev, items: updatedItems }));
+            setEditItemIndex(null);
+        }else{
         setFormData(prevFormData => ({
             ...prevFormData,
             items: [...prevFormData.items, newItem]
         }));
+    }
         setNewItem({ item_details: "", description: "", quantity: 0, rate: 0, vat: 0, rate_vat: 0,sub_total: 0 ,amount: 0 });
+    }
+
+    function handleEdit (index){
+        setEditItemIndex(index)
+        setNewItem(formData.items[index])
     }
 
     function handleDeleteItem(index) {
@@ -187,15 +214,12 @@ function CustomBill() {
     function handleSubmit(event) {
         event.preventDefault();
     
-        const paymentNumber = bills.length + 1;
-
         const calculateInvoiceTotal = () => {
             return formData.items.reduce((total, item) => total + item.amount, 0);
         }
-        
     
-        fetch('https://db-demo-u07o.onrender.com/custombills', {
-            method: "POST",
+        fetch(`https://db-demo-u07o.onrender.com/newbills/${billId}`, {
+            method: "PATCH",
             headers: {
                 "Content-Type": "application/json",
                 "Authorization": `Bearer ${token}`
@@ -203,18 +227,20 @@ function CustomBill() {
             credentials:'include',
             body: JSON.stringify({
                 ...formData, 
-                bill_number: paymentNumber,
-                payment_made: 0,
-                status:"UNPAID",
-                amount_paid: 0,
-                amount_owed: calculateInvoiceTotal(),
+                bill_number: bills.bill_number,
+                status: bills.status,
+                amount_owed: bills.amount_owed + (parseFloat(calculateInvoiceTotal()) - parseFloat(originalAmount)),
+                bill_total:calculateInvoiceTotal(),
+                original_amount: originalAmount,
+                vendor_amount:parseFloat(calculateInvoiceTotal()) - parseFloat(originalAmount),
+                previous_category_name:bills.category_name,
             })
         })
             .then(response => response.json())
             .then(data => {
 
 
-                fetch('https://db-demo-u07o.onrender.com/newbills',{
+                fetch(`https://db-demo-u07o.onrender.com/newbills/${billId}`,{
                     method:'GET',
                     headers:{
                         'Authorization':`Bearer ${token}`
@@ -246,7 +272,6 @@ function CustomBill() {
                     payment_terms: "",
                     items: [],
                 });
-            setOpenDialog(true); // Open the dialog
             })
             .catch(error => console.error('Error submitting bill:', error));
     }
@@ -267,203 +292,6 @@ function CustomBill() {
     function handleCustomBill() {
         navigate('/bill-control');
     }
-    
-    const handleViewDetails = (billId) => {
-        navigate(`/newbills/${billId}`);
-      };
-
-    const handleCloseDialog = () => {
-        setOpenDialog(false);
-    };
-    
-    const handlePaymentReceived = () => {
-        navigate('/payments-made')
-        handleCloseDialog();
-    };
-
-    const columns = [
-        { field: "id", headerName: "ID", flex: 0.2 },
-        {
-          field: "vendor_name",
-          headerName: "Vendor Name",
-          flex: 0.5,
-          cellClassName: "name-column--cell",
-          renderCell: (params) => (
-            <Box 
-            sx={{ 
-              display: 'flex', 
-              alignItems: 'center', 
-              cursor: 'pointer', 
-            }}
-            onClick={() => handleViewDetails(params.row.bill_number)}
-          >
-            <Typography
-                variant="h7"
-            >
-              {params.value}
-            </Typography>
-          </Box>
-          ),
-        },
-        {
-          field: "bill_number",
-          headerName: "Bill Number",
-          flex: 0.2,
-          renderCell: (params) => (
-            <Box 
-            sx={{ 
-              display: 'flex', 
-              alignItems: 'center', 
-              cursor: 'pointer', 
-            }}
-            onClick={() => handleViewDetails(params.row.bill_number)}
-          >
-            <Typography
-                variant="h7"
-            >
-              {params.value}
-            </Typography>
-          </Box>
-          ),
-        },
-        {
-          field: "bill_date",
-          headerName: "Bill Date",
-          flex: 0.4,
-          renderCell: (params) => (
-            <Box 
-            sx={{ 
-              display: 'flex', 
-              alignItems: 'center', 
-              cursor: 'pointer', 
-            }}
-            onClick={() => handleViewDetails(params.row.bill_number)}
-          >
-            <Typography
-                variant="h7"
-            >
-              {params.value}
-            </Typography>
-          </Box>
-          ),
-        },
-        {
-          field: "payment_terms",
-          headerName: "Payment Terms",
-          flex: 0.5,
-          renderCell: (params) => (
-            <Box 
-            sx={{ 
-              display: 'flex', 
-              alignItems: 'center', 
-              cursor: 'pointer', 
-            }}
-            onClick={() => handleViewDetails(params.row.bill_number)}
-          >
-            <Typography
-                variant="h7"
-            >
-              {params.value}
-            </Typography>
-          </Box>
-          ),
-        },
-        {
-            field: "status",
-            headerName: "Status",
-            flex: 0.5,
-            renderCell: (params) => (
-                <Box 
-                sx={{ 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  cursor: 'pointer', 
-                }}
-                onClick={() => handleViewDetails(params.row.bill_number)}
-              >
-                <Typography
-                    variant="h7"
-                >
-                  {params.value}
-                </Typography>
-              </Box>
-              ),
-          },
-          {
-            field: "totalAmount",
-            headerName: "Total Amount",
-            flex: 0.5,
-            renderCell: (params) => (
-                <Box 
-                sx={{ 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  cursor: 'pointer', 
-                }}
-                onClick={() => handleViewDetails(params.row.bill_number)}
-              >
-                <Typography
-                    variant="h7"
-                >
-                  {params.value}
-                </Typography>
-              </Box>
-              ),
-          },
-        {
-            field: "due_date",
-            headerName: "Due Date",
-            flex: 0.5,
-            renderCell: (params) => (
-                <Box 
-                sx={{ 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  cursor: 'pointer', 
-                }}
-                onClick={() => handleViewDetails(params.row.bill_number)}
-              >
-                <Typography
-                    variant="h7"
-                >
-                  {params.value}
-                </Typography>
-              </Box>
-              ),
-          },
-    ]
-
-    const totalPages = Math.ceil(bills.length / itemsPerPage)
-    const displayedItems = bills.slice((currentPage - 1)*itemsPerPage, currentPage * itemsPerPage)
-    
-
-    const handlePageChange = (event, value) => {
-        setCurrentPage(value);
-    };
-
-    const currencyLocaleMap = {
-        AED: "en-AE", // United Arab Emirates Dirham
-        AUD: "en-AU", // Australian Dollar
-        CAD: "en-CA", // Canadian Dollar
-        CHF: "de-CH", // Swiss Franc
-        CNY: "zh-CN", // Chinese Yuan
-        EUR: "de-DE", // Euro
-        GBP: "en-GB", // British Pound
-        HKD: "en-HK", // Hong Kong Dollar
-        IDR: "id-ID", // Indonesian Rupiah
-        ILS: "he-IL", // Israeli New Shekel
-        INR: "en-IN", // Indian Rupee
-        JPY: "ja-JP", // Japanese Yen
-        KES: "en-KE", // Kenyan Shilling
-        NZD: "en-NZ", // New Zealand Dollar
-        SGD: "en-SG", // Singapore Dollar
-        THB: "th-TH", // Thai Baht
-        TRY: "tr-TR", // Turkish Lira
-        USD: "en-US", // United States Dollar
-        ZAR: "en-ZA", // South African Rand
-        MXN: "es-MX", // Mexican Peso
-        BRL: "pt-BR", // Brazilian Real
-      };
 
     return (
         <Box>
@@ -479,17 +307,6 @@ function CustomBill() {
                 >
                     BACK
                 </Button>
-
-                <Dialog open={openDialog} onClose={handleCloseDialog}>
-                        <DialogTitle>Payment Received?</DialogTitle>
-                        <DialogContent>
-                            <Typography variant="body1">Have you paid the vendor?</Typography>
-                        </DialogContent>
-                        <DialogActions>
-                            <Button onClick={handlePaymentReceived} color="primary">Yes</Button>
-                            <Button onClick={handleCloseDialog} color="secondary">No</Button>
-                        </DialogActions>
-                </Dialog>
 
                 <Box
                    sx={{
@@ -511,7 +328,7 @@ function CustomBill() {
                   }}
                 
                 >
-                    <Typography fontSize={'27px'} fontWeight={'bold'} textAlign={'center'}>NEW CUSTOM BILL</Typography>
+                    <Typography fontSize={'27px'} fontWeight={'bold'} textAlign={'center'}>EDIT BILL</Typography>
                     <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', margin: '30px' }}>
 
                         <FormControl>
@@ -529,7 +346,7 @@ function CustomBill() {
                             type="text"
                             name="bill_number"
                             label="Bill Number"
-                            value={paymentNumber}
+                            value={formData.bill_number}
                             onChange={handleChange}
                             required
                             variant='outlined'
@@ -752,10 +569,12 @@ function CustomBill() {
                                                 <TableCell>{new Intl.NumberFormat().format(item.rate_vat)}</TableCell>
                                                 <TableCell>{new Intl.NumberFormat().format(item.amount)}</TableCell>
                                                 <TableCell>
+                                                    <IconButton color="primary" onClick={() => handleEdit(index)}>
+                                                        <EditIcon />
+                                                    </IconButton>
                                                     <IconButton color="error" onClick={() => handleDeleteItem(index)}>
                                                         <CloseIcon />
                                                     </IconButton>
-                                                    
                                                 </TableCell>
                                             </TableRow>
                                         ))}
@@ -856,8 +675,8 @@ function CustomBill() {
                                     </TableBody>
                                 </Table>
                             </TableContainer>
-                        <Button type="button" color="secondary" variant="contained" sx={{margin:'20px'}} onClick={addItem}>Add Item</Button>
 
+                        <Button variant="contained" color="secondary" onClick={addItem} sx={{margin:'20px'}}><Typography fontWeight={'bold'}>{editItemIndex !== null ? 'UPDATE ITEM' : 'ADD ITEM'}</Typography></Button>
                         <Box display={'flex'} flexDirection={'column'} gap={'15px'} m={'10px'} textAlign={'right'} fontWeight={'bold'}>
                                 <Typography fontWeight={'bold'}>
                                         Sub Total Amount:{" "}
@@ -892,96 +711,8 @@ function CustomBill() {
                 </Box>
             </Box> 
 
-            {isMobile ? (
-                <Box>
-                <Typography fontSize={'27px'} fontWeight={'bold'} textAlign={'center'} mt={"20px"}>BILLS</Typography>
-                <Box
-                    display={'grid'}
-                    gridTemplateColumns={{xs:'repeat(1,1fr)', sm:'repeat(2,1fr)'}}
-                    gap="10px"
-                    margin="0 10px"
-                >
-
-                    {displayedItems.map((item) => (
-                        <Card
-                            key={item.id}
-                            onClick={() => handleViewDetails(item.bill_number)}
-                            sx={{
-                                borderRadius: '15px',
-                                display: 'flex',
-                                flexDirection: 'column',
-                                height: 'auto', // Adjust height for better flexibility
-                                boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
-                                padding: '10px',
-                                backgroundColor: '#fff',
-                            }}
-                        >
-                            <CardContent>
-                                  <Box display={'flex'} gap={'5px'}>
-                                    <Typography>Name:</Typography>
-                                    <Typography fontWeight={'bold'}>{item.vendor_name}</Typography>
-                                  </Box>
-
-                                  <Box display={'flex'} gap={'5px'}>
-                                    <Typography>Bill Number:</Typography>
-                                    <Typography fontWeight={'bold'}>{item.bill_number}</Typography>
-                                  </Box>
-
-                                  <Box display={'flex'} gap={'5px'}>
-                                    <Typography>Bill Date:</Typography>
-                                    <Typography fontWeight={'bold'}>{item.bill_date}</Typography>
-                                  </Box>
-
-                                  <Box display={'flex'} gap={'5px'}>
-                                    <Typography>Payment Terms:</Typography>
-                                    <Typography fontWeight={'bold'}>{item.payment_terms}</Typography>
-                                  </Box>
-
-                                  <Box display={'flex'} gap={'5px'}>
-                                    <Typography>Amount:</Typography>
-                                    <Typography fontWeight={'bold'}>{new Intl.NumberFormat(currencyLocaleMap[item.currency] || 'en-KE', {style:'currency', currency:'KES'}).format(item.totalAmount)}</Typography>
-                                  </Box>
-
-                                  <Box display={'flex'} gap={'5px'}>
-                                    <Typography>Status:</Typography>
-                                    <Typography fontWeight={'bold'}>{item.status}</Typography>
-                                  </Box>
-
-                                  <Box display={'flex'} gap={'5px'}>
-                                    <Typography>Due Date:</Typography>
-                                    <Typography fontWeight={'bold'}>{item.due_date}</Typography>
-                                  </Box>
-                            </CardContent>
-                        </Card>
-                    ))}
-                    <Box display="flex" justifyContent="center" mt="20px">
-                            <Pagination count={totalPages} page={currentPage} onChange={handlePageChange} color="secondary" />
-                    </Box> 
-                </Box>
-            </Box>
-              ) : (
-                <Box m="20px">
-                  <Typography 
-                      fontSize='30px'
-                      fontWeight='bold'
-                      textAlign='center'
-                  >
-                      BILLS
-                  </Typography>
-                  <Box
-                      height="75vh"
-                  >
-                      <DataGrid
-                      rows={bills}
-                      columns={columns}
-                      components={{ Toolbar: GridToolbar }}
-                      getRowId={(row) => row.id}
-                      />
-                  </Box>
-                </Box>
-              )}
         </Box>
     );
 }
 
-export default CustomBill;
+export default BillEdit;

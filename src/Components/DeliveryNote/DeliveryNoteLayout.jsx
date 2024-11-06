@@ -34,72 +34,73 @@ const DeliveryNoteLayout = ({ title, customerName, customerEmail, customerPhone,
     <Box>
 
       <Box ref={componentRef} className="a4-print" padding='10mm'>
-        <Box display='flex' justifyContent='space-between' mb='20px'>
-          <Box>
-            <Typography fontSize='24px' color="black" fontWeight="bold">EKATI HAULIERS</Typography>
-            <Typography variant="h6" color="black">Emali, Makueni</Typography>
-            <Typography variant="h6" color="black">Kenya</Typography>
-          </Box>
+
           <Box textAlign='right'>
-            <Typography variant="h4" color="black" fontWeight="bold">{title}</Typography>
-            <Typography fontSize='16px' color="black">Delivery Note Number: {deliveryNumber}</Typography>
-            <Typography fontSize='16px' color="black">Date: {new Date(deliveryDate).toLocaleDateString('en-GB')}</Typography>
+            <Typography fontSize='35px' color="black" fontWeight="bold" className="INVOICE">{title}</Typography>
+            <Typography fontSize='14px' color="black" className="Info">Delivery Note Number: {deliveryNumber}</Typography>
+            <Typography fontSize='14px' color="black" className="Info">Date: {new Date(deliveryDate).toLocaleDateString('en-GB')}</Typography>
           </Box>
-        </Box>
 
-        <Box display='flex' justifyContent='space-between' mb='20px'>
-                <Box mb='20px'>
-                <Typography fontSize='24px' color="black" fontWeight="bold">CONSIGNEE</Typography>
-                <Typography fontSize='16px' color="black">{customerName}</Typography>
-                <Typography fontSize='16px' color="black">{customerEmail}</Typography>
-                <Typography fontSize='16px' color="black">{customerPhone}</Typography>
-                <Typography fontSize='16px' color="black">KRA PIN: {vendorPin}</Typography>
+          <Box display={'flex'} justifyContent={'space-between'}>
+              <Box>
+                <Typography fontSize='20px' color="black" fontWeight="bold" className="HEADER">TRANSPORTER</Typography>
+                <Typography fontSize='14px' color="black" className="Info">EKATI HAULIERS</Typography>
+                <Typography fontSize='14px' color="black" className="Info">Emali, Makueni</Typography>
+                <Typography fontSize='14px' color="black" className="Info">Kenya</Typography>
+              </Box>
+
+                <Box>
+                <Typography fontSize='20px' color="black" fontWeight="bold" className="HEADER">CONSIGNEE</Typography>
+                <Typography fontSize='14px' color="black" className="Info">{customerName}</Typography>
+                <Typography fontSize='14px' color="black" className="Info">{customerEmail}</Typography>
+                <Typography fontSize='14px' color="black" className="Info">{customerPhone}</Typography>
+                <Typography fontSize='14px' color="black" className="Info">KRA PIN: {vendorPin}</Typography>
                 </Box>
 
-                <Box textAlign='right' mb='20px'>
-                    <Typography fontSize='24px' color="black" fontWeight="bold">VEHICLE INFORMATION</Typography>
-                    <Typography fontSize='16px' color="black">Vehicle Number: {truckNumber}</Typography>
-                    <Typography fontSize='16px' color="black">Driver: {driver}</Typography>
-                    <Typography fontSize='16px' color="black">Phone Number: {driverContact}</Typography>
+                <Box>
+                    <Typography fontSize='20px' color="black" fontWeight="bold" className="HEADER">VEHICLE INFORMATION</Typography>
+                    <Typography fontSize='14px' color="black" className="Info">Vehicle Number: {truckNumber}</Typography>
+                    <Typography fontSize='14px' color="black" className="Info">Driver: {driver}</Typography>
+                    <Typography fontSize='14px' color="black" className="Info">Phone Number: {driverContact}</Typography>
                 </Box>
-        </Box>
 
-        <Box mb='20px'>
-          <Typography fontSize='24px' color="black" fontWeight="bold">FROM</Typography>
-          <Typography fontSize='16px' color="black">{origin}</Typography>
-        </Box>
+                <Box>
+                  <Typography fontSize='20px' color="black" fontWeight="bold" className="HEADER">FROM</Typography>
+                  <Typography fontSize='14px' color="black" className="Info">{origin}</Typography>
+                </Box>
 
-        <Box mb='20px'>
-          <Typography fontSize='24px' color="black" fontWeight="bold">TO</Typography>
-          <Typography fontSize='16px' color="black">{destination}</Typography>
-        </Box>
+                <Box>
+                  <Typography fontSize='20px' color="black" fontWeight="bold" className="HEADER">TO</Typography>
+                  <Typography fontSize='14px' color="black" className="Info">{destination}</Typography>
+                </Box>
+          </Box>
 
-        <Box marginBottom='30px' className="table-container">
-          <TableContainer component={Paper}>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  {columns.map((column) => (
-                    <TableCell key={column.field} sx={{ fontWeight: 'bold', fontSize:'10px' }}>{column.headerName}</TableCell>
-                  ))}
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {item.map((item, index) => (
-                  <TableRow key={index}>
-                    <TableCell>{item.container_number}</TableCell>
-                    <TableCell>{item.cargo_description}</TableCell>
-                    <TableCell>{item.quantity}</TableCell>
-                    <TableCell>{item.weight}</TableCell>
-                    <TableCell>{item.measurement}</TableCell>
+          <Box marginBottom='30px' className="table-container">
+            <TableContainer component={Paper}>
+              <Table>
+                <TableHead>
+                  <TableRow>
+                    {columns.map((column) => (
+                      <TableCell key={column.field} sx={{ fontWeight: 'bold', fontSize:'10px' }}>{column.headerName}</TableCell>
+                    ))}
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        </Box>
+                </TableHead>
+                <TableBody>
+                  {item.map((item, index) => (
+                    <TableRow key={index}>
+                      <TableCell>{item.container_number}</TableCell>
+                      <TableCell>{item.cargo_description}</TableCell>
+                      <TableCell>{item.quantity}</TableCell>
+                      <TableCell>{item.weight}</TableCell>
+                      <TableCell>{item.measurement}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          </Box>
 
-        <Box display='flex' justifyContent='space-between' mt='20px'>
+          <Box display='flex' justifyContent='space-between' mt='20px'>
           <Box
             border="1px solid"
             borderColor={colors.grey[200]}
@@ -107,22 +108,22 @@ const DeliveryNoteLayout = ({ title, customerName, customerEmail, customerPhone,
             width='50%'
             sx={{ borderRadius: '8px' }}
           >
-            <Typography variant="h6" color="black" fontWeight="bold" mb="20px">GOODS RECEIVED IN GOOD ORDER</Typography>
+            <Typography fontSize='20px' color="black" fontWeight="bold" className="HEADER" mb={'20px'}>GOODS RECEIVED IN GOOD ORDER</Typography>
 
-            <Typography fontSize='16px' color="black" mb="20px">
+            <Typography fontSize='14px' color="black" className="Info" mb="20px">
                 Name: <span style={{ borderBottom: '1px solid black', paddingRight: '150px' }}></span>
             </Typography>
 
-            <Typography fontSize='16px' color="black"  mb="20px">
+            <Typography fontSize='14px' color="black" className="Info"  mb="20px">
                 Signature: <span style={{ borderBottom: '1px solid black', paddingRight: '150px' }}></span>
             </Typography>
 
-            <Typography fontSize='16px' color="black"  mb="20px">
+            <Typography fontSize='14px' color="black" className="Info"  mb="20px">
                 Date: <span style={{ borderBottom: '1px solid black', paddingRight: '150px' }}></span>
             </Typography>
 
           </Box>
-        </Box>
+          </Box>  
       </Box>
 
       <Box display="flex" justifyContent="center" mt="20px">

@@ -16,6 +16,10 @@ function InvoiceControl() {
         navigate('/custom-invoice');
     }
 
+    function handleFuelInvoice() {
+        navigate('/fuel-invoice');
+    }
+
     function handlePaymentReminder() {
         navigate('/payments-received');
     }
@@ -83,7 +87,25 @@ function InvoiceControl() {
                 <Card>
                     <CardContent>
                         <Typography variant="h5">
-                            3. Custom Invoice
+                            3. Fuel Invoice
+                        </Typography>
+                        <Typography fontSize='17px' color="textSecondary" paragraph>
+                            Use the FUEL INVOICE when you want to record fuel transactions.
+                        </Typography>
+                        <Button
+                            variant="contained"
+                            color="primary"
+                            onClick={handleFuelInvoice}
+                        >
+                            Go to Fuel Invoice
+                        </Button>
+                    </CardContent>
+                </Card>
+
+                <Card>
+                    <CardContent>
+                        <Typography variant="h5">
+                            4. Custom Invoice
                         </Typography>
                         <Typography fontSize='17px' color="textSecondary" paragraph>
                             Use the CUSTOM INVOICE when you want to sell goods or services that do not involve transport or inventory.

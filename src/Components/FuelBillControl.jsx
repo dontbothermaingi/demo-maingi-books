@@ -20,13 +20,16 @@ function FuelBillControl() {
 
         <Box>
 
-            <button
+            <Button
                type="button"
-               className="button"
+               variant="contained"
+               color="secondary"
                onClick={handleBack}
+               sx={{margin:'30px'}}
+
             >
                 BACK
-            </button>
+            </Button>
         <Container sx={{display:'flex', flexDirection:'column', justifyContent:'center', mt:'50px',}}>
             <Typography variant="h4" gutterBottom>
                 Fuel Bill Information

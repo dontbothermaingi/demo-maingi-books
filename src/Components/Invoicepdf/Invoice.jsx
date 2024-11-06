@@ -1,17 +1,23 @@
-import { useTheme } from "@mui/material";
-import { Box, Button, Typography, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper } from "@mui/material";
+import { Button, Divider, useMediaQuery, useTheme } from "@mui/material";
+import { Box,Typography, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper } from "@mui/material";
 import { tokens } from "../../theme";
-import ReactToPrint from 'react-to-print';
+import ReactToPrint, { useReactToPrint } from 'react-to-print';
 import { useEffect, useState, useRef } from "react";
 import './Invoicepage.css'; // Import your CSS file
 import StatBox from "../StatBox";
 import { PointOfSale } from "@mui/icons-material";
 
-const InvoiceLayout = ({ items, status,remainder, currency, vendorPin, customerEmail, typeVat, paidtotal, customerPhone, subtotal, title, total, vatamount, address, country, customerName, invoiceNumber, invoiceDate, terms, dueDate, salesPerson, truckNumber }) => {
+const InvoiceLayout = ({ items, status,remainder,currency, diesel, vendorPin, customerEmail, typeVat, paidtotal, customerPhone, subtotal, title, total, vatamount, address, country, customerName, invoiceNumber, invoiceDate, terms, dueDate, salesPerson, truckNumber }) => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
   const [formattedItems, setFormattedItems] = useState([]);
   const componentRef = useRef();
+  const itemsPerPage = 14;
+
+  const handlePrint = useReactToPrint({
+    content: () => componentRef.current,
+    documentTitle: `${title}_Invoice_${invoiceNumber}`,
+  });
 
   useEffect(() => {
     const formatted = items.map(item => ({
@@ -24,23 +30,39 @@ const InvoiceLayout = ({ items, status,remainder, currency, vendorPin, customerE
     setFormattedItems(formatted);
   }, [items, truckNumber]);
 
+  function setPageItems (items,itemsPerPage){
+    let Pages = []
+    for(let i = 0; i < items.length; i += itemsPerPage){
+      Pages.push(items.slice(i, i + itemsPerPage))
+    }
+    return Pages
+  }
+
+  const pages = setPageItems(formattedItems,itemsPerPage)
+
   const totalTotal = new Intl.NumberFormat().format(total);
+  
 
   const columns = [
     { field: "item_details", headerName: "ITEM", flex: 0.3 },
-    { field: "quantity", headerName: "WEIGHT", flex: 0.1 },
+    { field: "quantity", headerName: "QUANTITY", flex: 0.1 },
     { field: "rate", headerName: "RATE", flex: 0.2 },
     { field: "vat", headerName: "VAT", flex: 0.1 },
     { field: "rate_vat", headerName: "VAT AMOUNT", flex: 0.1 },
     { field: "sub_total", headerName: "SUB TOTAL", flex: 0.2 },
-    { field: "description", headerName: "DESCRIPTION", flex: 0.3 },
+    { field: "description", headerName: "TRUCKS", flex: 0.3 },
   ];
 
+  const isMobile = useMediaQuery('(max-width: 768px)');
+
   return (
-    <Box>
+    <Box display={'flex'} flexDirection={'column'} alignItems={'center'}>
+      
+
+      <Typography fontSize={'27px'} fontWeight={'bold'} textAlign={'center'} margin={'5px'}>Invoice Number: #{invoiceNumber}</Typography>
       <Box
             display="grid"
-            gridTemplateColumns="repeat(12, 1fr)"
+            gridTemplateColumns={{xs:'repeat(1,1fr)', sm:'repeat(3,1fr)', md:'repeat(12,1fr)'}}
             gridAutoRows="140px"
             gap="20px"
             mb='20px'
@@ -111,129 +133,302 @@ const InvoiceLayout = ({ items, status,remainder, currency, vendorPin, customerE
 
       </Box>
 
-      <Box ref={componentRef} className="a4-print" padding='10mm'>
-        <Box display='flex' justifyContent='space-between' mb='20px'>
-          <Box>
-            <Typography fontSize='24px' color="black" fontWeight="bold">EKATI HAULIERS</Typography>
-            <Typography variant="h6" color="black">Emali, Makueni</Typography>
-            <Typography variant="h6" color="black">Kenya</Typography>
-          </Box>
-          <Box textAlign='right'>
-            <Typography variant="h4" color="black" fontWeight="bold">{title}</Typography>
-            <Typography fontSize='16px' color="black">Invoice Number: {invoiceNumber}</Typography>
-            <Typography fontSize='16px' color="black">Invoice Date: {invoiceDate}</Typography>
-            <Typography fontSize='16px' color="black">Due Date: {dueDate}</Typography>
-          </Box>
-        </Box>
+      
 
-        <Box mb='20px'>
-          <Typography fontSize='24px' color="black" fontWeight="bold">BILL TO</Typography>
-          <Typography fontSize='16px' color="black">{customerName}</Typography>
-          <Typography fontSize='16px' color="black">{customerEmail}</Typography>
-          <Typography fontSize='16px' color="black">{customerPhone}</Typography>
-          <Typography fontSize='16px' color="black">KRA PIN: {vendorPin}</Typography>
-        </Box>
+      {isMobile ? (
+         <Box mt={4}>
+            <Button variant="contained" color="secondary" onClick={handlePrint}>Download Invoice</Button>
 
-        <Box marginBottom='30px' className="table-container">
-          <TableContainer component={Paper}>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  {columns.map((column) => (
-                    <TableCell key={column.field} sx={{ fontWeight: 'bold', fontSize:'10px' }}>{column.headerName}</TableCell>
-                  ))}
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {formattedItems.map((item, index) => (
-                  <TableRow key={index}>
-                    <TableCell>{item.item_details}</TableCell>
-                    <TableCell>{item.quantity}</TableCell>
-                    <TableCell>{item.rate}</TableCell>
-                    <TableCell>{item.vat}</TableCell>
-                    <TableCell>{item.rate_vat}</TableCell>
-                    <TableCell>{item.sub_total}</TableCell>
-                    <TableCell>{item.description}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        </Box>
+            <Box ref={componentRef} className="a4-print-mobile" padding='10mm'>
 
-        <Box display='flex' justifyContent='space-between' mt='20px'>
-          <Box
-            border="1px solid"
-            borderColor={colors.grey[200]}
-            padding="10px"
-            width='50%'
-            sx={{ borderRadius: '8px' }}
-          >
-            <Typography variant="h6" color='black' fontWeight="bold">OTHER COMMENTS</Typography>
-            <Typography variant="body2" color='black'>1. Make all cheques payable to EKATI HAULIERS LIMITED</Typography>
-            <Typography variant="body2" color='black'>2. Payment to be made in {terms}</Typography>
-            <Typography variant="body2" color='black'>3. The VAT is {typeVat}</Typography>
-            <Typography variant="body2" color='black'>4. Pay using {currency}</Typography>
+          {pages.map((pageItems,pageIndex) => (
+            <Box key={pageIndex} className="invoice-page" display='flex' flexDirection='column' height='92vh' justifyContent='space-between'>
+
+              {/* {Header} */}
+              <Box>
+                  <Box textAlign='right' mb='10px'>
+                    <Box textAlign='right'>
+                      <Typography fontSize='35px' color="black" fontWeight="bold" className="INVOICE">{title}</Typography>
+                    </Box>
+                  </Box>
+
+                  <Box mb='20px' display='flex' justifyContent='space-between'>
+                    <Box>
+                    <Typography fontSize='20px' color="black" fontWeight="bold" className="HEADER">BILL TO</Typography>
+                    <Typography fontSize='14px' color="black" className="Info">{customerName}</Typography>
+                    <Typography fontSize='14px' color="black" className="Info">{customerEmail}</Typography>
+                    <Typography fontSize='14px' color="black" className="Info">{customerPhone}</Typography>
+                    <Typography fontSize='14px' color="black" className="Info">KRA PIN: {vendorPin}</Typography>
+                    </Box>
+
+                    <Box>
+                    <Typography fontSize='20px' color="black" fontWeight="bold" className="HEADER">BILL FROM</Typography>
+                      <Typography fontSize='14px' color="black" className="Info">EKATI HAULIERS</Typography>
+                      <Typography fontSize='14px' color="black" className="Info">Emali, Makueni</Typography>
+                      <Typography fontSize='14px' color="black" className="Info">Kenya</Typography>
+                    </Box>
+
+                    <Box>
+                    <Typography fontSize='20px' color="black" fontWeight="bold" className="HEADER">INVOICE</Typography>
+                      <Typography fontSize='14px' color="black" className="Info">{invoiceNumber}</Typography>
+                      <Typography fontSize='14px' color="black" className="Info">Date: {invoiceDate}</Typography>
+                      <Typography fontSize='14px' color="black" className="Info">Due Date: {dueDate}</Typography>
+                    </Box>
+
+                    <Box textAlign='right'>
+                      {customerName === 'EKATI FUELS' && (
+                        <Box textAlign='right'>
+                          <Typography fontSize='20px' color="black" fontWeight="bold" className="HEADER">DIESEL</Typography>
+                          <Typography fontSize='14px' color="black" className="Info">{diesel} Litres</Typography>
+                        </Box>
+                      )}
+                    </Box>
+
+                  </Box>
+              </Box>
+                
+                {/* {Content Area} */}
+                <Box marginBottom='20px' className="table-container">
+                  <TableContainer component={Paper}>
+                    <Table>
+                      <TableHead>
+                        <TableRow>
+                          {columns.map((column) => (
+                            <TableCell key={column.field} sx={{ fontWeight: 'bold', fontSize:'10px' }}>{column.headerName}</TableCell>
+                          ))}
+                        </TableRow>
+                      </TableHead>
+                      <TableBody>
+                        {pageItems.map((item, index) => (
+                          <TableRow key={index}>
+                            <TableCell>{item.item_details}</TableCell>
+                            <TableCell>{item.quantity}</TableCell>
+                            <TableCell>{item.rate}</TableCell>
+                            <TableCell>{item.vat}</TableCell>
+                            <TableCell>{item.rate_vat}</TableCell>
+                            <TableCell>{item.sub_total}</TableCell>
+                            <TableCell>{item.description}</TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </TableContainer>
+
+                  {pageIndex === pages.length - 1 && (
+                        <Box>
+                          <Box display='flex' justifyContent='space-between' mt='20px'>
+                            <Box>
+                              
+                            </Box>
+                            <Box width='50%' textAlign='right'>
+                              <Box mb='1px' display='flex' flexDirection='row' justifyContent='right' gap='10px' alignItems='center'>
+                                <Typography fontSize='17px' color='black' fontWeight="bold">SUB TOTAL :</Typography>
+                                <Typography fontSize='17px' color='black'>{subtotal}</Typography>
+                              </Box>
+                              <Box mb='1px' display='flex' flexDirection='row' justifyContent='right' gap='10px'>
+                              <Box><Typography fontSize='17px' color='black' fontWeight="bold" >VAT AMOUNT :</Typography></Box>
+                              <Box><Typography fontSize='17px' color='black' >{vatamount}</Typography></Box>
+                            </Box>
+
+                              <Box mb='1px' display='flex' flexDirection='row' justifyContent='right' gap='10px'>
+                                <Typography fontSize='17px' color='black' fontWeight="bold" mr='0'>TOTAL :</Typography>
+                                <Typography fontSize='17px' color='black'>{totalTotal}</Typography>
+                              </Box>
+                            </Box>
+                          </Box>
+                        </Box>
+                    )}
+                </Box>
+
+                {/* {Footer} */}
+                <Box justifyContent={'flex-end'}>
+                  <Divider orientation="horizontal" sx={{width:"auto", color:'black', mt:'20px'}}/>
+
+                  <Box display='flex' gap='20px' justifyContent='space-between' mt='20px'>
+                    <Box>
+                      <Typography fontSize='20px' color="black" fontWeight="bold" className="HEADER">Payment Info</Typography>
+                      <Typography fontSize='14px' color='black' className="Info">EKATI HAULIERS LIMITED</Typography>
+                    </Box>
+
+                    <Box>
+                      <Typography fontSize='20px' color="black" fontWeight="bold" className="HEADER">Terms & Conditions</Typography>
+                      <Typography fontSize='14px' color='black' className="Info">Payment to be made in {terms}</Typography>
+                      <Typography fontSize='14px' color='black' className="Info">The VAT is {typeVat}</Typography>
+                      <Typography fontSize='14px' color='black' className="Info">Pay using {currency}</Typography>
+                    </Box>
+
+                    <Box>
+                      <Typography fontSize='20px' color="black" fontWeight="bold" className="HEADER">Contact Us</Typography>
+                      <Typography fontSize='14px' color="black" className="Info">0728891580</Typography>
+                      <Typography fontSize='14px' color="black" className="Info">gmutyetumo@yahoo.com</Typography>
+                    </Box>
+                  </Box>
+                </Box>
           </Box>
-          <Box width='50%' textAlign='right'>
-            <Box mb='1px' display='flex' flexDirection='row' justifyContent='right' gap='10px' alignItems='center'>
-              <Typography fontSize='17px' color='black' fontWeight="bold">SUB TOTAL :</Typography>
-              <Typography fontSize='17px' color='black'>{subtotal}</Typography>
+          ))}
             </Box>
-            <Box mb='1px' display='flex' flexDirection='row' justifyContent='right' gap='10px'>
-            <Box><Typography fontSize='17px' color='black' fontWeight="bold" >VAT AMOUNT :</Typography></Box>
-            <Box><Typography fontSize='17px' color='black' >{vatamount}</Typography></Box>
+        </Box>
+      ):(
+
+        <Box>
+
+        <Box display="flex" justifyContent="center" mt="20px">
+                <ReactToPrint
+                  trigger={() => (
+                    <Button
+                      variant="contained"
+                      color="primary"
+                      sx={{
+                        backgroundColor: colors.blueAccent[700],
+                        color: colors.grey[100],
+                        '&:hover': {
+                          backgroundColor: colors.blueAccent[500],
+                        },
+                        padding: "10px 20px",
+                        fontSize: "16px",
+                        fontWeight: "bold",
+                      }}
+                    >
+                      Print
+                    </Button>
+                  )}
+                  content={() => componentRef.current}
+                />
           </Box>
 
-            <Box mb='1px' display='flex' flexDirection='row' justifyContent='right' gap='10px'>
-              <Typography fontSize='17px' color='black' fontWeight="bold" mr='0'>TOTAL :</Typography>
-              <Typography fontSize='17px' color='black'>{totalTotal}</Typography>
+          <Box ref={componentRef} className="a4-print" padding='10mm'>
+
+        {pages.map((pageItems,pageIndex) => (
+          <Box key={pageIndex} className="invoice-page" display='flex' flexDirection='column' height='92vh' justifyContent='space-between'>
+
+            {/* {Header} */}
+            <Box>
+                <Box textAlign='right' mb='10px'>
+                  <Box textAlign='right'>
+                    <Typography fontSize='35px' color="black" fontWeight="bold" className="INVOICE">{title}</Typography>
+                  </Box>
+                </Box>
+
+                <Box mb='20px' display='flex' justifyContent='space-between'>
+                  <Box>
+                  <Typography fontSize='20px' color="black" fontWeight="bold" className="HEADER">BILL TO</Typography>
+                  <Typography fontSize='14px' color="black" className="Info">{customerName}</Typography>
+                  <Typography fontSize='14px' color="black" className="Info">{customerEmail}</Typography>
+                  <Typography fontSize='14px' color="black" className="Info">{customerPhone}</Typography>
+                  <Typography fontSize='14px' color="black" className="Info">KRA PIN: {vendorPin}</Typography>
+                  </Box>
+
+                  <Box>
+                  <Typography fontSize='20px' color="black" fontWeight="bold" className="HEADER">BILL FROM</Typography>
+                    <Typography fontSize='14px' color="black" className="Info">EKATI HAULIERS</Typography>
+                    <Typography fontSize='14px' color="black" className="Info">Emali, Makueni</Typography>
+                    <Typography fontSize='14px' color="black" className="Info">Kenya</Typography>
+                  </Box>
+
+                  <Box>
+                  <Typography fontSize='20px' color="black" fontWeight="bold" className="HEADER">INVOICE</Typography>
+                    <Typography fontSize='14px' color="black" className="Info">{invoiceNumber}</Typography>
+                    <Typography fontSize='14px' color="black" className="Info">Date: {invoiceDate}</Typography>
+                    <Typography fontSize='14px' color="black" className="Info">Due Date: {dueDate}</Typography>
+                  </Box>
+
+                  <Box textAlign='right'>
+                    {customerName === 'EKATI FUELS' && (
+                      <Box textAlign='right'>
+                        <Typography fontSize='20px' color="black" fontWeight="bold" className="HEADER">DIESEL</Typography>
+                        <Typography fontSize='14px' color="black" className="Info">{diesel} Litres</Typography>
+                      </Box>
+                    )}
+                  </Box>
+
+                </Box>
             </Box>
+              
+              {/* {Content Area} */}
+              <Box marginBottom='20px' className="table-container">
+                <TableContainer component={Paper}>
+                  <Table>
+                    <TableHead>
+                      <TableRow>
+                        {columns.map((column) => (
+                          <TableCell key={column.field} sx={{ fontWeight: 'bold', fontSize:'10px' }}>{column.headerName}</TableCell>
+                        ))}
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {pageItems.map((item, index) => (
+                        <TableRow key={index}>
+                          <TableCell>{item.item_details}</TableCell>
+                          <TableCell>{item.quantity}</TableCell>
+                          <TableCell>{item.rate}</TableCell>
+                          <TableCell>{item.vat}</TableCell>
+                          <TableCell>{item.rate_vat}</TableCell>
+                          <TableCell>{item.sub_total}</TableCell>
+                          <TableCell>{item.description}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+
+                {pageIndex === pages.length - 1 && (
+                      <Box>
+                        <Box display='flex' justifyContent='space-between' mt='20px'>
+                          <Box>
+                            
+                          </Box>
+                          <Box width='50%' textAlign='right'>
+                            <Box mb='1px' display='flex' flexDirection='row' justifyContent='right' gap='10px' alignItems='center'>
+                              <Typography fontSize='17px' color='black' fontWeight="bold">SUB TOTAL :</Typography>
+                              <Typography fontSize='17px' color='black'>{subtotal}</Typography>
+                            </Box>
+                            <Box mb='1px' display='flex' flexDirection='row' justifyContent='right' gap='10px'>
+                            <Box><Typography fontSize='17px' color='black' fontWeight="bold" >VAT AMOUNT :</Typography></Box>
+                            <Box><Typography fontSize='17px' color='black' >{vatamount}</Typography></Box>
+                          </Box>
+
+                            <Box mb='1px' display='flex' flexDirection='row' justifyContent='right' gap='10px'>
+                              <Typography fontSize='17px' color='black' fontWeight="bold" mr='0'>TOTAL :</Typography>
+                              <Typography fontSize='17px' color='black'>{totalTotal}</Typography>
+                            </Box>
+                          </Box>
+                        </Box>
+                      </Box>
+                  )}
+              </Box>
+
+              {/* {Footer} */}
+              <Box justifyContent={'flex-end'}>
+                <Divider orientation="horizontal" sx={{width:"auto", color:'black', mt:'20px'}}/>
+
+                <Box display='flex' gap='20px' justifyContent='space-between' mt='20px'>
+                  <Box>
+                    <Typography fontSize='20px' color="black" fontWeight="bold" className="HEADER">Payment Info</Typography>
+                    <Typography fontSize='14px' color='black' className="Info">EKATI HAULIERS LIMITED</Typography>
+                  </Box>
+
+                  <Box>
+                    <Typography fontSize='20px' color="black" fontWeight="bold" className="HEADER">Terms & Conditions</Typography>
+                    <Typography fontSize='14px' color='black' className="Info">Payment to be made in {terms}</Typography>
+                    <Typography fontSize='14px' color='black' className="Info">The VAT is {typeVat}</Typography>
+                    <Typography fontSize='14px' color='black' className="Info">Pay using {currency}</Typography>
+                  </Box>
+
+                  <Box>
+                    <Typography fontSize='20px' color="black" fontWeight="bold" className="HEADER">Contact Us</Typography>
+                    <Typography fontSize='14px' color="black" className="Info">0728891580</Typography>
+                    <Typography fontSize='14px' color="black" className="Info">gmutyetumo@yahoo.com</Typography>
+                  </Box>
+                </Box>
+              </Box>
+        </Box>
+        ))}
           </Box>
-        </Box>
 
-        <Box display='flex' justifyContent='center' mt='30px'>
-          <Typography variant="body1" color='black'>
-            If you have any questions about this invoice please contact
-          </Typography>
-        </Box>
-
-        <Box display='flex' justifyContent='center'>
-          <Typography variant="body1" color='black' fontWeight="bold">
-            Gerald, 0728891580, gmutyetumo@yahoo.com
-          </Typography>
-        </Box>
-
-        <Box display='flex' justifyContent='center' mt='30px'>
-          <Typography fontSize='24px' color='black' fontWeight="bold">
-            THANK YOU FOR YOUR BUSINESS!
-          </Typography>
-        </Box>
       </Box>
+      )}
 
-      <Box display="flex" justifyContent="center" mt="20px">
-        <ReactToPrint
-          trigger={() => (
-            <Button
-              variant="contained"
-              color="primary"
-              sx={{
-                backgroundColor: colors.blueAccent[700],
-                color: colors.grey[100],
-                '&:hover': {
-                  backgroundColor: colors.blueAccent[500],
-                },
-                padding: "10px 20px",
-                fontSize: "16px",
-                fontWeight: "bold",
-              }}
-            >
-              Print
-            </Button>
-          )}
-          content={() => componentRef.current}
-        />
-      </Box>
+     
     </Box>
   );
 };

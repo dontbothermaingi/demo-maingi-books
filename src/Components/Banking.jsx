@@ -1,17 +1,10 @@
-import StatBox from "./StatBox";
-import { PointOfSale } from "@mui/icons-material";
 import { useEffect, useState } from "react";
-import { tokens } from "../theme";
-import { IconButton, useTheme } from "@mui/material";
+import { Button, Card, CardContent,Pagination,TextField, useMediaQuery, } from "@mui/material";
 import { Box, Typography, Select, MenuItem, FormControl, InputLabel} from "@mui/material";
 import { DataGrid, GridToolbar } from "@mui/x-data-grid";
 import { useNavigate } from "react-router-dom";
-import './Banking.css'
-import DownloadOutlined from "@mui/icons-material/DownloadOutlined";
 
 function Banking() {
-    const theme = useTheme();
-    const colors = tokens(theme.palette.mode);
     const [customers,setCustomers]=useState([])
     const [payementsreceived, setPaymentsRceived] = useState([])
     const [banks,setBanks] = useState([])
@@ -19,10 +12,17 @@ function Banking() {
     const [deposit,setDeposit] = useState([])
     const [funds,setFunds] = useState([])
     const [vendors,setVendors] = useState([]);
+    const [currentPage, setCurrentPage] = useState(1)
+    const [currentInPage, setCurrentInPage] = useState(1)
+    const [currentOutPage, setCurrentOutPage] = useState(1)
+    const [currentInvoicePage, setCurrentInvoicePage] = useState(1)
+    const itemsPerPage = 16;
+    const isMobile = useMediaQuery('(max-width: 768px)');
     const [invoices, setInvoices] = useState([]);
     const [selectedCurrency, setSelectedCurrency] = useState("KES"); 
     const [filteredReceivables, setFilteredReceivables] = useState([]);
     const [bankAccounts, setBankAccounts] = useState([])
+    const token = localStorage.getItem('access_token')
     const [newItem, setNewItem] = useState({
       bank_name: "",
       bank_details: "",
@@ -64,15 +64,23 @@ function Banking() {
         fetch('https://db-demo-u07o.onrender.com/bankaccounts',{
             method:"POST",
             headers:{
-                'Content-Type':'application/json'
+                'Content-Type':'application/json',
+                'Authorization':`Bearer ${token}`
             },
-            body:JSON.stringify(newItem)
+            body:JSON.stringify(newItem),
+            credentials:'include'
         })
         .then(response => response.json())
         .then( (data) => {
             console.log(data)
 
-            fetch('https://db-demo-u07o.onrender.com/bankaccounts')
+            fetch('https://db-demo-u07o.onrender.com/bankaccounts', {
+              method:'GET',
+              headers:{
+                  'Authorization':`Bearer ${token}`
+              },
+              credentials:'include'
+            })
             .then(response => response.json())
             .then(data => {
               const formattedPayment = data.map((payments) => ({
@@ -95,18 +103,25 @@ function Banking() {
       event.preventDefault();
   
       console.log('Submitting deposit data:', formDepositData);
-  
       fetch('https://db-demo-u07o.onrender.com/deposits', {
           method: "POST",
           headers: {
-              'Content-Type': 'application/json'
+              'Content-Type': 'application/json',
+              'Authorization':`Bearer ${token}`
           },
-          body: JSON.stringify(formDepositData)
+          body: JSON.stringify(formDepositData),
+          credentials:'include'
       })
       .then(response => response.json())
       .then(data => {
 
-        fetch('https://db-demo-u07o.onrender.com/bankaccounts')
+        fetch('https://db-demo-u07o.onrender.com/bankaccounts', {
+          method:'GET',
+          headers:{
+            'Authorization':`Bearer ${token}`
+          },
+          credentials:'include'
+        })
         .then(response => response.json())
         .then(data => {
           const formattedPayment = data.map((payments) => ({
@@ -127,11 +142,13 @@ function Banking() {
                   fetch(`https://db-demo-u07o.onrender.com/bankaccounts/${selectedBank.id}`, {
                       method: "PATCH",
                       headers: {
-                          "Content-Type": "application/json"
+                          "Content-Type": "application/json",
+                          'Authorization':`Bearer ${token}`
                       },
                       body: JSON.stringify({
                           amount: updatedAmount
-                      })
+                      }),
+                      credentials:'include'
                   })
                   .then(response => response.json())
                   .then(updatedBank => {
@@ -156,21 +173,35 @@ function Banking() {
     const navigate = useNavigate()
 
     useEffect(() => {
-        fetch('https://db-demo-u07o.onrender.com/invoices')
+        fetch('https://db-demo-u07o.onrender.com/invoices',{
+          method:'GET',
+          headers:{
+            'Authorization':`Bearer ${token}`
+          },
+          credentials:'include'
+        })
             .then(response => response.json())
             .then((data) => {
-                const invoiceTotal = data.map((invoice) => {
-                    const totalAmount = new Intl.NumberFormat().format(invoice.items.reduce((total, item) => total + item.amount, 0));
+
+                const sort = data.sort((a,b) => b.id - a.id)
+                const invoiceTotal = sort.map((invoice) => {
+                    const totalAmount = (invoice.items.reduce((total, item) => total + item.amount, 0));
                     return { ...invoice, totalAmount };
 
                 })
                 const paid = invoiceTotal.filter(item => item.status === 'PAID')
                 setInvoices(paid)
             });
-    }, []);
+    }, [token]);
 
     useEffect(() => {
-      fetch('https://db-demo-u07o.onrender.com/paymentsmade')
+      fetch('https://db-demo-u07o.onrender.com/paymentsmade',{
+          method:'GET',
+          headers:{
+            'Authorization':`Bearer ${token}`
+          },
+          credentials:'include'
+      })
           .then(response => response.json())
           .then((data) => {
               const formattedPayment = data.map((payments) => ({
@@ -178,26 +209,38 @@ function Banking() {
                   payment_amount: new Intl.NumberFormat().format(payments.payment_amount)
               }))
               setPayments(formattedPayment)})
-  }, []);
+  }, [token]);
 
 
     useEffect(() => {
-      fetch('https://db-demo-u07o.onrender.com/bankaccounts')
+      fetch('https://db-demo-u07o.onrender.com/bankaccounts',{
+          method:'GET',
+          headers:{
+            'Authorization':`Bearer ${token}`
+          },
+          credentials:'include'
+      })
           .then(response => response.json())
           .then(data => {
               setBanks(data);
           })
           .catch(error => console.error('Error fetching bills:', error));
-  }, []);
+  }, [token]);
 
   useEffect(() => {
-    fetch('https://db-demo-u07o.onrender.com/customers')
+    fetch('https://db-demo-u07o.onrender.com/customers',{
+          method:'GET',
+          headers:{
+            'Authorization':`Bearer ${token}`
+          },
+          credentials:'include'
+    })
         .then(response => response.json())
         .then(data => {
             setCustomers(data);
         })
         .catch(error => console.error('Error fetching bills:', error));
-}, []);
+}, [token]);
 
 useEffect(() => {
   // Filter data by selected currency
@@ -210,18 +253,30 @@ const handleCurrencyChange = (event) => {
 };
 
 useEffect(() => {
-  fetch('https://db-demo-u07o.onrender.com/vendors')
+  fetch('https://db-demo-u07o.onrender.com/vendors',{
+          method:'GET',
+          headers:{
+            'Authorization':`Bearer ${token}`
+          },
+          credentials:'include'
+  })
       .then(response => response.json())
       .then(data => {
           setVendors(data);
       })
       .catch(error => console.error('Error fetching bills:', error));
-}, []);
+}, [token]);
 
 
   
   useEffect(() => {
-    fetch('https://db-demo-u07o.onrender.com/bankaccounts')
+    fetch('https://db-demo-u07o.onrender.com/bankaccounts',{
+          method:'GET',
+          headers:{
+            'Authorization':`Bearer ${token}`
+          },
+          credentials:'include'
+    })
         .then(response => response.json())
         .then(data => {
           const formattedPayment = data.map((payments) => ({
@@ -231,28 +286,46 @@ useEffect(() => {
             setBankAccounts(formattedPayment);
         })
         .catch(error => console.error('Error fetching bills:', error));
-}, []);
+}, [token]);
 
   useEffect(() => {
-    fetch('https://db-demo-u07o.onrender.com/paymentsreceived')
+    fetch('https://db-demo-u07o.onrender.com/paymentsreceived',{
+          method:'GET',
+          headers:{
+            'Authorization':`Bearer ${token}`
+          },
+          credentials:'include'
+    })
         .then(response => response.json())
         .then(data => {
             setPaymentsRceived(data);
         })
         .catch(error => console.error('Error fetching bills:', error));
-}, []);
+}, [token]);
 
   useEffect(() => {
-    fetch('https://db-demo-u07o.onrender.com/funds')
+    fetch('https://db-demo-u07o.onrender.com/funds',{
+          method:'GET',
+          headers:{
+            'Authorization':`Bearer ${token}`
+          },
+          credentials:'include'
+    })
         .then(response => response.json())
         .then(data => {
             setDeposit(data);
         })
         .catch(error => console.error('Error fetching funds:', error));
-  }, []);
+  }, [token]);
 
   useEffect(() => {
-    fetch('https://db-demo-u07o.onrender.com/funds')
+    fetch('https://db-demo-u07o.onrender.com/funds',{
+          method:'GET',
+          headers:{
+            'Authorization':`Bearer ${token}`
+          },
+          credentials:'include'
+    })
       .then(response => response.json())
       .then(data => {
         console.log(data); // Check the structure of the fetched data
@@ -260,7 +333,7 @@ useEffect(() => {
         setFunds(pettycash);
       })
       .catch(error => console.error('Error fetching funds:', error));
-  }, []);
+  }, [token]);
 
     // Ensure funds is not empty before accessing its elements
     const fund = funds[0] || {};
@@ -281,7 +354,7 @@ useEffect(() => {
     // Calculate Debited Cash
     const calculateDebitedCash = (items) => items.reduce((total, item) => total + (item.total_amount_owed || 0), 0);
     const unpaidDebit = calculateDebitedCash(vendors)
-    const formattedBillAmount = new Intl.NumberFormat().format(unpaidDebit);
+    const formattedBillAmount = new Intl.NumberFormat('en-KE',{style:'currency', currency:'KES'}).format(unpaidDebit);
 
 
     const currencyOptions = [
@@ -557,27 +630,6 @@ useEffect(() => {
           ),
         },
         {
-          field: "consignee",
-          headerName: "Consignee",
-          flex: 0.5,
-          renderCell: (params) => (
-            <Box 
-            sx={{ 
-              display: 'flex', 
-              alignItems: 'center', 
-              cursor: 'pointer', 
-            }}
-            onClick={() => handleViewDetails(params.row.invoice_number)}
-          >
-            <Typography
-              variant="h7"
-            >
-              {params.value}
-            </Typography>
-          </Box>
-          ),
-        },
-        {
           field: "invoice_date",
           headerName: "Invoice Date",
           flex: 0.3,
@@ -724,11 +776,64 @@ useEffect(() => {
       
   ]
 
+  const currencyLocaleMap = {
+    AED: "en-AE", // United Arab Emirates Dirham
+    AUD: "en-AU", // Australian Dollar
+    CAD: "en-CA", // Canadian Dollar
+    CHF: "de-CH", // Swiss Franc
+    CNY: "zh-CN", // Chinese Yuan
+    EUR: "de-DE", // Euro
+    GBP: "en-GB", // British Pound
+    HKD: "en-HK", // Hong Kong Dollar
+    IDR: "id-ID", // Indonesian Rupiah
+    ILS: "he-IL", // Israeli New Shekel
+    INR: "en-IN", // Indian Rupee
+    JPY: "ja-JP", // Japanese Yen
+    KES: "en-KE", // Kenyan Shilling
+    NZD: "en-NZ", // New Zealand Dollar
+    SGD: "en-SG", // Singapore Dollar
+    THB: "th-TH", // Thai Baht
+    TRY: "tr-TR", // Turkish Lira
+    USD: "en-US", // United States Dollar
+    ZAR: "en-ZA", // South African Rand
+    MXN: "es-MX", // Mexican Peso
+    BRL: "pt-BR", // Brazilian Real
+  };
+
+  const totalPages = Math.ceil(bankAccounts.length / itemsPerPage)
+  const displayedItems = bankAccounts.slice((currentPage - 1)*itemsPerPage, currentPage * itemsPerPage)
+
+  const totalInPages = Math.ceil(payementsreceived.length / itemsPerPage)
+  const displayedInItems = payementsreceived.slice((currentInPage - 1)*itemsPerPage, currentInPage * itemsPerPage)
+
+  const totalOutPages = Math.ceil(payments.length / itemsPerPage)
+  const displayedOutItems = payments.slice((currentOutPage - 1)*itemsPerPage, currentOutPage * itemsPerPage)
+
+  const totalInvoicePages = Math.ceil(invoices.length / itemsPerPage)
+  const displayedInvoiceItems = invoices.slice((currentInvoicePage - 1)*itemsPerPage, currentInvoicePage * itemsPerPage)
+  
+
+  const handleInPageChange = (event, value) => {
+      setCurrentInPage(value);
+  };
+
+  const handlePageChange = (event, value) => {
+    setCurrentPage(value);
+  };
+
+  const handleOutPageChange = (event, value) => {
+    setCurrentOutPage(value);
+  };
+
+  const handleInvoicePageChange = (event, value) => {
+    setCurrentInvoicePage(value);
+  };
+
     return (
-        <Box>
+        <Box height={'100vh'} overflow={'auto'}>
 
           {/* Currency Selector */}
-          <FormControl width="50px" margin="normal">
+          <FormControl width="50px" sx={{margin:'40px'}}>
               <InputLabel>Select Currency</InputLabel>
               <Select
                 value={selectedCurrency}
@@ -744,588 +849,859 @@ useEffect(() => {
           </FormControl>
 
         <Box
-            display="grid"
-            gridTemplateColumns="repeat(12, 1fr)"
-            gridAutoRows="140px"
+            display={'grid'}
+            gridTemplateColumns={{xs:'repeat(1,1fr)', sm:'repeat(4,1fr)'}}
             gap="10px"
-            mb="20px"
-            mt="20px"
-            width='1630px'
-            // ml="10px"
+            margin="0 10px"
         >
-            <Box
-                gridColumn="span 3"
-                backgroundColor={colors.primary[400]}
-                borderRadius="10px"
-                display="flex"
-                alignItems="center"
-                justifyContent="center"
+
+          
+            <Card
+                sx={{
+                  borderRadius: '15px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  height: 'auto', // Adjust height for better flexibility
+                  boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
+                  padding: '10px',
+                  margin: '30px',
+                  backgroundColor: '#fff',
+                  transition: 'transform 0.3s ease-in-out',
+                  '&:hover': {
+                      transform: 'scale(1.03)',
+                      boxShadow: '0 8px 30px rgba(0,0,0,0.15)',
+                  },
+              }}
             >
-                <StatBox
-                    title={`$${formattedPaidAmount}`}
-                    subtitle="PAID REVENUE"
-                    icon={
-                        <PointOfSale
-                            sx={{ color: colors.greenAccent[500], fontSize: "26px" }}
-                        />
-                    }
-                />
-            </Box>
-            <Box
-                gridColumn="span 3"
-                backgroundColor={colors.primary[400]}
-                borderRadius="10px"
-                display="flex"
-                alignItems="center"
-                justifyContent="center"
+                <CardContent sx={{display:'flex', flexDirection:'column'}}>
+                  <Typography fontWeight={'bold'} textAlign={'center'}>PAID REVENUE</Typography>
+                  <Typography textAlign={'center'}>{formattedPaidAmount}</Typography>
+                </CardContent>
+            </Card>
+            
+            <Card
+                sx={{
+                  borderRadius: '15px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  height: 'auto', // Adjust height for better flexibility
+                  boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
+                  padding: '10px',
+                  margin: '30px',
+                  backgroundColor: '#fff',
+                  transition: 'transform 0.3s ease-in-out',
+                  '&:hover': {
+                      transform: 'scale(1.03)',
+                      boxShadow: '0 8px 30px rgba(0,0,0,0.15)',
+                  },
+              }}
             >
-                <StatBox
-                    title={`$${formattedUnpaidAmount}`}
-                    subtitle="TOTAL RECEIVABLES"
-                    icon={
-                        <PointOfSale
-                            sx={{ color: colors.greenAccent[500], fontSize: "26px" }}
-                        />
-                    }
-                />
-            </Box>
-            <Box
-                gridColumn="span 3"
-                backgroundColor={colors.primary[400]}
-                borderRadius="10px"
-                display="flex"
-                alignItems="center"
-                justifyContent="center"
+                <CardContent sx={{display:'flex', flexDirection:'column'}}>
+                  <Typography fontWeight={'bold'} textAlign={'center'}>TOTAL RECEIVABLES</Typography>
+                  <Typography textAlign={'center'}>{formattedUnpaidAmount}</Typography>
+                </CardContent>
+            </Card>
+
+            <Card
+                sx={{
+                  borderRadius: '15px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  height: 'auto', // Adjust height for better flexibility
+                  boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
+                  padding: '10px',
+                  margin: '30px',
+                  backgroundColor: '#fff',
+                  transition: 'transform 0.3s ease-in-out',
+                  '&:hover': {
+                      transform: 'scale(1.03)',
+                      boxShadow: '0 8px 30px rgba(0,0,0,0.15)',
+                  },
+                }}
             >
-                <StatBox
-                    title={`$${formattedBillAmount}`}
-                    subtitle="TOTAL PAYABLES"
-                    icon={
-                        <PointOfSale
-                            sx={{ color: colors.greenAccent[500], fontSize: "26px" }}
-                        />
-                    }
-                />
-            </Box>
-            <Box
-                gridColumn="span 3"
-                backgroundColor={colors.primary[400]}
-                borderRadius="10px"
-                display="flex"
-                alignItems="center"
-                justifyContent="center"
+
+                <CardContent sx={{display:'flex', flexDirection:'column'}}>
+                  <Typography fontWeight={'bold'} textAlign={'center'}>TOTAL PAYABLES</Typography>
+                  <Typography textAlign={'center'}>{formattedBillAmount}</Typography>
+                </CardContent>
+
+            </Card>
+
+            <Card
+                sx={{
+                  borderRadius: '15px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  height: 'auto', // Adjust height for better flexibility
+                  boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
+                  padding: '10px',
+                  margin: '30px',
+                  backgroundColor: '#fff',
+                  transition: 'transform 0.3s ease-in-out',
+                  '&:hover': {
+                      transform: 'scale(1.03)',
+                      boxShadow: '0 8px 30px rgba(0,0,0,0.15)',
+                  },
+                }}
             >
-                <StatBox
-                    title={`$${pettyFund}`} // Use optional chaining and fallback
-                    subtitle={pettyName}
-                    icon={
-                        <PointOfSale
-                            sx={{ color: colors.greenAccent[500], fontSize: "26px" }}
-                        />
-                    }
-                />
-            </Box>
-            <Box
-                gridColumn="span 7"
-                gridRow="span 4"
-                backgroundColor={colors.primary[400]}
-                borderRadius="10px"
-                display="flex"
-                flexDirection='column'
-                alignItems="center"
-                justifyContent="center"
+
+                <CardContent sx={{display:'flex', flexDirection:'column'}}>
+                  <Typography fontWeight={'bold'} textAlign={'center'}>{pettyName}</Typography>
+                  <Typography textAlign={'center'}>{pettyFund}</Typography>
+                </CardContent>
+
+            </Card>
+
+          </Box>
+
+          <Box
+            display={'grid'}
+            gridTemplateColumns={{xs:'repeat(1,1fr)', sm:'repeat(2,1fr)'}}
+            gap="10px"
+            margin="0 10px"
+          >
+        
+            <Card
+                sx={{
+                  borderRadius: '15px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  height: 'auto', // Adjust height for better flexibility
+                  boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
+                  padding: '10px',
+                  margin: '30px',
+                  backgroundColor: '#fff',
+                  transition: 'transform 0.3s ease-in-out',
+                  '&:hover': {
+                      transform: 'scale(1.03)',
+                      boxShadow: '0 8px 30px rgba(0,0,0,0.15)',
+                  },
+                }}
             >
-                <Typography  variant="h6" color="black" fontWeight="bold" mt="10px" ml="20px">
+                <Typography  variant="h6" color="black" fontWeight="bold" mt="30px" textAlign={'center'}>
                     CREATE NEW ACCOUNT
                 </Typography>
 
-                    <form className="bank-form" onSubmit={handleSubmit}>
-                      <div className="bill-input">
-                        <label>BANK NAME</label>
-                          <input
+                <Box
+                   sx={{
+                    borderRadius: '15px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    height: 'auto', // Adjust height for better flexibility
+                    padding: '10px',
+                    backgroundColor: '#fff',
+                    // Media queries for responsive design
+                    '@media (max-width: 600px)': {
+                    padding: '5px', // Adjust padding for smaller screens
+                    },
+                    '@media (min-width: 600px)': {
+                    padding: '10px', // Keep padding for medium screens and above
+                    },
+                }}
+                >
+                    <form style={{display:'flex', flexDirection:'column', margin:'20px'}} onSubmit={handleSubmit}>
+
+                          <TextField
                             type="text"
                             name="bank_name"
                             value={newItem.bank_name}
-                            placeholder="Bank Name"
-                            className="bill-inputfield"
+                            label="Bank Name"
                             onChange={handleNewItemChange}
+                            variant="outlined"
+                            sx={{marginBottom:'20px'}}
                           />
-                      </div>
 
-                      <div className="bill-input">
-                        <label>ACCOUNT DETAILS</label>
-                        <input
+                        <TextField
                           type="text"
                           name="bank_details"
                           value={newItem.bank_details}
-                          placeholder="Account Details"
-                          className="bill-inputfield"
+                          label="Account Name"
                           onChange={handleNewItemChange}
+                          variant="outlined"
+                          sx={{marginBottom:'20px'}}
                         />
-                      </div>
 
-                      <div className="bill-input">
-                        <label>CURRENCY</label>
-                        <select
+                      <FormControl>
+                        <Typography fontWeight={'bold'}>CURRENCY</Typography>
+                        <Select
                           value={newItem.currency}
                           name="currency"
                           onChange={handleNewItemChange}
                           className="bill-inputfield"
+                          sx={{mb:'20px'}}
                         >
-                          <option value="">Select Currency</option>
+                          <MenuItem value="">Select Currency</MenuItem>
                           {currencyOptions.map((option) => (
-                            <option key={option.code} value={option.code}>
+                            <MenuItem key={option.code} value={option.code}>
                               {option.label}
-                            </option>
+                            </MenuItem>
                           ))}
-                        </select>
+                        </Select>
                         
-                      </div>
+                      </FormControl>
 
-                      <div className="bill-input">
-                        <label>AMOUNT</label>
-                        <input
+                        <TextField
                           type="text"
                           name="amount"
                           value={newItem.amount}
                           placeholder="Amount"
                           className="bill-inputfield"
                           onChange={handleNewItemChange}
+                          variant="outlined"
+                          sx={{mb:'20px'}}
                         />
-                      </div>
 
-                      <button type="submit" className="button">Create Bank Account</button>
+                      <Button type="submit" variant="contained" color="secondary">Create Bank Account</Button>
                     </form>
+                </Box>
+
+            </Card>
+
+            <Card
+              sx={{
+                borderRadius: '15px',
+                display: 'flex',
+                flexDirection: 'column',
+                height: 'auto', // Adjust height for better flexibility
+                boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
+                padding: '10px',
+                margin: '30px',
+                backgroundColor: '#fff',
+                
+              }}
+            >
+              {isMobile ? (
+                 <Box>
+                 <Typography fontSize={'27px'} fontWeight={'bold'} textAlign={'center'}>BANKS</Typography>
+                 <Box
+                     display={'grid'}
+                     gridTemplateColumns={{xs:'repeat(1,1fr)', sm:'repeat(2,1fr)'}}
+                     gap="10px"
+                     margin="0 10px"
+                 >
+ 
+                     {displayedItems.map((item) => (
+                         <Card
+                             key={item.id}
+                             onClick={() => handleViewDetails(item.invoice_number)}
+                             sx={{
+                                 borderRadius: '15px',
+                                 display: 'flex',
+                                 flexDirection: 'column',
+                                 height: 'auto', // Adjust height for better flexibility
+                                 boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
+                                 padding: '10px',
+                                 backgroundColor: '#fff',
+                                 transition: 'transform 0.3s ease-in-out',
+                                 '&:hover': {
+                                     transform: 'scale(1.03)',
+                                     boxShadow: '0 8px 30px rgba(0,0,0,0.15)',
+                                 },
+                             }}
+                         >
+                             <CardContent>
+                                         <Box display={'flex'} gap={'7px'}>
+                                             <Typography>Bank Name:</Typography>
+                                             <Typography fontWeight={'bold'}>{item.bank_name}</Typography>
+                                         </Box>
+ 
+                                         <Box display={'flex'} gap={'7px'}>
+                                             <Typography>Account Name:</Typography>
+                                             <Typography  fontWeight={'bold'}>{item.bank_details}</Typography>
+                                         </Box>
+ 
+                                         <Box display={'flex'} gap={'7px'}>
+                                             <Typography>Amount:</Typography>
+                                             <Typography fontWeight={'bold'}>{ new Intl.NumberFormat(currencyLocaleMap[item.currency], {style:'currency', currency:item.currency}).format(item.amount)}</Typography>
+                                         </Box>
+ 
+                                         <Box display={'flex'} gap={'7px'}>
+                                             <Typography>Currency:</Typography>
+                                             <Typography fontWeight={'bold'}>{item.currency}</Typography>
+                                         </Box>
+ 
+                             </CardContent>
+                         </Card>
+                     ))}
+                     <Box display="flex" justifyContent="center" mt="20px">
+                             <Pagination count={totalPages} page={currentPage} onChange={handlePageChange} color="secondary" />
+                     </Box>
+                 </Box>
+                 </Box>
+              ):(
+
+                <Box>
+                  <Typography fontSize={'20px'} fontWeight={'bold'} textAlign={'center'}>BANKS</Typography>
+                  <Box m="20px">
+                        <Typography 
+                            fontSize='30px'
+                            fontWeight='bold'
+                            textAlign='center'
+                            mt='30px'
+                        >
+                        </Typography>
+                        <Box
+                            // m="40px 0 0 0"
+                            height="52vh"
+                            sx={{
+                            "& .MuiDataGrid-root": {
+                                border: "none",
+                            },
+                            "& .MuiDataGrid-cell": {
+                                borderBottom: "none",
+                                // fontSize: "16px",
+                            },
+                            "& .name-column--cell": {
+                                // color: colors.greenAccent[300],
+                            },
+                            "& .MuiDataGrid-columnHeaders": {
+                                // backgroundColor: colors.blueAccent[700],
+                                borderBottom: "none",
+                                // fontSize: "16px",
+                            },
+                            "& .MuiDataGrid-virtualScroller": {
+                                // backgroundColor: colors.primary[400],
+                            },
+                            "& .MuiDataGrid-footerContainer": {
+                                borderTop: "none",
+                                // backgroundColor: colors.blueAccent[700],
+                            },
+                            "& .MuiCheckbox-root": {
+                                // color: `${colors.greenAccent[200]} !important`,
+                            },
+                            "& .MuiDataGrid-toolbarContainer .MuiButton-text": {
+                                // color: `${colors.grey[100]} !important`,
+                            },
+                            }}
+                        >
+                            <DataGrid
+                            rows={bankAccounts}
+                            columns={bankcolumns}
+                            components={{ Toolbar: GridToolbar }}
+                            getRowId={(row) => row.id}
+                            />
+                        </Box>
+                  </Box>
+                </Box>
+              )}
+            </Card>
 
             </Box>
+
             <Box
-          gridColumn="span 5"
-          borderRadius='10px'
-          gridRow="span 4"
-          backgroundColor={colors.primary[400]}
-        //   height='400px'
-        >
-          <Box
-            mt="25px"
-            p="0 30px"
-            display="flex "
-            // onClick={handleViewReport}
-            justifyContent="space-between"
-            alignItems="center"
-          >
-            <Box>
-              <Typography
-                variant="h5"
-                fontWeight="600"
-                color={colors.grey[100]}
-              >
-                Banks
-              </Typography>
-              <Typography
-                variant="h3"
-                fontWeight="bold"
-                color={colors.greenAccent[500]}
-              >
-                {/* ${TotalExpenses} */}
-              </Typography>
-            </Box>
-            <Box>
-              <IconButton>
-                <DownloadOutlined
-                  sx={{ fontSize: "26px", color: colors.greenAccent[500] }}
-                />
-              </IconButton>
-            </Box>
-          </Box>
-          <Box m="20px">
-                <Typography 
-                    fontSize='30px'
-                    fontWeight='bold'
-                    textAlign='center'
-                    mt='30px'
-                >
-                </Typography>
-                <Box
-                    // m="40px 0 0 0"
-                    height="52vh"
-                    sx={{
-                    "& .MuiDataGrid-root": {
-                        border: "none",
-                    },
-                    "& .MuiDataGrid-cell": {
-                        borderBottom: "none",
-                        // fontSize: "16px",
-                    },
-                    "& .name-column--cell": {
-                        // color: colors.greenAccent[300],
-                    },
-                    "& .MuiDataGrid-columnHeaders": {
-                        // backgroundColor: colors.blueAccent[700],
-                        borderBottom: "none",
-                        // fontSize: "16px",
-                    },
-                    "& .MuiDataGrid-virtualScroller": {
-                        // backgroundColor: colors.primary[400],
-                    },
-                    "& .MuiDataGrid-footerContainer": {
-                        borderTop: "none",
-                        // backgroundColor: colors.blueAccent[700],
-                    },
-                    "& .MuiCheckbox-root": {
-                        // color: `${colors.greenAccent[200]} !important`,
-                    },
-                    "& .MuiDataGrid-toolbarContainer .MuiButton-text": {
-                        // color: `${colors.grey[100]} !important`,
-                    },
-                    }}
-                >
-                    <DataGrid
-                    rows={bankAccounts}
-                    columns={bankcolumns}
-                    components={{ Toolbar: GridToolbar }}
-                    getRowId={(row) => row.id}
-                    />
-                </Box>
-        </Box>
-            </Box>
-            <Box
-                gridColumn="span 12"
-                borderRadius='10px'
-                gridRow="span 5"
-                backgroundColor={colors.primary[400]}
-              //   height='400px'
-              >
-                <Box
-                  mt="25px"
-                  p="0 30px"
-                  display="flex "
-                  // onClick={handleViewReport}
-                  justifyContent="space-between"
-                  alignItems="center"
-                >
-                  <Box>
-                    <Typography
-                      variant="h5"
-                      fontWeight="600"
-                      color={colors.grey[100]}
-                    >
-                      Transactions In
-                    </Typography>
-                    <Typography
-                      variant="h3"
-                      fontWeight="bold"
-                      color={colors.greenAccent[500]}
-                    >
-                      {/* ${TotalExpenses} */}
-                    </Typography>
-                  </Box>
-                  <Box>
-                    <IconButton>
-                      <DownloadOutlined
-                        sx={{ fontSize: "26px", color: colors.greenAccent[500] }}
-                      />
-                    </IconButton>
-                  </Box>
-                </Box>
-                <Box m="20px">
-                      <Typography 
-                          fontSize='30px'
-                          fontWeight='bold'
-                          textAlign='center'
-                          mt='30px'
-                      >
-                      </Typography>
-                      <Box
-                          // m="40px 0 0 0"
-                          height="68vh"
-                          sx={{
-                          "& .MuiDataGrid-root": {
-                              border: "none",
-                          },
-                          "& .MuiDataGrid-cell": {
-                              borderBottom: "none",
-                              // fontSize: "16px",
-                          },
-                          "& .name-column--cell": {
-                              // color: colors.greenAccent[300],
-                          },
-                          "& .MuiDataGrid-columnHeaders": {
-                              // backgroundColor: colors.blueAccent[700],
-                              borderBottom: "none",
-                              // fontSize: "16px",
-                          },
-                          "& .MuiDataGrid-virtualScroller": {
-                              // backgroundColor: colors.primary[400],
-                          },
-                          "& .MuiDataGrid-footerContainer": {
-                              borderTop: "none",
-                              // backgroundColor: colors.blueAccent[700],
-                          },
-                          "& .MuiCheckbox-root": {
-                              // color: `${colors.greenAccent[200]} !important`,
-                          },
-                          "& .MuiDataGrid-toolbarContainer .MuiButton-text": {
-                              // color: `${colors.grey[100]} !important`,
-                          },
-                          }}
-                      >
-                          <DataGrid
-                          rows={payementsreceived}
-                          columns={transactioncolumns}
-                          components={{ Toolbar: GridToolbar }}
-                          getRowId={(row) => row.id}
-                          />
-                      </Box>
-              </Box>
-        
-            </Box>
-            <Box
-                gridColumn="span 5"
-                gridRow="span 6"
-                backgroundColor={colors.primary[400]}
-                borderRadius="10px"
-                display="flex"
-                flexDirection='column'
-                alignItems="center"
-                justifyContent="center"
+              display={'grid'}
+              gridTemplateColumns={{xs:'repeat(1,1fr)', sm:'repeat(1,1fr)'}}
+              gap="10px"
+              margin="0 10px"
             >
-                <Typography  variant="h6" color="black" fontWeight="bold" mt="10px" ml="20px">
+            <Card
+                sx={{
+                  borderRadius: '15px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  height: 'auto', // Adjust height for better flexibility
+                  boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
+                  padding: '10px',
+                  margin: '30px',
+                  backgroundColor: '#fff',
+                  
+                }}
+              >
+                {isMobile ? (
+                                  <Box>
+                                  <Typography fontSize={'27px'} fontWeight={'bold'} textAlign={'center'} mt={"20px"}>TRANSACTIONS IN</Typography>
+                                  <Box
+                                      display={'grid'}
+                                      gridTemplateColumns={{xs:'repeat(1,1fr)', sm:'repeat(2,1fr)'}}
+                                      gap="10px"
+                                      margin="0 10px"
+                                  >
+                  
+                                      {displayedInItems.map((item) => (
+                                          <Card
+                                              key={item.id}
+                                              sx={{
+                                                  borderRadius: '15px',
+                                                  display: 'flex',
+                                                  flexDirection: 'column',
+                                                  height: 'auto', // Adjust height for better flexibility
+                                                  boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
+                                                  padding: '10px',
+                                                  backgroundColor: '#fff',
+                                                  transition: 'transform 0.3s ease-in-out',
+                                                  '&:hover': {
+                                                      transform: 'scale(1.03)',
+                                                      boxShadow: '0 8px 30px rgba(0,0,0,0.15)',
+                                                  },
+                                              }}
+                                          >
+                                              <CardContent>
+                                                      <Box display={'flex'} gap={'5px'}>
+                                                          <Typography>Customer Name:</Typography>
+                                                          <Typography fontWeight={'bold'}>{item.customer_name}</Typography>
+                                                      </Box>
+
+                                                      <Box display={'flex'} gap={'5px'}>
+                                                          <Typography>Customer Phone:</Typography>
+                                                          <Typography fontWeight={'bold'}>{item.customer_phone}</Typography>
+                                                      </Box>
+
+                                                      <Box display={'flex'} gap={'5px'}>
+                                                          <Typography>Customer Email:</Typography>
+                                                          <Typography fontWeight={'bold'}>{item.customer_email}</Typography>
+                                                      </Box>
+
+                                                      <Box display={'flex'} gap={'5px'}>
+                                                          <Typography>Amount Received:</Typography>
+                                                          <Typography fontWeight={'bold'}>{new Intl.NumberFormat(currencyLocaleMap[item.currency] || 'en-KE', {style:'currency', currency:item.currency}).format(item.amount_received)}</Typography>
+                                                      </Box>
+
+                                                      <Box display={'flex'} gap={'5px'}>
+                                                          <Typography>Bank Charges:</Typography>
+                                                          <Typography fontWeight={'bold'}>{item.bank_charges}</Typography>
+                                                      </Box>
+
+                                                      <Box display={'flex'} gap={'5px'}>
+                                                          <Typography>Payment Date:</Typography>
+                                                          <Typography fontWeight={'bold'}>{item.payment_date}</Typography>
+                                                      </Box>
+
+                                                      <Box display={'flex'} gap={'5px'}>
+                                                          <Typography>Payment Mode:</Typography>
+                                                          <Typography fontWeight={'bold'}>{item.payment_mode}</Typography>
+                                                      </Box>
+                                              </CardContent>
+                                          </Card>
+                                      ))}
+                                      <Box display="flex" justifyContent="center" mt="20px">
+                                              <Pagination count={totalInPages} page={currentInPage} onChange={handleInPageChange} color="secondary" />
+                                      </Box>
+                                  </Box>
+                                </Box>
+                ):(
+                  <Box>
+                  <Typography fontSize={'25px'} fontWeight={'bold'} textAlign={'center'}>TRANSACTIONS IN</Typography>
+                  <Box m="20px">
+                        <Typography 
+                            fontSize='30px'
+                            fontWeight='bold'
+                            textAlign='center'
+                            mt='30px'
+                        >
+                        </Typography>
+                        <Box
+                            // m="40px 0 0 0"
+                            height="68vh"
+                            sx={{
+                            "& .MuiDataGrid-root": {
+                                border: "none",
+                            },
+                            "& .MuiDataGrid-cell": {
+                                borderBottom: "none",
+                                // fontSize: "16px",
+                            },
+                            "& .name-column--cell": {
+                                // color: colors.greenAccent[300],
+                            },
+                            "& .MuiDataGrid-columnHeaders": {
+                                // backgroundColor: colors.blueAccent[700],
+                                borderBottom: "none",
+                                // fontSize: "16px",
+                            },
+                            "& .MuiDataGrid-virtualScroller": {
+                                // backgroundColor: colors.primary[400],
+                            },
+                            "& .MuiDataGrid-footerContainer": {
+                                borderTop: "none",
+                                // backgroundColor: colors.blueAccent[700],
+                            },
+                            "& .MuiCheckbox-root": {
+                                // color: `${colors.greenAccent[200]} !important`,
+                            },
+                            "& .MuiDataGrid-toolbarContainer .MuiButton-text": {
+                                // color: `${colors.grey[100]} !important`,
+                            },
+                            }}
+                        >
+                            <DataGrid
+                            rows={payementsreceived}
+                            columns={transactioncolumns}
+                            components={{ Toolbar: GridToolbar }}
+                            getRowId={(row) => row.id}
+                            />
+                        </Box>
+                  </Box>
+                  </Box>
+                )}
+               
+        
+            </Card>
+
+            </Box>
+
+            <Box
+              display={'grid'}
+              gridTemplateColumns={{xs:'repeat(1,1fr)', sm:'repeat(2,1fr)'}}
+              gap="10px"
+              margin="0 10px"
+            >
+            
+            <Card
+                sx={{
+                  borderRadius: '15px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  height: 'auto', // Adjust height for better flexibility
+                  boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
+                  padding: '10px',
+                  margin: '30px',
+                  backgroundColor: '#fff',
+                }}
+            >
+                <Typography  variant="h6" color="black" fontWeight="bold" mt="20px" textAlign={'center'}>
                     WITHDRAW FROM BANK
                 </Typography>
-                <form className="bank-form" onSubmit={handleDepositSubmit}>
+
+                <Box
+                   sx={{
+                    borderRadius: '15px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    height: 'auto', // Adjust height for better flexibility
+                    padding: '10px',
+                    backgroundColor: '#fff',
+                    // Media queries for responsive design
+                    '@media (max-width: 600px)': {
+                    padding: '5px', // Adjust padding for smaller screens
+                    },
+                    '@media (min-width: 600px)': {
+                    padding: '10px', // Keep padding for medium screens and above
+                    },
+                }}
+                >
+                <form style={{display:'flex', flexDirection:'column', margin:'20px'}} onSubmit={handleDepositSubmit}>
 
 
-                  <div className="bill-input">
-                        <label>BANK ACCOUNT</label>
-                        <select name="bank_details" value={formDepositData.bank_details} className="bill-inputfield" onChange={handleSelectBank}>
-                          <option value="">Select Bank Account</option>
+                  <FormControl>
+                        <Typography fontWeight={'bold'}>BANK ACCOUNT</Typography>
+                        <Select name="bank_details" value={formDepositData.bank_details} sx={{mb:'20px'}} onChange={handleSelectBank}>
+                          <MenuItem value="">Select Bank Account</MenuItem>
                           {banks.map((bank,index) => (
-                          <option key={index} value={bank.bank_details}>{bank.bank_details}</option>
+                          <MenuItem key={index} value={bank.bank_details}>{bank.bank_details}</MenuItem>
                           ))}
-                        </select>
-                    </div>
+                        </Select>
+                    </FormControl>
 
-                    <div className="bill-input">
-                        <label>BANK NAME</label>
-                        <input
+                        <TextField
                             type="text"
                             name="bank_name"
                             value={formDepositData.bank_name}
-                            placeholder="Bank Name"
-                            className="bill-inputfield"
+                            label="Bank Name"
                             onChange={handleDepositChange}
-                            readOnly
+                            inputProps={{readOnly:true}}
+                            variant="outlined"
+                            sx={{mb:'20px'}}
                         />
-                    </div>
 
                     {/* {formDepositData.bank_name.id === formDepositData.} */}
-                    <div className="bill-input">
-                        <label>DEPOSIT TO</label>
-                        <select name="deposit_from" value={formDepositData.deposit_from} className="bill-inputfield" onChange={handleDepositChange}>
-                          <option value="">Select</option>
+                    <FormControl>
+                        <Typography fontWeight={'bold'}>DEPOSIT TO</Typography>
+                        <Select name="deposit_from" value={formDepositData.deposit_from} sx={{mb:'20px'}} onChange={handleDepositChange}>
+                          <MenuItem value="">Select</MenuItem>
                           {deposit.map((bank,index) => (
-                          <option key={index} value={bank.fund_name}>{bank.fund_name}</option>
+                          <MenuItem key={index} value={bank.fund_name}>{bank.fund_name}</MenuItem>
                           ))}
-                        </select>
-                    </div>
+                        </Select>
+                    </FormControl>
 
-                    <div className="bill-input">
-                        <label>CURRENCY</label>
-                        <input
+                        <TextField
                             type="text"
                             name="currency"
                             value={formDepositData.currency}
-                            placeholder="Currency"
-                            className="bill-inputfield"
+                            label="Currency"
                             onChange={handleDepositChange}
-                            readOnly
+                            inputProps={{readOnly:true}}
+                            variant="outlined"
+                            sx={{mb:'20px'}}
                         />
-                    </div>
-                    <div className="bill-input">
-                        <label>BANK CHARGES</label>
-                        <input
+
+                        <TextField
                             type="number"
                             name="bank_charges"
                             value={formDepositData.bank_charges}
-                            placeholder="Bank Charges"
-                            className="bill-inputfield"
+                            label="Bank Charges"
                             onChange={handleDepositChange}
+                            variant="outlined"
+                            sx={{mb:'20px'}}
                         />
-                    </div>
-                    <div className="bill-input">
-                        <label>AMOUNT</label>
-                        <input
+
+                        <TextField
                             type="number"
                             name="amount"
                             value={formDepositData.amount}
-                            placeholder="Amount"
-                            className="bill-inputfield"
+                            label="Amount"
                             onChange={handleDepositChange}
+                            variant="outlined"
+                            sx={{mb:'20px'}}
                         />
-                    </div>
-                    <div className="bill-input">
-                        <label>DATE</label>
-                        <input
+
+                        <Typography>DATE</Typography>
+                        <TextField
                             type="date"
                             name="date"
                             value={formDepositData.date}
-                            placeholder="Date"
-                            className="bill-inputfield"
                             onChange={handleDepositChange}
+                            variant="outlined"
+                            sx={{mb:'20px'}}
                         />
-                    </div>
-                    <button type="submit" className="button">DEPOSIT MONEY</button>
+
+                    <Button type="submit" color="secondary" variant="contained">DEPOSIT MONEY</Button>
                 </form>
-            </Box>
-            <Box
-                gridColumn="span 7"
-                borderRadius='10px'
-                gridRow="span 6"
-                backgroundColor={colors.primary[400]}
-              //   height='400px'
-              >
-                <Box
-                  mt="25px"
-                  p="0 30px"
-                  display="flex "
-                  // onClick={handleViewReport}
-                  justifyContent="space-between"
-                  alignItems="center"
-                >
-                  <Box>
-                    <Typography
-                      variant="h5"
-                      fontWeight="600"
-                      color={colors.grey[100]}
-                    >
-                      Transactions Out
-                    </Typography>
-                    <Typography
-                      variant="h3"
-                      fontWeight="bold"
-                      color={colors.greenAccent[500]}
-                    >
-                      {/* ${TotalExpenses} */}
-                    </Typography>
-                  </Box>
-                  <Box>
-                    <IconButton>
-                      <DownloadOutlined
-                        sx={{ fontSize: "26px", color: colors.greenAccent[500] }}
-                      />
-                    </IconButton>
-                  </Box>
                 </Box>
-                <Box m="20px">
-                      <Typography 
-                          fontSize='30px'
-                          fontWeight='bold'
-                          textAlign='center'
-                          mt='30px'
-                      >
-                      </Typography>
-                      <Box
-                          // m="40px 0 0 0"
-                          height="82vh"
+            </Card>
+            
+            <Card
+                sx={{
+                  borderRadius: '15px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  height: 'auto', // Adjust height for better flexibility
+                  boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
+                  padding: '10px',
+                  margin: '30px',
+                  backgroundColor: '#fff',
+                }}
+              >
+
+                {isMobile ? (
+                   <Box>
+                   <Typography fontSize={'27px'} fontWeight={'bold'} textAlign={'center'} mt={"20px"}>TRANSACTIONS OUT</Typography>
+                   <Box
+                       display={'grid'}
+                       gridTemplateColumns={{xs:'repeat(1,1fr)', sm:'repeat(2,1fr)'}}
+                       gap="10px"
+                       margin="0 10px"
+                   >
+   
+                       {displayedOutItems.map((item) => (
+                           <Card
+                               key={item.id}
+                               sx={{
+                                   borderRadius: '15px',
+                                   display: 'flex',
+                                   flexDirection: 'column',
+                                   height: 'auto', // Adjust height for better flexibility
+                                   boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
+                                   padding: '10px',
+                                   backgroundColor: '#fff',
+                                   transition: 'transform 0.3s ease-in-out',
+                                   '&:hover': {
+                                       transform: 'scale(1.03)',
+                                       boxShadow: '0 8px 30px rgba(0,0,0,0.15)',
+                                   },
+                               }}
+                           >
+                               <CardContent>
+                                       <Box display={'flex'} gap={'5px'}>
+                                           <Typography>Vendor Name:</Typography>
+                                           <Typography fontWeight={'bold'}>{item.vendor_name}</Typography>
+                                       </Box>
+
+                                       <Box display={'flex'} gap={'5px'}>
+                                           <Typography>Vendor Phone:</Typography>
+                                           <Typography fontWeight={'bold'}>{item.vendor_phone}</Typography>
+                                       </Box>
+
+                                       <Box display={'flex'} gap={'5px'}>
+                                           <Typography>Vendor Email:</Typography>
+                                           <Typography fontWeight={'bold'}>{item.vendor_email}</Typography>
+                                       </Box>
+
+                                       <Box display={'flex'} gap={'5px'}>
+                                           <Typography>Amount:</Typography>
+                                           <Typography fontWeight={'bold'}>{new Intl.NumberFormat(currencyLocaleMap[item.currency] || 'en-KE', {style:'currency', currency:item.currency}).format(item.payment_amount)}</Typography>
+                                       </Box>
+
+                                       <Box display={'flex'} gap={'5px'}>
+                                           <Typography>Payment Date:</Typography>
+                                           <Typography fontWeight={'bold'}>{item.payment_date}</Typography>
+                                       </Box>
+
+                                       <Box display={'flex'} gap={'5px'}>
+                                           <Typography>Payment Mode:</Typography>
+                                           <Typography fontWeight={'bold'}>{item.payment_mode}</Typography>
+                                       </Box>
+                               </CardContent>
+                           </Card>
+                       ))}
+                       <Box display="flex" justifyContent="center" mt="20px">
+                               <Pagination count={totalOutPages} page={currentOutPage} onChange={handleOutPageChange} color="secondary" />
+                       </Box>
+                   </Box>
+                 </Box>
+                ):(
+                  <Box>
+                  <Typography fontSize={'25px'} fontWeight={'bold'} textAlign={'center'}>TRANSACTIONS OUT</Typography>
+                  <Box m="20px">
+                        <Typography 
+                            fontSize='30px'
+                            fontWeight='bold'
+                            textAlign='center'
+                            mt='30px'
+                        >
+                        </Typography>
+                        <Box
+                            // m="40px 0 0 0"
+                            height="82vh"
+                            sx={{
+                            "& .MuiDataGrid-root": {
+                                border: "none",
+                            },
+                            "& .MuiDataGrid-cell": {
+                                borderBottom: "none",
+                                // fontSize: "16px",
+                            },
+                            "& .name-column--cell": {
+                                // color: colors.greenAccent[300],
+                            },
+                            "& .MuiDataGrid-columnHeaders": {
+                                // backgroundColor: colors.blueAccent[700],
+                                borderBottom: "none",
+                                // fontSize: "16px",
+                            },
+                            "& .MuiDataGrid-virtualScroller": {
+                                // backgroundColor: colors.primary[400],
+                            },
+                            "& .MuiDataGrid-footerContainer": {
+                                borderTop: "none",
+                                // backgroundColor: colors.blueAccent[700],
+                            },
+                            "& .MuiCheckbox-root": {
+                                // color: `${colors.greenAccent[200]} !important`,
+                            },
+                            "& .MuiDataGrid-toolbarContainer .MuiButton-text": {
+                                // color: `${colors.grey[100]} !important`,
+                            },
+                            }}
+                        >
+                            <DataGrid
+                            rows={payments}
+                            columns={transactionoutcolumns}
+                            components={{ Toolbar: GridToolbar }}
+                            getRowId={(row) => row.id}
+                            />
+                        </Box>
+                  </Box>
+              </Box>
+                )}
+               
+        
+            </Card>
+
+            </Box>
+
+            {isMobile ? (
+              <Box>
+              <Typography fontSize={'27px'} fontWeight={'bold'} textAlign={'center'}>PAID INVOICES</Typography>
+              <Box
+                  display={'grid'}
+                  gridTemplateColumns={{xs:'repeat(1,1fr)', sm:'repeat(2,1fr)'}}
+                  gap="10px"
+                  margin="0 10px"
+              >
+
+                  {displayedInvoiceItems.map((item) => (
+                      <Card
+                          key={item.id}
+                          onClick={() => handleViewDetails(item.invoice_number)}
                           sx={{
-                          "& .MuiDataGrid-root": {
-                              border: "none",
-                          },
-                          "& .MuiDataGrid-cell": {
-                              borderBottom: "none",
-                              // fontSize: "16px",
-                          },
-                          "& .name-column--cell": {
-                              // color: colors.greenAccent[300],
-                          },
-                          "& .MuiDataGrid-columnHeaders": {
-                              // backgroundColor: colors.blueAccent[700],
-                              borderBottom: "none",
-                              // fontSize: "16px",
-                          },
-                          "& .MuiDataGrid-virtualScroller": {
-                              // backgroundColor: colors.primary[400],
-                          },
-                          "& .MuiDataGrid-footerContainer": {
-                              borderTop: "none",
-                              // backgroundColor: colors.blueAccent[700],
-                          },
-                          "& .MuiCheckbox-root": {
-                              // color: `${colors.greenAccent[200]} !important`,
-                          },
-                          "& .MuiDataGrid-toolbarContainer .MuiButton-text": {
-                              // color: `${colors.grey[100]} !important`,
-                          },
+                              borderRadius: '15px',
+                              display: 'flex',
+                              flexDirection: 'column',
+                              height: 'auto', // Adjust height for better flexibility
+                              boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
+                              padding: '10px',
+                              backgroundColor: '#fff',
+                              transition: 'transform 0.3s ease-in-out',
+                              '&:hover': {
+                                  transform: 'scale(1.03)',
+                                  boxShadow: '0 8px 30px rgba(0,0,0,0.15)',
+                              },
                           }}
                       >
-                          <DataGrid
-                          rows={payments}
-                          columns={transactionoutcolumns}
-                          components={{ Toolbar: GridToolbar }}
-                          getRowId={(row) => row.id}
-                          />
-                      </Box>
+                          <CardContent>
+                                      <Box display={'flex'} gap={'7px'}>
+                                          <Typography>Customer Name:</Typography>
+                                          <Typography fontWeight={'bold'}>{item.customer_name}</Typography>
+                                      </Box>
+
+                                      <Box display={'flex'} gap={'7px'}>
+                                          <Typography>Invoice Number:</Typography>
+                                          <Typography  fontWeight={'bold'}>{item.invoice_number}</Typography>
+                                      </Box>
+
+                                      <Box display={'flex'} gap={'7px'}>
+                                          <Typography>Amount:</Typography>
+                                          <Typography fontWeight={'bold'}>{ new Intl.NumberFormat('en-KE', {style:'currency', currency:item.currency}).format(item.totalAmount)}</Typography>
+                                      </Box>
+
+                                      <Box display={'flex'} gap={'7px'}>
+                                          <Typography>Currency:</Typography>
+                                          <Typography fontWeight={'bold'}>{item.currency}</Typography>
+                                      </Box>
+
+                                      <Box display={'flex'} gap={'7px'}>
+                                          <Typography>Date:</Typography>
+                                          <Typography fontWeight={'bold'}>{item.invoice_date}</Typography>
+                                      </Box>
+
+                                      <Box display={'flex'} gap={'7px'}>
+                                          <Typography>Status:</Typography>
+                                          <Typography fontWeight={'bold'}>{item.status}</Typography>
+                                      </Box>
+
+                                      <Box display={'flex'} gap={'7px'}>
+                                          <Typography>Sales Person:</Typography>
+                                          <Typography fontWeight={'bold'}>{item.sales_person}</Typography>
+                                      </Box>
+                          </CardContent>
+                      </Card>
+                  ))}
+                  <Box display="flex" justifyContent="center" mt="20px">
+                          <Pagination count={totalInvoicePages} page={currentInvoicePage} onChange={handleInvoicePageChange} color="secondary" />
+                  </Box>
               </Box>
-        
-            </Box>
+              </Box>
+            ):(
+              <Box m="20px">
+                    <Typography 
+                        fontSize='30px'
+                        fontWeight='bold'
+                        textAlign='center'
+                        mt='30px'
+                    >
+                        PAID INVOICES
+                    </Typography>
+                    <Box
+                        height="75vh"
+                    >
+                        <DataGrid
+                        rows={invoices}
+                        columns={columns}
+                        components={{ Toolbar: GridToolbar }}
+                        getRowId={(row) => row.id}
+                        />
+                    </Box>
 
-        </Box>
-
-        <Box m="20px">
-                <Typography 
-                    fontSize='30px'
-                    fontWeight='bold'
-                    textAlign='center'
-                    mt='30px'
-                >
-                    PAID INVOICES
+                    <Typography variant="h6" color="black" fontWeight="bold" mt="10px" ml="20px" mb={'30px'}>
+                        Total Paid Amount: {formattedPaidAmount}
                 </Typography>
-                <Box
-                    // m="40px 0 0 0"
-                    height="75vh"
-                    sx={{
-                    "& .MuiDataGrid-root": {
-                        border: "none",
-                    },
-                    "& .MuiDataGrid-cell": {
-                        borderBottom: "none",
-                        // fontSize: "16px",
-                    },
-                    "& .name-column--cell": {
-                        // color: colors.greenAccent[300],
-                    },
-                    "& .MuiDataGrid-columnHeaders": {
-                        // backgroundColor: colors.blueAccent[700],
-                        borderBottom: "none",
-                        // fontSize: "16px",
-                    },
-                    "& .MuiDataGrid-virtualScroller": {
-                        // backgroundColor: colors.primary[400],
-                    },
-                    "& .MuiDataGrid-footerContainer": {
-                        borderTop: "none",
-                        // backgroundColor: colors.blueAccent[700],
-                    },
-                    "& .MuiCheckbox-root": {
-                        // color: `${colors.greenAccent[200]} !important`,
-                    },
-                    "& .MuiDataGrid-toolbarContainer .MuiButton-text": {
-                        // color: `${colors.grey[100]} !important`,
-                    },
-                    }}
-                >
-                    <DataGrid
-                    rows={invoices}
-                    columns={columns}
-                    components={{ Toolbar: GridToolbar }}
-                    getRowId={(row) => row.id}
-                    />
-                </Box>
+            </Box>
+            )}
+
+            
+           
         </Box>
-        <Typography variant="h6" color="black" fontWeight="bold" mt="10px" ml="20px">
-                    Total Paid Amount: {formattedPaidAmount}
-        </Typography>
-    </Box>
     );
 }
 

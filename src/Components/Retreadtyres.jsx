@@ -5,9 +5,17 @@ import Header from "./Header";
 
 const AvailableRetreadTyres = () => {
   const [tyres, setTyres] = useState([]);
+  const token = localStorage.getItem('access_token')
+  
 
   useEffect(() => {
-    fetch('https://db-demo-u07o.onrender.com/retreadtyres')
+    fetch('https://db-demo-u07o.onrender.com/usedtyres',{
+          method: 'GET',
+          credentials: 'include',
+          headers: {
+              'Authorization': `Bearer ${token}`
+          }
+    })
       .then(response => {
         if (!response.ok) {
           throw new Error('Network response was not ok');
@@ -21,13 +29,13 @@ const AvailableRetreadTyres = () => {
           final_mileage: new Intl.NumberFormat().format(tyre.final_mileage)
         }));
   
-        const availableTyres = formattedTyres.filter((tyre) => tyre.status === 'AVAILABLE');
+        const availableTyres = formattedTyres.filter((tyre) => tyre.retread_status === 'AVAILABLE');
         setTyres(availableTyres);
       })
       .catch((error) => {
         console.error('There has been a problem with your fetch operation:', error);
       });
-  }, []);
+  }, [token]);
 
 
   const columns = [

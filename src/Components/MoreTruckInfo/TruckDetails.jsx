@@ -30,6 +30,8 @@ const TruckReportPage = () => {
   const [newChart, setNewChart] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const token = localStorage.getItem('access_token')
+
 
   const filterByDateRange = (items, startDate, endDate) => {
     if (!startDate || !endDate) return items; // No filter if dates are not set
@@ -43,7 +45,13 @@ const TruckReportPage = () => {
   useEffect(() => {
     const fetchInvoices = async () => {
       try {
-        const response = await fetch('https://db-demo-u07o.onrender.com/invoices');
+        const response = await fetch('https://db-demo-u07o.onrender.com/invoices',{
+          method:'GET',
+          headers:{
+            'Authorization':`Bearer ${token}`
+          },
+          credentials:'include'
+        });
         const data = await response.json();
         const filteredData = filterByDateRange(data, startDate, endDate);
         const invoiceItems = filteredData.flatMap(invoice =>
@@ -64,12 +72,18 @@ const TruckReportPage = () => {
     };
 
     fetchInvoices();
-  }, [truckId, startDate, endDate]);
+  }, [truckId, startDate, endDate,token]);
 
   useEffect(() => {
     const fetchBills = async () => {
       try {
-        const response = await fetch('https://db-demo-u07o.onrender.com/newbills');
+        const response = await fetch('https://db-demo-u07o.onrender.com/newbills',{
+          method:'GET',
+          headers:{
+            'Authorization':`Bearer ${token}`
+          },
+          credentials:'include'
+        });
         const data = await response.json();
         const filteredData = filterByDateRange(data, startDate, endDate);
         const invoiceItems = filteredData.flatMap(invoice =>
@@ -90,13 +104,19 @@ const TruckReportPage = () => {
     };
 
     fetchBills();
-  }, [truckId, startDate, endDate]);
+  }, [truckId, startDate, endDate, token]);
 
   useEffect(() => {
     setLoading(true);
     const fetchTruckData = async () => {
       try {
-        const response = await fetch(`https://db-demo-u07o.onrender.com/trucks/${truckId}`);
+        const response = await fetch(`https://db-demo-u07o.onrender.com/trucks/${truckId}`,{
+          method:'GET',
+          headers:{
+            'Authorization':`Bearer ${token}`
+          },
+          credentials:'include'
+        });
         const data = await response.json();
         const filteredNew = filterByDateRange(data.removetyres, startDate, endDate);
         const filteredRetread = filterByDateRange(data.removeretreadtyres, startDate, endDate);
@@ -139,7 +159,7 @@ const TruckReportPage = () => {
     };
 
     fetchTruckData();
-  }, [truckId, startDate, endDate]);
+  }, [truckId, startDate, endDate,token]);
 
 
   function handleEditTRuck(){

@@ -1,10 +1,9 @@
 import { useEffect, useState, useRef } from "react";
-import { Typography, Box, TextField, Divider, Button } from "@mui/material";
+import { Typography, Box, TextField, Button, Grid, Card } from "@mui/material";
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import { LocalizationProvider } from "@mui/x-date-pickers";
 import ReactToPrint from "react-to-print";
-import "./TradingProfitLossAccounts.css";
 
 function TradingProfitLossAccount() {
     const [accounts, setAccounts] = useState([]);
@@ -20,6 +19,7 @@ function TradingProfitLossAccount() {
     const [startDate, setStartDate] = useState(null);
     const [endDate, setEndDate] = useState(null);
     const [error, setError] = useState(null);
+    const token = localStorage.getItem('access_token')
     const componentRef = useRef()
     const today = new Date();
     const todayDateOnly = new Date(today.getFullYear(), today.getMonth(), today.getDate());
@@ -51,7 +51,13 @@ function TradingProfitLossAccount() {
     
 
     useEffect(() => {
-        fetch('https://db-demo-u07o.onrender.com/tradingprofitandlossaccounts')
+        fetch('https://db-demo-u07o.onrender.com/tradingprofitandlossaccounts',{
+            method:'GET',
+            headers:{
+                'Authorization': `Bearer ${token}`
+            }, 
+            credentials:'include'
+        })
             .then(response => {
                 if (!response.ok) {
                     throw new Error('Failed to fetch account categories');
@@ -86,6 +92,10 @@ function TradingProfitLossAccount() {
                     .filter(item => item.category_name === 'Transport Sales')
                     .reduce((total, item) => total + item.amount, 0);
 
+                const diesel_sales = Object.values(groupedData)
+                    .filter(item => item.category_name === 'Diesel Sales')
+                    .reduce((total, item) => total + item.amount, 0);
+
                 const other_sales = Object.values(groupedData)
                     .filter(item => item.category_name === 'Other Sales')
                     .reduce((total, item) => total + item.amount, 0);
@@ -104,7 +114,7 @@ function TradingProfitLossAccount() {
                 setTotalExpenses(total_expenses);
 
                 const COGs = COGAS - closingStock;
-                const sales = inventory_sales + transport_sales + other_sales;
+                const sales = inventory_sales + transport_sales + other_sales + diesel_sales;
                 const netsales = sales - returnInwards;
                 const gross_profit = netsales - COGs;
                 const net_income = total_income + gross_profit;
@@ -126,16 +136,16 @@ function TradingProfitLossAccount() {
                 setError(error.message);
                 setLoading(false);
             });
-    }, [startDate, endDate]);
+    }, [startDate, endDate, token]);
 
     const renderAccountType = (typeName) => {
         return accounts
             .filter(account => account.type_name === typeName && account.amount > 0)
             .map(account => (
-                <div key={account.id} className="account-category">
-                    <span>{account.category_name}</span>
-                    <span>${new Intl.NumberFormat().format(account.amount.toFixed(2))}</span>
-                </div>
+                <Box key={account.id} display={'flex'} justifyContent={'space-between'}>
+                    <Typography>{account.category_name}</Typography>
+                    <Typography>${new Intl.NumberFormat().format(account.amount.toFixed(2))}</Typography>
+                </Box>
             ));
     };
 
@@ -143,10 +153,10 @@ function TradingProfitLossAccount() {
         return accounts
             .filter(account => account.type_name === 'Expenses' && account.amount > 0)
             .map(account => (
-                <div key={account.id} className="account-category">
-                    <span>{account.category_name}</span>
-                    <span>${new Intl.NumberFormat().format(account.amount.toFixed(2))}</span>
-                </div>
+                <Box key={account.id} display={'flex'} justifyContent={'space-between'}>
+                    <Typography>{account.category_name}</Typography>
+                    <Typography>${new Intl.NumberFormat().format(account.amount.toFixed(2))}</Typography>
+                </Box>
             ));
     };
 
@@ -154,32 +164,32 @@ function TradingProfitLossAccount() {
         return accounts
             .filter(account => account.type_name === 'Income' && account.amount > 0)
             .map(account => (
-                <div key={account.id} className="account-category">
-                    <span>{account.category_name}</span>
-                    <span>${new Intl.NumberFormat().format(account.amount.toFixed(2))}</span>
-                </div>
+                <Box key={account.id} >
+                    <Typography>{account.category_name}</Typography>
+                    <Typography>${new Intl.NumberFormat().format(account.amount.toFixed(2))}</Typography>
+                </Box>
             ));
     };
 
     const renderGrossSection = () => {
         if (grossProfit > 0) {
             return (
-                <div className="account-category">
-                    <span>Gross Profit c/d</span>
-                    <span>${new Intl.NumberFormat().format(grossProfit.toFixed(2))}</span>
-                </div>
+                <Box display={'flex'} justifyContent={'space-between'}>
+                    <Typography>Gross Profit c/d</Typography>
+                    <Typography>${new Intl.NumberFormat().format(grossProfit.toFixed(2))}</Typography>
+                </Box>
             );
         } else {
             return (
                 <>
-                    <div className="account-category">
-                        <span>Gross Loss c/d</span>
-                        <span>${new Intl.NumberFormat().format(grossLoss.toFixed(2))}</span>
-                    </div>
-                    <div className="account-category">
-                        <span>Gross Loss b/d</span>
-                        <span>${new Intl.NumberFormat().format(grossLoss.toFixed(2))}</span>
-                    </div>
+                    <Box display={'flex'} justifyContent={'space-between'}>
+                        <Typography>Gross Loss c/d</Typography>
+                        <Typography>${new Intl.NumberFormat().format(grossLoss.toFixed(2))}</Typography>
+                    </Box>
+                    <Box display={'flex'} justifyContent={'space-between'}>
+                        <Typography>Gross Loss b/d</Typography>
+                        <Typography>${new Intl.NumberFormat().format(grossLoss.toFixed(2))}</Typography>
+                    </Box>
                 </>
             );
         }
@@ -188,17 +198,17 @@ function TradingProfitLossAccount() {
     const renderNetSection = () => {
         if (netProfit > 0) {
             return (
-                <div className="account-category">
-                    <span>Net Profit c/d</span>
-                    <span>${new Intl.NumberFormat().format(netProfit.toFixed(2))}</span>
-                </div>
+                <Box display={'flex'} justifyContent={'space-between'} >
+                    <Typography>Net Profit c/d</Typography>
+                    <Typography>${new Intl.NumberFormat().format(netProfit.toFixed(2))}</Typography>
+                </Box>
             );
         } else {
             return (
-                <div className="account-category">
-                    <span>Net Loss c/d</span>
-                    <span>${new Intl.NumberFormat().format(netLoss.toFixed(2))}</span>
-                </div>
+                <Box display={'flex'} justifyContent={'space-between'} >
+                    <Typography>Net Loss c/d</Typography>
+                    <Typography>${new Intl.NumberFormat().format(netLoss.toFixed(2))}</Typography>
+                </Box>
             );
         }
     };
@@ -207,95 +217,115 @@ function TradingProfitLossAccount() {
     if (error) return <div>Error: {error}</div>;
 
     return (
-        <Box>
 
-            <Typography fontSize='25px' fontWeight='bold'>FILTER BY DATE</Typography>
-            <Box>
-                <LocalizationProvider dateAdapter={AdapterDateFns}>
-                    <DatePicker
-                        label="Start Date"
-                        value={startDate}
-                        onChange={(date) => setStartDate(date)}
-                        renderInput={(params) => <TextField {...params} />}
-                    />
-                    <DatePicker
-                        label="End Date"
-                        value={endDate}
-                        onChange={(date) => setEndDate(date)}
-                        renderInput={(params) => <TextField {...params} />}
-                    />
-                </LocalizationProvider>
+        <Box margin={{md:'40px', xs:'20px'}}>
+
+            <Box mb={2}>
+                <Typography fontSize='18px' fontWeight='bold'>FILTER BY DATE</Typography>
+                <Box display={'flex'} gap={'5px'}>
+                    <LocalizationProvider dateAdapter={AdapterDateFns}>
+                        <DatePicker
+                            label="Start Date"
+                            value={startDate}
+                            onChange={(date) => setStartDate(date)}
+                            renderInput={(params) => <TextField {...params} />}
+                        />
+                        <DatePicker
+                            label="End Date"
+                            value={endDate}
+                            onChange={(date) => setEndDate(date)}
+                            renderInput={(params) => <TextField {...params} />}
+                        />
+                    </LocalizationProvider>
+                </Box>
             </Box>
-            <div className="balance-sheet" ref={componentRef}>
-            <Typography fontSize='25px' fontWeight='bold' textAlign='center'className="OWE">EKATI HAULIERS</Typography>
-            <Typography fontSize='25px' fontWeight='bold' textAlign='center'className="OWE">TRADING, PROFIT AND LOSS ACCOUNT</Typography>
-            <Typography fontSize='25px' fontWeight='bold' textAlign='center'className="OWE" mb='20px'> For the period {endDate ? new Intl.DateTimeFormat('en-US').format(new Date(endDate)) :  new Intl.DateTimeFormat('en-US').format(todayDateOnly)}</Typography>
+            <Box sx={{ padding: 2, backgroundColor: '#f5f5f5' }} ref={componentRef}>
+            <Typography variant="h4" fontWeight="bold" textAlign="center" mb={2}>
+                EKATI HAULIERS
+            </Typography>
+            <Typography variant="h5" fontWeight="bold" textAlign="center" mb={2}>
+                TRADING, PROFIT AND LOSS ACCOUNT
+            </Typography>
+            <Typography variant="h6" fontWeight="bold" textAlign="center" mb={3}>
+                For the period {endDate ? new Intl.DateTimeFormat('en-US').format(new Date(endDate)) : new Intl.DateTimeFormat('en-US').format(todayDateOnly)}
+            </Typography>
 
+            
 
-                <div className="balance-sheet-content">
-                    <div className="assets-section">
-                    <Typography fontSize='20px' fontWeight='bold' sx={{textDecoration:'underline'}} mb='20px'>Cost of Goods Sold</Typography>
-                        <div className="account-category">
-                            <span>COGS</span>
-                            <span>${new Intl.NumberFormat().format(COGS.toFixed(2))}</span>
-                        </div>
+            <Grid container spacing={2}>
+                <Grid item xs={12} md={6}>
+                    <Card sx={{ padding: 2, boxShadow: 3, backgroundColor: '#fff' }}>
+                        <Typography variant="h6" fontWeight="bold" sx={{ textDecoration: 'underline', marginBottom: 2 }}>
+                            Cost of Goods Sold
+                        </Typography>
+                        <Box display={'flex'} justifyContent={'space-between'}>
+                            <Typography>COGS</Typography>
+                            <Typography>${new Intl.NumberFormat().format(COGS.toFixed(2))}</Typography>
+                        </Box>
                         {renderGrossSection()}
-                    </div>
-                    
-                        <Divider orientation="vertical" flexItem sx={{ backgroundColor: 'black' }} />
-                    <div className="capital-liabilities-section">
-                    <Typography fontSize='20px' fontWeight='bold' sx={{textDecoration:'underline'}} mb='20px'>Sales</Typography>
-                        <div className="account-type">
+                    </Card>
+                </Grid>
+
+                <Grid item xs={12} md={6}>
+                    <Card sx={{ padding: 2, boxShadow: 3, backgroundColor: '#fff' }}>
+                        <Typography variant="h6" fontWeight="bold" sx={{ textDecoration: 'underline', marginBottom: 2 }}>
+                            Sales
+                        </Typography>
+                        <Box>
                             {renderAccountType("Sales")}
-                        </div>
-                        <div className="account-category">
-                            <span>Net Sales</span>
-                            <span>${new Intl.NumberFormat().format(netSales.toFixed(2))}</span>
-                        </div>
-                    </div>
-                </div>
-                <div className="totals">
-                    <div className="total-assets">
-                        <h4>${new Intl.NumberFormat().format(Math.max(COGS, netSales).toFixed(2))}</h4>
-                    </div>
-                    <div className="total-liabilities">
-                        <h4>${new Intl.NumberFormat().format(Math.max(COGS, netSales).toFixed(2))}</h4>
-                    </div>
-                </div>
+                        </Box>
+                        <Box display={'flex'} justifyContent={'space-between'}>
+                            <Typography>Net Sales</Typography>
+                            <Typography>${new Intl.NumberFormat().format(netSales.toFixed(2))}</Typography>
+                        </Box>
+                    </Card>
+                </Grid>
+            </Grid>
 
-                <div className="balance-sheet-content">
-                    <div className="assets-section">
-                        <div className="expenses-section">
-                        <Typography fontSize='20px' fontWeight='bold' sx={{textDecoration:'underline'}} mb='20px' mt='20px'>Expenses</Typography>
-                            {renderExpenses()}
-                            {netProfit > 0 && renderNetSection()}
-                        </div>
-                    </div>
+            <Box mt={2} display={'flex'} justifyContent={'space-between'}>
+                        <Typography>
+                            <Typography>${new Intl.NumberFormat().format(Math.max(COGS, netSales).toFixed(2))}</Typography>
+                        </Typography>
+                        <Typography>
+                            <Typography>${new Intl.NumberFormat().format(Math.max(COGS, netSales).toFixed(2))}</Typography>
+                        </Typography>
+            </Box>
 
-                    <Divider orientation="vertical" flexItem sx={{ backgroundColor: 'black' }} />
+            <Grid container spacing={2} mt={2}>
+                <Grid item xs={12} md={6}>
+                    <Card sx={{ padding: 2, boxShadow: 3, backgroundColor: '#fff' }}>
+                        <Typography variant="h6" fontWeight="bold" sx={{ textDecoration: 'underline', marginBottom: 2 }}>
+                            Expenses
+                        </Typography>
+                        {renderExpenses()}
+                        {netProfit > 0 && renderNetSection()}
+                    </Card>
+                </Grid>
 
-                    <div className="capital-liabilities-section">
-                        <div className="income-section">
-                        <Typography fontSize='20px' fontWeight='bold' sx={{textDecoration:'underline'}} mb='20px' mt='20px'>Income</Typography>
-                            <div className="account-category">
-                                <span>Gross Profit b/d</span>
-                                <span>${new Intl.NumberFormat().format(grossProfit.toFixed(2))}</span>
-                            </div>
-                            {renderIncome()}
-                            {netLoss > 0 && renderNetSection()}
-                        </div>
-                    </div>
-                </div>
+                <Grid item xs={12} md={6}>
+                    <Card sx={{ padding: 2, boxShadow: 3, backgroundColor: '#fff' }}>
+                        <Typography variant="h6" fontWeight="bold" sx={{ textDecoration: 'underline', marginBottom: 2 }}>
+                            Income
+                        </Typography>
+                        <Box display={'flex'} justifyContent={'space-between'}>
+                            <Typography>Gross Profit b/d</Typography>
+                            <Typography>${new Intl.NumberFormat().format(grossProfit.toFixed(2))}</Typography>
+                        </Box>
+                        {renderIncome()}
+                        {netLoss > 0 && renderNetSection()}
+                    </Card>
+                </Grid>
+            </Grid>
 
-                <div className="totals">
-                    <div className="total-assets">
-                        <h4>${new Intl.NumberFormat().format(Math.max(totalExpenses, totalIncome).toFixed(2))}</h4>
-                    </div>
-                    <div className="total-liabilities">
-                        <h4>${new Intl.NumberFormat().format(Math.max(totalExpenses, totalIncome).toFixed(2))}</h4>
-                    </div>
-                </div>
-            </div>
+            <Box mt={2} display={'flex'} justifyContent={'space-between'}>
+                <Typography>
+                    <Typography>${new Intl.NumberFormat().format(Math.max(totalExpenses, totalIncome).toFixed(2))}</Typography>
+                </Typography>
+                <Typography>
+                    <Typography>${new Intl.NumberFormat().format(Math.max(totalExpenses, totalIncome).toFixed(2))}</Typography>
+                </Typography>
+            </Box>
+            </Box>
 
             <Box display="flex" justifyContent="center" mt="20px">
                     <ReactToPrint

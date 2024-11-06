@@ -1,12 +1,15 @@
 import { useState,useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Box, Typography, Select, MenuItem, FormControl, InputLabel } from "@mui/material";
+import { Box, Typography, Select, MenuItem, FormControl, InputLabel, useMediaQuery, Card, CardContent, Pagination } from "@mui/material";
 import { DataGrid, GridToolbar } from "@mui/x-data-grid";
 import StatBox from "./StatBox";
 import PointOfSale from "@mui/icons-material/PointOfSale";
 
 function CustomerBalanceReport(){
-
+  const [currentPage, setCurrentPage] = useState(1)
+  const itemsPerPage = 16;
+  const isMobile = useMediaQuery('(max-width: 768px)');
+  const token = localStorage.getItem('access_token')
 
   const currencyOptions = [
     { code: "AED", label: "United Arab Emirates Dirham" },
@@ -179,7 +182,13 @@ function CustomerBalanceReport(){
     const navigate = useNavigate()
     
     useEffect(()=>{
-        fetch('https://db-demo-u07o.onrender.com/customers')
+        fetch('https://db-demo-u07o.onrender.com/customers', {
+          method:'GET',
+          credentials:'include',
+          headers:{
+            'Authorization':`Bearer ${token}`
+          }
+        })
         .then(response => response.json())
         .then(data => {
             const filter = data.filter(item => item.total_amount_owed > 0)
@@ -191,7 +200,7 @@ function CustomerBalanceReport(){
           setCustomers(formatted)
           setTotals(data)
         })
-      },[])
+      },[token])
 
       useEffect(() => {
         // Filter data by selected currency
@@ -210,7 +219,6 @@ function CustomerBalanceReport(){
     };
 
     const calculateTotal = filteredReceivables.reduce((total, item) => total + item.total_amount_owed, 0);
-    const total = new Intl.NumberFormat().format(calculateTotal);
 
     const columns = [
         {
@@ -365,12 +373,20 @@ function CustomerBalanceReport(){
 
       ];
 
+      const total = new Intl.NumberFormat('en-KE', {style:'currency', currency:'KES'}).format(calculateTotal)
+      const totalPages = Math.ceil(filteredCustomers.length / itemsPerPage)
+      const displayedItems = filteredCustomers.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
+
+      const handlePageChange = (event, value) => {
+        setCurrentPage(value);
+      };
+
     return ( 
-        <div>
+        <Box margin={{md:'40px', xs:'15px'}}>
 
 
           {/* Currency Selector */}
-          <FormControl width="50px" margin="normal">
+          <FormControl width="50px" sx={{margin:'20px'}}>
               <InputLabel>Select Currency</InputLabel>
               <Select
                 value={selectedCurrency}
@@ -388,10 +404,9 @@ function CustomerBalanceReport(){
 
       <Box
         display="grid"
-        gridTemplateColumns="repeat(12, 1fr)"
-        marginRight='20px'
-        gridAutoRows="140px"
+        gridTemplateColumns={{xs:"repeat(1, 1fr)", md:"repeat(12, 1fr)"}}
         gap="20px"
+        margin={'0 10px'}
       >
         {/* ROW 1 */}
           <Box
@@ -417,7 +432,52 @@ function CustomerBalanceReport(){
           </Box>
         </Box>
 
-            <Box m="20px">
+        {isMobile ? (
+                <Box>
+                    <Typography fontSize={'27px'} fontWeight={'bold'} textAlign={'center'}>CUSTOMERS</Typography>
+                    <Box
+                        display={'grid'}
+                        gridTemplateColumns={{xs:'repeat(1,1fr)', sm:'repeat(2,1fr)'}}
+                        gap="10px"
+                        margin="0 10px"
+                    >
+
+                        {displayedItems.map((item) => (
+                            <Card
+                                key={item.id}
+                                sx={{
+                                    borderRadius: '15px',
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    height: 'auto', // Adjust height for better flexibility
+                                    boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
+                                    padding: '10px',
+                                    margin: '30px',
+                                    backgroundColor: '#fff',
+                                    transition: 'transform 0.3s ease-in-out',
+                                    '&:hover': {
+                                        transform: 'scale(1.03)',
+                                        boxShadow: '0 8px 30px rgba(0,0,0,0.15)',
+                                    },
+                                }}
+                            >
+                                <CardContent>
+                                        <Typography>Customer Name: {item.customer_name}</Typography>
+                                        <Typography>Phone Number: {item.customer_phone}</Typography>
+                                        <Typography>Email: {item.customer_email}</Typography>
+                                        <Typography>KRA Pin: {item.vendor_pin}</Typography>
+                                        <Typography>Currency: {item.currency}</Typography>
+                                </CardContent>
+
+                            </Card>
+                        ))}
+                        <Box display="flex" justifyContent="center" mt="20px">
+                                <Pagination count={totalPages} page={currentPage} onChange={handlePageChange} color="secondary" />
+                        </Box>
+                    </Box>
+                </Box>
+            ):(
+                <Box m="20px">
                 <Typography 
                     fontSize='30px'
                     fontWeight='bold'
@@ -426,8 +486,6 @@ function CustomerBalanceReport(){
                     CUSTOMERS
                 </Typography>
                 <Box
-                    m="40px 0 0 0"
-                    height="75vh"
                     sx={{
                     "& .MuiDataGrid-root": {
                         border: "none",
@@ -467,8 +525,9 @@ function CustomerBalanceReport(){
                     />
                 </Box>
             </Box>
+            )}
 
-        </div>
+        </Box>
      );
 }
  

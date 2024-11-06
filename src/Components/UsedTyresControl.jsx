@@ -8,12 +8,12 @@ function UsedTyresControl() {
         navigate('/check-used-tyre');
     }
 
-    function handleRetreadTrip() {
-        navigate('/retread-tyre-shop');
+    function handleUnfitUsedTyre() {
+        navigate('/unfit-used-tyre');
     }
 
-    function handleRetreadShop() {
-        navigate('/retreaded-tyre-shop');
+    function handleFitUsedTyre() {
+        navigate('/fit-used-tyre');
     }
 
     return (
@@ -29,7 +29,41 @@ function UsedTyresControl() {
                 <Card>
                     <CardContent>
                         <Typography variant="h5">
-                            1.  View All Used Tyres
+                            1.  Fit Used Tyre
+                        </Typography>
+                        <Typography fontSize='17px' color="textSecondary" paragraph>
+                            Fit used tyre.
+                        </Typography>
+                        <Button
+                            variant="contained"
+                            color="primary"
+                            onClick={handleFitUsedTyre}
+                        >
+                            Fit
+                        </Button>
+                    </CardContent>
+                </Card>
+                <Card>
+                    <CardContent>
+                        <Typography variant="h5">
+                            2.  Unfit Used Tyre
+                        </Typography>
+                        <Typography fontSize='17px' color="textSecondary" paragraph>
+                            Unfit used tyre.
+                        </Typography>
+                        <Button
+                            variant="contained"
+                            color="primary"
+                            onClick={handleUnfitUsedTyre}
+                        >
+                            Unfit
+                        </Button>
+                    </CardContent>
+                </Card>
+                <Card>
+                    <CardContent>
+                        <Typography variant="h5">
+                            3.  View All Used Tyres
                         </Typography>
                         <Typography fontSize='17px' color="textSecondary" paragraph>
                             Check all used tyres.
@@ -38,41 +72,6 @@ function UsedTyresControl() {
                             variant="contained"
                             color="primary"
                             onClick={handleUsedTyres}
-                        >
-                            View
-                        </Button>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardContent>
-                        <Typography variant="h5">
-                            2. Send Tyres to Retread Shop
-                        </Typography>
-                        <Typography fontSize='17px' color="textSecondary" paragraph>
-                            Use this to send your tyres to get retreaded.
-                        </Typography>
-                        <Button
-                            variant="contained"
-                            color="primary"
-                            onClick={handleRetreadTrip}
-                        >
-                            Send
-                        </Button>
-                    </CardContent>
-                </Card>
-
-                <Card>
-                    <CardContent>
-                        <Typography variant="h5">
-                            3.  View Tyres at the Retread Shop
-                        </Typography>
-                        <Typography fontSize='17px' color="textSecondary" paragraph>
-                            View all tyres getting retreaded.
-                        </Typography>
-                        <Button
-                            variant="contained"
-                            color="primary"
-                            onClick={handleRetreadShop}
                         >
                             View
                         </Button>

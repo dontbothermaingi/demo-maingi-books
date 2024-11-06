@@ -1,20 +1,30 @@
-import { Box } from "@mui/material";
+import { Box, Button, Typography } from "@mui/material";
 import { useEffect, useState } from "react";
 import InvoiceLayout from "./Invoice";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 
 const InvoiceDetails = () => {
   const { invoiceId } = useParams();
   const [invoice, setInvoice] = useState(null);
   const [total, setTotal] = useState(null);
   const [vatTotal, setVatTotal] = useState(null);
+  const [diesels, setDiesels] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [subtotal, setSubtotal] = useState(0); // Initialize subtotal state
+  const token = localStorage.getItem('access_token')
+  const navigate = useNavigate()
+
 
   useEffect(() => {
     setLoading(true); // Set loading to true before fetching data
-    fetch(`https://db-demo-u07o.onrender.com/invoices/${invoiceId}`)
+    fetch(`https://db-demo-u07o.onrender.com/invoices/${invoiceId}`,{
+      method:'GET',
+      headers:{
+        'Authorization':`Bearer ${token}`
+      },
+      credentials:'include'
+    })
       .then(response => response.json())
       .then(data => {
         console.log('Fetched invoice:', data); // Debugging log
@@ -26,7 +36,30 @@ const InvoiceDetails = () => {
         setError(error); // Set error state
         setLoading(false); // Set loading to false in case of error
       });
-  }, [invoiceId]);
+  }, [invoiceId,token]);
+
+  useEffect(() => {
+    fetch('https://db-demo-u07o.onrender.com/pumpnames',{
+      method:'GET',
+      headers:{
+        'Authorization':`Bearer ${token}`
+      },
+      credentials:'include'
+    })
+      .then(response => response.json())
+      .then(data => {
+        const pumpname = invoice.items.length > 0 ? invoice.items[0].item_details : null;
+        console.log(pumpname)
+        const pump = pumpname ? data.filter(pump => pump.pump_name === pumpname) : [];
+        const fuelPump = pump[0]
+        console.log(fuelPump)
+        const total = parseInt(fuelPump.litres)
+        setDiesels(total);
+      })
+      .catch(error => console.error('Error fetching data:', error));
+  }, [invoice,token]);
+
+  const totalDiesel = new Intl.NumberFormat().format(diesels);
 
   useEffect(() => {
     if (invoice && invoice.items) {
@@ -50,11 +83,15 @@ const InvoiceDetails = () => {
         setTotal(calculateTotal);
       }
     }
-  }, [invoice]);
+  }, [invoice,token]);
 
 
   const formatedPayment = invoice ? new Intl.NumberFormat().format(invoice.amount_paid || 0) : "";
   const formatedRemainder = invoice ? new Intl.NumberFormat().format(invoice.amount_owed || 0) : "";
+
+  function handleInvoiceEdit(){
+    navigate(`/invoice-edit/${invoiceId}`)
+  }
 
 
   if (loading) return <div>Loading...</div>;
@@ -63,6 +100,15 @@ const InvoiceDetails = () => {
 
   return (
     <Box m="30px">
+
+      <Button
+          variant="contained"
+          color="secondary"
+          onClick={handleInvoiceEdit}
+      >
+        <Typography>EDIT INVOICE</Typography>
+      </Button>
+
       <InvoiceLayout
         title="INVOICE"
         address={invoice.address}
@@ -86,6 +132,7 @@ const InvoiceDetails = () => {
         status={invoice.status}
         paidtotal={formatedPayment}
         remainder={formatedRemainder}
+        diesel={totalDiesel}
          // Use formatted remainder here
       />
     </Box>

@@ -1,7 +1,7 @@
-import { Box } from "@mui/material";
+import { Box, Button } from "@mui/material";
 import { useEffect, useState } from "react";
 import BillLayout from "./Bill";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 
 const BillDetails = () => {
   const { billId } = useParams();
@@ -11,10 +11,18 @@ const BillDetails = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [subtotal, setSubtotal] = useState(0); // Initialize subtotal state
+  const token = localStorage.getItem('access_token')
+  const navigate = useNavigate()
 
   useEffect(() => {
     setLoading(true); // Set loading to true before fetching data
-    fetch(`https://db-demo-u07o.onrender.com/newbills/${billId}`)
+    fetch(`https://db-demo-u07o.onrender.com/newbills/${billId}`,{
+      method:'GET',
+      credentials:'include',
+      headers:{
+        'Authorization': `Bearer ${token}`
+      }
+    })
       .then(response => response.json())
       .then(data => {
         console.log('Fetched invoice:', data); // Debugging log
@@ -26,7 +34,7 @@ const BillDetails = () => {
         setError(error); // Set error state
         setLoading(false); // Set loading to false in case of error
       });
-  }, [billId]);
+  }, [billId,token]);
 
   useEffect(() => {
     if (bill && bill.items) {
@@ -55,6 +63,10 @@ const BillDetails = () => {
     }
   }, [bill]);
 
+  function handleBillEdit(){
+    navigate(`/bill-edit/${billId}`)
+  }
+
   // Check if bill is defined before formatting payment and remainder
   const formattedPayment = bill ? new Intl.NumberFormat().format(bill.amount_paid || 0) : "";
   const formattedRemainder = bill ? new Intl.NumberFormat().format(bill.amount_owed || 0) : "";
@@ -65,6 +77,15 @@ const BillDetails = () => {
 
   return (
     <Box m="30px">
+
+      <Button
+           variant="contained"
+           color="secondary"
+           onClick={handleBillEdit}
+      >
+        EDIT
+      </Button>
+
       <BillLayout
         title="BILL"
         address={bill.address}

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Box, Typography, Button, Snackbar } from "@mui/material";
+import { Box, Typography, Button, Snackbar, FormControl, Select, MenuItem, TextField, useMediaQuery, Card, CardContent, Pagination } from "@mui/material";
 import { DataGrid, GridToolbar } from "@mui/x-data-grid";
 import './Paymentsmade.css';
 import { useNavigate } from "react-router-dom";
@@ -9,7 +9,11 @@ function Paymentsmade() {
     const [payments, setPayments] = useState([]);
     const [funds,setFunds] = useState([]);
     const [bankAccounts, setBankAccounts] = useState([]);
+    const itemsPerPage = 16;
+    const isMobile = useMediaQuery('(max-width: 768px)');
+    const [currentPage, setCurrentPage] = useState(1)
     const [errorMessage, setErrorMessage] = useState("");
+    const token = localStorage.getItem('access_token')
     const [currencyErrorMessage, setCurrencyErrorMessage] = useState("");
     const [formData, setFormData] = useState({
         vendor_name: "",
@@ -23,8 +27,15 @@ function Paymentsmade() {
         payment_mode: "",
     });
 
+
     useEffect(() => {
-        fetch('https://db-demo-u07o.onrender.com/paymentsmade')
+        fetch('https://db-demo-u07o.onrender.com/paymentsmade', {
+            method:'GET',
+            headers:{
+                'Authorization':`Bearer ${token}`
+            },
+            credentials:'include'
+        })
             .then(response => response.json())
             .then((data) => {
                 const formattedPayment = data.map((payments) => ({
@@ -32,29 +43,47 @@ function Paymentsmade() {
                     payment_amount: new Intl.NumberFormat().format(payments.payment_amount)
                 }))
                 setPayments(formattedPayment)})
-    }, []);
+    }, [token]);
 
     useEffect(() => {
-        fetch('https://db-demo-u07o.onrender.com/vendors')
+        fetch('https://db-demo-u07o.onrender.com/vendors', {
+            method:'GET',
+            headers:{
+                'Authorization':`Bearer ${token}`
+            },
+            credentials:'include'
+        })
             .then(response => response.json())
             .then((data) => setVendors(data))
-    }, []);
+    }, [token]);
 
     useEffect(() => {
-        fetch('https://db-demo-u07o.onrender.com/bankaccounts')
+        fetch('https://db-demo-u07o.onrender.com/bankaccounts', {
+            method:'GET',
+            headers:{
+                'Authorization':`Bearer ${token}`
+            },
+            credentials:'include'
+        })
             .then(response => response.json())
             .then(data => {
     
                 setBankAccounts(data);
             })
             .catch(error => console.error('Error fetching bills:', error));
-    }, []);
+    }, [token]);
 
     useEffect(() => {
-        fetch('https://db-demo-u07o.onrender.com/funds')
+        fetch('https://db-demo-u07o.onrender.com/funds', {
+            method:'GET',
+            headers:{
+                'Authorization':`Bearer ${token}`
+            },
+            credentials:'include'
+        })
             .then(response => response.json())
             .then((data) => setFunds(data))
-    }, []);
+    }, [token]);
 
     function handleChange(event) {
         const { name, value } = event.target;
@@ -86,8 +115,10 @@ function Paymentsmade() {
         fetch('https://db-demo-u07o.onrender.com/paymentsmade', {
             method: "POST",
             headers: {
-                "Content-Type": "application/json"
+                "Content-Type": "application/json",
+                "Authorization":`Bearer ${token}`
             },
+            credentials:'include',
             body: JSON.stringify({
                 ...formData,
                 payment: paymentNumber
@@ -96,7 +127,13 @@ function Paymentsmade() {
         .then((response) => response.json())
         .then((newPayment) => {
 
-                fetch('https://db-demo-u07o.onrender.com/paymentsmade')
+                fetch('https://db-demo-u07o.onrender.com/paymentsmade', {
+                    method:'GET',
+                    headers:{
+                        'Authorization':`Bearer ${token}`
+                    },
+                    credentials:'include'
+                })
                 .then(response => response.json())
                 .then((data) => {
                 const formattedPayment = data.map((payments) => ({
@@ -123,8 +160,10 @@ function Paymentsmade() {
                     fetch(`https://db-demo-u07o.onrender.com/newbills/${bill.id}`, {
                         method: 'PATCH',
                         headers: {
-                            "Content-Type": "application/json"
+                            "Content-Type": "application/json",
+                            "Authorization": `Bearer ${token}`
                         },
+                        credentials:'include',
                         body: JSON.stringify({
                             amount_owed: amountOwed,
                             status: updatedStatus,
@@ -155,7 +194,13 @@ function Paymentsmade() {
             };
     
             // Fetch the unpaid or partially paid invoices associated with the customer
-            fetch(`https://db-demo-u07o.onrender.com/newbills?vendor_name=${formData.vendor_name}&status=UNPAID,PARTIALLY PAID`)
+            fetch(`https://db-demo-u07o.onrender.com/newbills?vendor_name=${formData.vendor_name}&status=UNPAID,PARTIALLY PAID`,{
+                method:'GET',
+                headers:{
+                    'Authorization':`Bearer ${token}`
+                },
+                credentials:'include'
+            })
             .then(response => response.json())
             .then(bills => {
                 updateInvoices(bills);
@@ -169,8 +214,10 @@ function Paymentsmade() {
                     fetch(`https://db-demo-u07o.onrender.com/bankaccounts/${selectedBank.id}`, {
                         method: "PATCH",
                         headers: {
-                            "Content-Type": "application/json"
+                            "Content-Type": "application/json",
+                            "Authorization": `Bearer ${token}`
                         },
+                        credentials:'include',
                         body: JSON.stringify({
                             amount: selectedBank.amount - parseFloat(formData.payment_amount)
                         })
@@ -262,6 +309,27 @@ function Paymentsmade() {
           field: "payment_amount",
           headerName: "Amount Paid",
           flex: 0.2,
+          renderCell: (params) => {
+            // Use Intl.NumberFormat for currency formatting
+            const formattedAmount = new Intl.NumberFormat(currencyLocaleMap[params.row.currency] || 'en-KE', {
+              style: 'currency',
+              currency: params.row.currency, // Replace with your desired currency
+            }).format(params.value);
+        
+            return (
+              <Box 
+                sx={{ 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  cursor: 'pointer', 
+                }}
+              >
+                <Typography variant="h7">
+                  {formattedAmount}  {/* Display formatted amount */}
+                </Typography>
+              </Box>
+            );
+          },
         },
         {
           field: "payment_date",
@@ -276,167 +344,206 @@ function Paymentsmade() {
         
     ]
 
-    return (
-        <div>
-            <div className="bill-content">
-                <div>
-                    <h2 className="h2">NEW PAYMENT</h2>
-                    <form className="bill-form" onSubmit={handleSubmit}>
-                        <div className="bill-input">
-                            <label>Vendor Name</label>
-                            <select name="vendor_name" className="bill-inputfield" value={formData.vendor_name} onChange={handleSelectVendor}>
-                                <option value="">Select Vendor</option>
-                                {vendors.map((vendor, index) => (
-                                    <option key={index} >{vendor.vendor_name}</option>
-                                ))}
-                            </select>
-                        </div>
+    const currencyLocaleMap = {
+        AED: "en-AE", // United Arab Emirates Dirham
+        AUD: "en-AU", // Australian Dollar
+        CAD: "en-CA", // Canadian Dollar
+        CHF: "de-CH", // Swiss Franc
+        CNY: "zh-CN", // Chinese Yuan
+        EUR: "de-DE", // Euro
+        GBP: "en-GB", // British Pound
+        HKD: "en-HK", // Hong Kong Dollar
+        IDR: "id-ID", // Indonesian Rupiah
+        ILS: "he-IL", // Israeli New Shekel
+        INR: "en-IN", // Indian Rupee
+        JPY: "ja-JP", // Japanese Yen
+        KES: "en-KE", // Kenyan Shilling
+        NZD: "en-NZ", // New Zealand Dollar
+        SGD: "en-SG", // Singapore Dollar
+        THB: "th-TH", // Thai Baht
+        TRY: "tr-TR", // Turkish Lira
+        USD: "en-US", // United States Dollar
+        ZAR: "en-ZA", // South African Rand
+        MXN: "es-MX", // Mexican Peso
+        BRL: "pt-BR", // Brazilian Real
+      };
 
-                    <div className="bill-input">
-                        <label>Vendor Phone</label>
-                        <input
+    const totalPages = Math.ceil(payments.length / itemsPerPage)
+    const displayedItems = payments.slice((currentPage - 1)*itemsPerPage, currentPage * itemsPerPage)
+    
+
+    const handlePageChange = (event, value) => {
+        setCurrentPage(value);
+    };
+
+    return (
+        <Box>
+            <Box>
+                <Box
+                    sx={{
+                        borderRadius: '15px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        height: 'auto', // Adjust height for better flexibility
+                        boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
+                        padding: '10px',
+                        margin: '30px',
+                        backgroundColor: '#fff',
+                        // Media queries for responsive design
+                        '@media (max-width: 600px)': {
+                          margin: '15px', // Adjust margin for smaller screens
+                          padding: '5px', // Adjust padding for smaller screens
+                        },
+                        '@media (min-width: 600px)': {
+                          margin: '30px', // Keep margin for medium screens and above
+                          padding: '10px', // Keep padding for medium screens and above
+                        },
+                      }}
+                >
+                    <Typography fontSize={'27px'} fontWeight={'bold'} textAlign={'center'}>NEW PAYMENT</Typography>
+                    <form style={{ display: 'flex', flexDirection: 'column', margin: '30px' }} onSubmit={handleSubmit}>
+
+                        <FormControl>
+                            <Typography fontWeight={'bold'}>Vendor Name</Typography>
+                            <Select name="vendor_name" className="bill-inputfield" value={formData.vendor_name} onChange={handleSelectVendor} sx={{mb:'20px'}}>
+                                <MenuItem value="">Select Vendor</MenuItem>
+                                {vendors.map((vendor, index) => (
+                                 <MenuItem key={index} >{vendor.vendor_name}</MenuItem>
+                                ))}
+                            </Select>
+                        </FormControl>
+
+                        <TextField
                             type="text"
                             name="vendor_phone"
-                            placeholder="Vendor Phone"
-                            className="bill-inputfield"
+                            label="Vendor Phone"
                             value={formData.vendor_phone}
                             onChange={handleChange}
-                            readOnly
+                            InputProps={{ readOnly: true }}
+                            variant="outlined"
+                            sx={{mb:'20px'}}
                         />
-                    </div>
 
-                    <div className="bill-input">
-                        <label>Vendor Email</label>
-                        <input
+                        <TextField
                             type="text"
                             name="vendor_email"
-                            placeholder="Vendor Email"
-                            className="bill-inputfield"
+                            label="Vendor Email"
                             value={formData.vendor_email}
                             onChange={handleChange}
-                            readOnly
+                            InputProps={{ readOnly: true }}
+                            variant="outlined"
+                            sx={{mb:'20px'}}
                         />
-                    </div>
 
-                    <div className="bill-input">
-                        <label>Vendor Pin</label>
-                        <input
+                        <TextField
                             type="text"
                             name="vendor_pin"
-                            placeholder="Vendor Pin"
-                            className="bill-inputfield"
+                            label="Vendor Pin"
                             value={formData.vendor_pin}
                             onChange={handleChange}
-                            readOnly
+                            variant="outlined"
+                            sx={{mb:'20px'}}
+                            InputProps={{ readOnly: true }}
                         />
-                    </div>
 
-                    <div className="bill-input">
-                            <label>Currency</label>
-                            <input
+                            <TextField
                                 type="text"
                                 name="currency"
-                                placeholder="Currency"
-                                className="bill-inputfield"
+                                label="Currency"
                                 value={formData.currency}
                                 onChange={handleChange}
-                                readOnly
+                                variant="outlined"
+                                sx={{mb:'20px'}}
+                                InputProps={{ readOnly: true }}
                             />
-                    </div>
 
                         {formData.vendor_name ? <h2 className="OWE">YOU OWE {formData.vendor_name} {formData.currency} {formData.total_amount_owed}</h2> : ""}
 
 
-                        <div className="bill-input">
-                            <label>Payment Number</label>
-                            <input
+                            <TextField
                                 type="number"
                                 name="payment"
-                                placeholder={paymentNumber}
-                                className="bill-inputfield"
+                                label="Payment Number"
                                 value={paymentNumber}
-                                readOnly
+                                variant="outlined"
+                                sx={{mb:'20px'}}
+                                InputProps={{ readOnly: true }}
                             />
-                        </div>
 
-                        <div className="bill-input">
-                            <label>Payment Amount</label>
-                            <input
+                            <TextField
                                 type="number"
                                 name="payment_amount"
-                                placeholder="Payment Amount"
-                                className="bill-inputfield"
+                                label="Payment Amount"
                                 value={formData.payment_amount}
                                 onChange={handleChange}
                                 required
+                                variant="outlined"
+                                sx={{mb:'20px'}}
                             />
-                        </div>
 
-                        <div className="bill-input">
-                            <label>Pay With</label>
-                            <select name="deposit_to" className="bill-inputfield" value={formData.deposit_to} onChange={handleChange}>
-                                <option value="">Select</option>
-                                {funds.map((fund, index) => (
-                                    <option key={index} value={fund.fund_name}>{fund.fund_name}</option>
-                                ))}
-                            </select>
-                        </div>
+                            <FormControl>
+                                <Typography fontWeight={'bold'}>Pay With</Typography>
+                                <Select name="deposit_to" className="bill-inputfield" value={formData.deposit_to} onChange={handleChange} sx={{mb:'20px'}}>
+                                    <MenuItem value="">Select</MenuItem>
+                                    {funds.map((fund, index) => (
+                                        <MenuItem key={index} value={fund.fund_name}>{fund.fund_name}</MenuItem>
+                                    ))}
+                                </Select>
+                            </FormControl>
 
                         
 
                         {formData.deposit_to === 'Bank' ? 
-                            <div className="bill-input">
-                                <label>BANK ACCOUNT</label>
-                                <select name="bank_details" value={formData.bank_details} className="bill-inputfield" onChange={handleSelectBank}>
-                                <option value="">Select Bank Account</option>
-                                {bankAccounts.map((bank,index) => (
-                                <option key={index} value={bank.bank_details}>{bank.bank_details}</option>
-                                ))}
-                                </select>
-                            </div> : ""
+                            <Box className="bill-input">
+                                <FormControl>
+                                    <Typography fontWeight={'bold'}>BANK ACCOUNT</Typography>
+                                    <Select name="bank_details" value={formData.bank_details} onChange={handleSelectBank} sx={{mb:"20px"}}>
+                                    <MenuItem value="">Select Bank Account</MenuItem>
+                                    {bankAccounts.map((bank,index) => (
+                                    <MenuItem key={index} value={bank.bank_details}>{bank.bank_details}</MenuItem>
+                                    ))}
+                                    </Select>
+                                </FormControl>
+                            </Box> : ""
                         }
 
                         {formData.deposit_to === 'Bank' ? 
-                            <div className="bill-input">
-                                <label>BANK NAME</label>
-                                <input
+                                <TextField
                                     type="text"
                                     name="bank_name"
-                                    placeholder="Bank Name"
-                                    className="bill-inputfield"
+                                    label="Bank Name"
                                     value={formData.bank_name}
                                     onChange={handleChange}
-                                    readOnly
+                                    variant="outlined"
+                                    sx={{mb:'20px'}}
+                                    InputProps={{ readOnly: true }}
                                 />
-                            </div>
                         : "" }
 
-                        <div className="bill-input">
-                            <label>Payment Date</label>
-                            <input
+                        <Typography fontWeight={'bold'}>Date</Typography>
+                            <TextField
                                 type="date"
                                 name="payment_date"
-                                placeholder="Payment Date"
-                                className="bill-inputfield"
                                 value={formData.payment_date}
                                 onChange={handleChange}
                                 required
+                                variant="outlined"
+                                sx={{mb:'20px'}}
                             />
-                        </div>
 
-                        <div className="bill-input">
-                            <label>Payment Mode</label>
-                            <select value={formData.payment_mode} className="bill-inputfield" name="payment_mode" onChange={handleChange}>
-                                <option value="">Select Payment Mode</option>
-                                <option value="Cash">Cash</option>
-                                <option value="Bank Transfer">Bank Transfer</option>
-                                <option value="Bank Remittance">Bank Remittance</option>
-                                <option value="Cheque">Cheque</option>
-                                <option value="Credit Card">Credit Card</option>
-                            </select>
-                        </div>
+                            <FormControl>
+                            <Typography fontWeight={'bold'}>Payment Mode</Typography>
+                            <Select value={formData.payment_mode} className="bill-inputfield" name="payment_mode" onChange={handleChange} sx={{mb:'20px'}}>
+                                <MenuItem value="">Select Payment Mode</MenuItem>
+                                <MenuItem value="Cash">Cash</MenuItem>
+                                <MenuItem value="Bank Transfer">Bank Transfer</MenuItem>
+                                <MenuItem value="Bank Remittance">Bank Remittance</MenuItem>
+                                <MenuItem value="Cheque">Cheque</MenuItem>
+                                <MenuItem value="Credit Card">Credit Card</MenuItem>
+                            </Select>
+                            </FormControl>
 
-                        <button type="submit" className="button">Save Payment</button>
+                        <Button type="submit" variant="contained" color="secondary">Save Payment</Button>
                     </form>
                     {errorMessage && <Snackbar
                         open={Boolean(errorMessage)}
@@ -457,60 +564,75 @@ function Paymentsmade() {
                             <Button color="inherit" onClick={() => setCurrencyErrorMessage('')}>Close</Button>
                         }
                     />}
-                </div>
-            </div>
-
-            <Box m="20px">
-                <Typography 
-                    fontSize='30px'
-                    fontWeight='bold'
-                    textAlign='center'
-                >
-                    PAYMENTS MADE
-                </Typography>
-                <Box
-                    m="40px 0 0 0"
-                    height="75vh"
-                    sx={{
-                    "& .MuiDataGrid-root": {
-                        border: "none",
-                    },
-                    "& .MuiDataGrid-cell": {
-                        borderBottom: "none",
-                        // fontSize: "16px",
-                    },
-                    "& .name-column--cell": {
-                        // color: colors.greenAccent[300],
-                    },
-                    "& .MuiDataGrid-columnHeaders": {
-                        // backgroundColor: colors.blueAccent[700],
-                        borderBottom: "none",
-                        // fontSize: "16px",
-                    },
-                    "& .MuiDataGrid-virtualScroller": {
-                        // backgroundColor: colors.primary[400],
-                    },
-                    "& .MuiDataGrid-footerContainer": {
-                        borderTop: "none",
-                        // backgroundColor: colors.blueAccent[700],
-                    },
-                    "& .MuiCheckbox-root": {
-                        // color: `${colors.greenAccent[200]} !important`,
-                    },
-                    "& .MuiDataGrid-toolbarContainer .MuiButton-text": {
-                        // color: `${colors.grey[100]} !important`,
-                    },
-                    }}
-                >
-                    <DataGrid
-                    rows={payments}
-                    columns={columns}
-                    components={{ Toolbar: GridToolbar }}
-                    getRowId={(row) => row.id}
-                    />
                 </Box>
             </Box>
-        </div>
+
+            {isMobile ? (
+                <Box>
+                <Typography fontSize={'27px'} fontWeight={'bold'} textAlign={'center'} mt={"20px"}>PAYMENTS MADE</Typography>
+                <Box
+                    display={'grid'}
+                    gridTemplateColumns={{xs:'repeat(1,1fr)', sm:'repeat(2,1fr)'}}
+                    gap="10px"
+                    margin="0 10px"
+                >
+
+                    {displayedItems.map((item) => (
+                        <Card
+                            key={item.id}
+                            sx={{
+                                borderRadius: '15px',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                height: 'auto', // Adjust height for better flexibility
+                                boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
+                                padding: '10px',
+                                margin: '30px',
+                                backgroundColor: '#fff',
+                                transition: 'transform 0.3s ease-in-out',
+                                '&:hover': {
+                                    transform: 'scale(1.03)',
+                                    boxShadow: '0 8px 30px rgba(0,0,0,0.15)',
+                                },
+                            }}
+                        >
+                            <CardContent>
+                                    <Typography>Vendor Name: {item.vendor_name}</Typography>
+                                    <Typography>Vendor Phone: {item.vendor_name}</Typography>
+                                    <Typography>Vendor Email: {item.vendor_email}</Typography>
+                                    <Typography>Amount: {new Intl.NumberFormat(currencyLocaleMap[item.currency] || 'en-KE', {style:'currency', currency:item.currency}).format(item.payment_amount)}</Typography>
+                                    <Typography>Payment Date: {item.payment_date}</Typography>
+                                    <Typography>Payment Mode: {item.payment_mode}</Typography>
+                            </CardContent>
+                        </Card>
+                    ))}
+                    <Box display="flex" justifyContent="center" mt="20px">
+                            <Pagination count={totalPages} page={currentPage} onChange={handlePageChange} color="secondary" />
+                    </Box>
+                </Box>
+            </Box>
+              ) : (
+                <Box m="20px">
+                  <Typography 
+                      fontSize='30px'
+                      fontWeight='bold'
+                      textAlign='center'
+                  >
+                      PAYMENTS
+                  </Typography>
+                  <Box
+                      height="75vh"
+                  >
+                      <DataGrid
+                      rows={payments}
+                      columns={columns}
+                      components={{ Toolbar: GridToolbar }}
+                      getRowId={(row) => row.id}
+                      />
+                  </Box>
+                </Box>
+              )}
+        </Box>
     );
 }
 

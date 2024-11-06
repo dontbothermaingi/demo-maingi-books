@@ -1,31 +1,37 @@
 import { useEffect, useState } from "react";
-import { Box, Typography} from "@mui/material";
+import { Box, Button, Card, CardContent, Pagination, Typography, useMediaQuery} from "@mui/material";
 import { DataGrid, GridToolbar } from "@mui/x-data-grid";
 import { useNavigate } from "react-router-dom";
-import './Invoice.css'
 import InvoiceControl from "./InvoiceControl";
 
 function Invoice() {
     const [invoices, setInvoices] = useState([]);
     const [isNewCustomer, setIsNewCustomer] = useState(null)
-
-
+    const [currentPage, setCurrentPage] = useState(1)
+    const itemsPerPage = 16;
+    const token = localStorage.getItem('access_token')
     const navigate = useNavigate();
 
-    
-
     useEffect(() => {
-        fetch('https://db-demo-u07o.onrender.com/invoices')
+        fetch('https://db-demo-u07o.onrender.com/invoices', {
+            method:'GET',
+            headers:{
+                'Authorization':`Bearer ${token}`
+            },
+            credentials:'include'
+        })
             .then(response => response.json())
             .then((data) => {
-                const invoiceTotal = data.map((invoice) => {
-                    const totalAmount = new Intl.NumberFormat().format(invoice.items.reduce((total, item) => total + item.amount, 0));
+
+              const filter = data.sort((a,b) => b.id - a.id)
+                const invoiceTotal = filter.map((invoice) => {
+                    const totalAmount = (invoice.items.reduce((total, item) => total + item.amount, 0));
                     return { ...invoice, totalAmount };
 
                 })
                 setInvoices(invoiceTotal);
             });
-    }, []);
+    }, [token]);
 
 
     function handleToggleInvoice() {
@@ -34,6 +40,30 @@ function Invoice() {
 
     const handleViewDetails = (invoiceId) => {
         navigate(`/invoices/${invoiceId}`);
+      };
+    
+      const currencyLocaleMap = {
+        AED: "en-AE", // United Arab Emirates Dirham
+        AUD: "en-AU", // Australian Dollar
+        CAD: "en-CA", // Canadian Dollar
+        CHF: "de-CH", // Swiss Franc
+        CNY: "zh-CN", // Chinese Yuan
+        EUR: "de-DE", // Euro
+        GBP: "en-GB", // British Pound
+        HKD: "en-HK", // Hong Kong Dollar
+        IDR: "id-ID", // Indonesian Rupiah
+        ILS: "he-IL", // Israeli New Shekel
+        INR: "en-IN", // Indian Rupee
+        JPY: "ja-JP", // Japanese Yen
+        KES: "en-KE", // Kenyan Shilling
+        NZD: "en-NZ", // New Zealand Dollar
+        SGD: "en-SG", // Singapore Dollar
+        THB: "th-TH", // Thai Baht
+        TRY: "tr-TR", // Turkish Lira
+        USD: "en-US", // United States Dollar
+        ZAR: "en-ZA", // South African Rand
+        MXN: "es-MX", // Mexican Peso
+        BRL: "pt-BR", // Brazilian Real
       };
     
     const columns = [
@@ -50,7 +80,7 @@ function Invoice() {
               alignItems: 'center', 
               cursor: 'pointer', 
             }}
-            onClick={() => handleViewDetails(params.row.invoice_number)}
+            onClick={() => handleViewDetails(params.row.id)}
           >
             <Typography
                 variant="h7"
@@ -71,7 +101,7 @@ function Invoice() {
               alignItems: 'center', 
               cursor: 'pointer', 
             }}
-            onClick={() => handleViewDetails(params.row.invoice_number)}
+            onClick={() => handleViewDetails(params.row.id)}
           >
             <Typography
               variant="h7"
@@ -92,7 +122,7 @@ function Invoice() {
               alignItems: 'center', 
               cursor: 'pointer', 
             }}
-            onClick={() => handleViewDetails(params.row.invoice_number)}
+            onClick={() => handleViewDetails(params.row.id)}
           >
             <Typography
               variant="h7"
@@ -106,22 +136,28 @@ function Invoice() {
           field: "totalAmount",
           headerName: "Amount",
           flex: 0.3,
-          renderCell: (params) => (
-            <Box 
-            sx={{ 
-              display: 'flex', 
-              alignItems: 'center', 
-              cursor: 'pointer', 
-            }}
-            onClick={() => handleViewDetails(params.row.invoice_number)}
-          >
-            <Typography
-              variant="h7"
-            >
-              {params.value}
-            </Typography>
-          </Box>
-          ),
+          renderCell: (params) => {
+            // Use Intl.NumberFormat for currency formatting
+            const formattedAmount = new Intl.NumberFormat(currencyLocaleMap[params.row.currency], {
+              style: 'currency',
+              currency: params.row.currency, // Replace with your desired currency
+            }).format(params.value);
+        
+            return (
+              <Box 
+                sx={{ 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  cursor: 'pointer', 
+                }}
+                onClick={() => handleViewDetails(params.row.id)}
+              >
+                <Typography variant="h7">
+                  {formattedAmount}  {/* Display formatted amount */}
+                </Typography>
+              </Box>
+            );
+          },
         },
         {
           field: "invoice_date",
@@ -134,7 +170,7 @@ function Invoice() {
               alignItems: 'center', 
               cursor: 'pointer', 
             }}
-            onClick={() => handleViewDetails(params.row.invoice_number)}
+            onClick={() => handleViewDetails(params.row.id)}
           >
             <Typography
               variant="h7"
@@ -155,7 +191,7 @@ function Invoice() {
               alignItems: 'center', 
               cursor: 'pointer', 
             }}
-            onClick={() => handleViewDetails(params.row.invoice_number)}
+            onClick={() => handleViewDetails(params.row.id)}
           >
             <Typography
               variant="h7"
@@ -176,7 +212,7 @@ function Invoice() {
               alignItems: 'center', 
               cursor: 'pointer', 
             }}
-            onClick={() => handleViewDetails(params.row.invoice_number)}
+            onClick={() => handleViewDetails(params.row.id)}
           >
             <Typography
               variant="h7"
@@ -188,68 +224,133 @@ function Invoice() {
         },
     ]
 
+    const isMobile = useMediaQuery('(max-width: 768px)');
+
+    const totalPages = Math.ceil(invoices.length / itemsPerPage)
+    const displayedItems = invoices.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
+
+    const handlePageChange = (event, value) => {
+        setCurrentPage(value);
+    };
+
+
+
     return (
         <Box>
 
-                            <button
+          <Button
                                 type="button"
-                                className="button"
+                                variant="contained"
+                                color="secondary"
                                 onClick={handleToggleInvoice}
+                                sx={{m:'30px'}}
                                 >
                                 {!isNewCustomer ? "New Invoice" : "All Invoices"}
-                        </button>
+          </Button>
+
         {isNewCustomer ?  
-           <InvoiceControl/> :
-                <Box m="20px">
-                <Typography 
-                    fontSize='30px'
-                    fontWeight='bold'
-                    textAlign='center'
-                >
-                    INVOICES
-                </Typography>
+           (<InvoiceControl/>):
+           (
+
+            <Box>
+
+              {isMobile ? (
+                <Box>
+                <Typography fontSize={'27px'} fontWeight={'bold'} textAlign={'center'}>INVOICES</Typography>
                 <Box
-                    m="40px 0 0 0"
-                    height="75vh"
-                    sx={{
-                    "& .MuiDataGrid-root": {
-                        border: "none",
-                    },
-                    "& .MuiDataGrid-cell": {
-                        borderBottom: "none",
-                        // fontSize: "16px",
-                    },
-                    "& .name-column--cell": {
-                        // color: colors.greenAccent[300],
-                    },
-                    "& .MuiDataGrid-columnHeaders": {
-                        // backgroundColor: colors.blueAccent[700],
-                        borderBottom: "none",
-                        // fontSize: "16px",
-                    },
-                    "& .MuiDataGrid-virtualScroller": {
-                        // backgroundColor: colors.primary[400],
-                    },
-                    "& .MuiDataGrid-footerContainer": {
-                        borderTop: "none",
-                        // backgroundColor: colors.blueAccent[700],
-                    },
-                    "& .MuiCheckbox-root": {
-                        // color: `${colors.greenAccent[200]} !important`,
-                    },
-                    "& .MuiDataGrid-toolbarContainer .MuiButton-text": {
-                        // color: `${colors.grey[100]} !important`,
-                    },
-                    }}
+                    display={'grid'}
+                    gridTemplateColumns={{xs:'repeat(1,1fr)', sm:'repeat(2,1fr)'}}
+                    gap="10px"
+                    margin="0 10px"
                 >
-                    <DataGrid
-                    rows={invoices}
-                    columns={columns}
-                    components={{ Toolbar: GridToolbar }}
-                    getRowId={(row) => row.id}
-                    />
+
+                    {displayedItems.map((item) => (
+                        <Card
+                            key={item.id}
+                            onClick={() => handleViewDetails(item.invoice_number)}
+                            sx={{
+                                borderRadius: '15px',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                height: 'auto', // Adjust height for better flexibility
+                                boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
+                                padding: '10px',
+                                backgroundColor: '#fff',
+                                transition: 'transform 0.3s ease-in-out',
+                                '&:hover': {
+                                    transform: 'scale(1.03)',
+                                    boxShadow: '0 8px 30px rgba(0,0,0,0.15)',
+                                },
+                            }}
+                        >
+                            <CardContent>
+                                        <Box display={'flex'} gap={'7px'}>
+                                            <Typography>Customer Name:</Typography>
+                                            <Typography fontWeight={'bold'}>{item.customer_name}</Typography>
+                                        </Box>
+
+                                        <Box display={'flex'} gap={'7px'}>
+                                            <Typography>Invoice Number:</Typography>
+                                            <Typography  fontWeight={'bold'}>{item.invoice_number}</Typography>
+                                        </Box>
+
+                                        <Box display={'flex'} gap={'7px'}>
+                                            <Typography>Amount:</Typography>
+                                            <Typography fontWeight={'bold'}>{ new Intl.NumberFormat('en-KE', {style:'currency', currency:item.currency}).format(item.totalAmount)}</Typography>
+                                        </Box>
+
+                                        <Box display={'flex'} gap={'7px'}>
+                                            <Typography>Currency:</Typography>
+                                            <Typography fontWeight={'bold'}>{item.currency}</Typography>
+                                        </Box>
+
+                                        <Box display={'flex'} gap={'7px'}>
+                                            <Typography>Date:</Typography>
+                                            <Typography fontWeight={'bold'}>{item.invoice_date}</Typography>
+                                        </Box>
+
+                                        <Box display={'flex'} gap={'7px'}>
+                                            <Typography>Status:</Typography>
+                                            <Typography fontWeight={'bold'}>{item.status}</Typography>
+                                        </Box>
+
+                                        <Box display={'flex'} gap={'7px'}>
+                                            <Typography>Sales Person:</Typography>
+                                            <Typography fontWeight={'bold'}>{item.sales_person}</Typography>
+                                        </Box>
+
+                            </CardContent>
+                        </Card>
+                    ))}
+                    <Box display="flex" justifyContent="center" mt="20px">
+                            <Pagination count={totalPages} page={currentPage} onChange={handlePageChange} color="secondary" />
+                    </Box>
                 </Box>
+                </Box>
+              ) : (
+                <Box m="20px">
+                  <Typography 
+                      fontSize='30px'
+                      fontWeight='bold'
+                      textAlign='center'
+                  >
+                      INVOICES
+                  </Typography>
+                  <Box
+                      height="75vh"
+                  >
+                      <DataGrid
+                      rows={invoices}
+                      columns={columns}
+                      components={{ Toolbar: GridToolbar }}
+                      getRowId={(row) => row.id}
+                      />
+                  </Box>
+                </Box>
+              )}
+                
             </Box>
+           )
             }
 
         </Box>

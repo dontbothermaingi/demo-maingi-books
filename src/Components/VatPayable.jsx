@@ -1,4 +1,4 @@
-import { Box, Button, TextField,Typography } from "@mui/material";
+import { Box, Button, Card, CardContent, Pagination, TextField,Typography, useMediaQuery } from "@mui/material";
 import { DataGrid, GridToolbar } from "@mui/x-data-grid";
 import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
@@ -9,13 +9,16 @@ import PointOfSale from "@mui/icons-material/PointOfSale";
 import ReactToPrint from "react-to-print";
 
 function VatPayable (){
-
     const [vat, setVat] = useState([]);
     const componentRef = useRef();
     const [calculation, setCalculation] = useState([])
+    const [currentPage, setCurrentPage] = useState(1)
+    const itemsPerPage = 16;
+    const isMobile = useMediaQuery('(max-width: 768px)');
     const [startDate,setStartDate] = useState(null)
     const [endDate,setEndDate] = useState(null)
     const navigate = useNavigate()
+    const token = localStorage.getItem('access_token')
 
     function filterByDateRange(items,startDate,endDate){
         if (!startDate || !endDate) return items
@@ -27,19 +30,25 @@ function VatPayable (){
     }
 
     useEffect(() => {
-      fetch('https://db-demo-u07o.onrender.com/invoices')
+      fetch('https://db-demo-u07o.onrender.com/invoices',{
+            method:'GET',
+            headers:{
+                'Authorization':`Bearer ${token}`
+            },
+            credentials:'include'
+      })
           .then(response => response.json())
           .then((data) => {
+
+              const sort = data.sort((a,b) => b.id - a.id)
               // Assuming filterByDateRange is a function that filters data by date
-              const filterDate = filterByDateRange(data,startDate,endDate);
+              const filterDate = filterByDateRange(sort,startDate,endDate);
               
               // Flatten the structure so each item has its corresponding invoice data
               const all = filterDate.flatMap(invoice =>
                   invoice.items.map(item => ({
                       ...invoice,
                       ...item,
-                      rate_vat: new Intl.NumberFormat().format(item.rate_vat.toFixed(2)),
-                      amount: new Intl.NumberFormat().format(item.amount.toFixed(2)),
                       sub_total: new Intl.NumberFormat().format(item.sub_total.toFixed(2))
                   }))
               );
@@ -56,7 +65,7 @@ function VatPayable (){
               setCalculation(calculate);
           })
           .catch(error => console.error('Error fetching invoices:', error));
-  }, [startDate, endDate]);
+  }, [startDate, endDate, token]);
   
 
     function handleViewDetails(invoiceId){
@@ -238,13 +247,22 @@ function VatPayable (){
         ), },
       ];
 
-    return ( 
-        <Box>
+      const totalPages = Math.ceil(vat.length / itemsPerPage)
+    const displayedItems = vat.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
+  
+      const handlePageChange = (event, value) => {
+          setCurrentPage(value);
+      };
 
-          <Box display='flex' justifyContent='space-between'>
+    return ( 
+        <Box margin={{md:'40px', xs:'20px'}}>
+
+          <Box margin={'20px'}>
             <Box>
               <Typography fontWeight='bold' fontSize='25px'>FILTER BY DATE</Typography>
                 <LocalizationProvider dateAdapter={AdapterDateFns}>
+
+                  <Box display={'flex'} gap={'20px'}>
                     <DatePicker
                         label="Start Date"
                         value={startDate}
@@ -257,47 +275,19 @@ function VatPayable (){
                         onChange={(date) => setEndDate(date)}
                         renderInput={(params) => <TextField {...params} />}
                     />
+                  </Box>
                 </LocalizationProvider>
             </Box>
 
-            <Box>
-              <Box display="flex" justifyContent="center" mt="20px">
-                  <ReactToPrint
-                    trigger={() => (
-                      <Button
-                        variant="contained"
-                        color="primary"
-                        sx={{
-                          backgroundColor: "#a4a9fc",
-                          color: "#141414",
-                          '&:hover': {
-                            backgroundColor: "#6870fa",
-                          },
-                          padding: "10px 20px",
-                          fontSize: "16px",
-                          fontWeight: "bold",
-                        }}
-                      >
-                        Print
-                      </Button>
-                    )}
-                    content={() => componentRef.current}
-                  />
-                </Box>
-            </Box>
           </Box>
 
-          <Box ref={componentRef}>
+          <Box>
 
                         <Box
                             display="grid"
-                            gridTemplateColumns="repeat(12, 1fr)"
-                            gridAutoRows="140px"
+                            gridTemplateColumns={{ xs:"repeat(1, 1fr)", md:"repeat(12, 1fr)"}}
                             gap="10px"
-                            mb="20px"
-                            mt="20px"
-                            width='1630px'
-                            // ml="10px"
+                            margin="0 10px"
                         >
                             <Box
                                 gridColumn="span 3"
@@ -308,7 +298,7 @@ function VatPayable (){
                                 justifyContent="center"
                             >
                                 <StatBox
-                                    title={`$${new Intl.NumberFormat().format(calculateVat)}`}
+                                    title={`${new Intl.NumberFormat('en-KE', {style:'currency', currency:'KES'}).format(calculateVat)}`}
                                     subtitle="VAT PAYABLE"
                                     icon={
                                         <PointOfSale
@@ -319,52 +309,135 @@ function VatPayable (){
                             </Box>
                         </Box>
 
-                        <Box m="20px" >
-                            <Typography
-                            fontWeight='bold'
-                            variant="h5"
-                            textAlign='center'
-                            >
-                                INVOICES
-                            </Typography>
-                            <Box
-                                height="75vh"
-                                sx={{
-                                "& .MuiDataGrid-root": {
-                                    border: "none",
+                        {isMobile ? (
+                        <Box>
+                <Typography fontSize={'27px'} fontWeight={'bold'} textAlign={'center'}>INVOICES</Typography>
+                <Box
+                    display={'grid'}
+                    gridTemplateColumns={{xs:'repeat(1,1fr)', sm:'repeat(2,1fr)'}}
+                    gap="10px"
+                    margin="0 10px"
+                >
+
+                    {displayedItems.map((item) => (
+                        <Card
+                            key={item.id}
+                            onClick={() => handleViewDetails(item.invoice_number)}
+                            sx={{
+                                borderRadius: '15px',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                height: 'auto', // Adjust height for better flexibility
+                                boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
+                                padding: '10px',
+                                backgroundColor: '#fff',
+                                transition: 'transform 0.3s ease-in-out',
+                                '&:hover': {
+                                    transform: 'scale(1.03)',
+                                    boxShadow: '0 8px 30px rgba(0,0,0,0.15)',
                                 },
-                                "& .MuiDataGrid-cell": {
-                                    borderBottom: "none",
-                                },
-                                "& .name-column--cell": {
-                                    // color: colors.greenAccent[300],
-                                },
-                                "& .MuiDataGrid-columnHeaders": {
-                                    // backgroundColor: colors.blueAccent[700],
-                                    borderBottom: "none",
-                                },
-                                "& .MuiDataGrid-virtualScroller": {
-                                    // backgroundColor: colors.primary[400],
-                                },
-                                "& .MuiDataGrid-footerContainer": {
-                                    borderTop: "none",
-                                    // backgroundColor: colors.blueAccent[700],
-                                },
-                                "& .MuiCheckbox-root": {
-                                    // color: `${colors.greenAccent[200]} !important`,
-                                },
-                                "& .MuiDataGrid-toolbarContainer .MuiButton-text": {
-                                    // color: `${colors.grey[100]} !important`,
-                                },
-                                }}
-                            >
-                                <DataGrid
-                                rows={vat}
-                                columns={invoices}
-                                components={{ Toolbar: GridToolbar }}
-                                />
+                            }}
+                        >
+                            <CardContent>
+                                    <Box display={'flex'} gap={'4px'}>
+                                            <Typography>Customer Name:</Typography>
+                                            <Typography fontWeight={'bold'}>{item.customer_name}</Typography>
+                                        </Box>
+
+                                        <Box display={'flex'} gap={'4px'}>
+                                            <Typography>Invoice Number:</Typography>
+                                            <Typography  fontWeight={'bold'}>{item.invoice_number}</Typography>
+                                        </Box>
+
+                                        <Box display={'flex'} gap={'4px'}>
+                                            <Typography>Vat Amount:</Typography>
+                                            <Typography fontWeight={'bold'}>{ new Intl.NumberFormat('en-KE', {style:'currency', currency:'KES'}).format(item.rate_vat)}</Typography>
+                                        </Box>
+
+                                        <Box display={'flex'} gap={'4px'}>
+                                            <Typography>Currency:</Typography>
+                                            <Typography fontWeight={'bold'}>{item.currency}</Typography>
+                                        </Box>
+
+                                        <Box display={'flex'} gap={'4px'}>
+                                            <Typography>Date:</Typography>
+                                            <Typography fontWeight={'bold'}>{item.invoice_date}</Typography>
+                                        </Box>
+
+                                        <Box display={'flex'} gap={'4px'}>
+                                            <Typography>Status:</Typography>
+                                            <Typography fontWeight={'bold'}>{item.status}</Typography>
+                                        </Box>
+
+                                        <Box display={'flex'} gap={'4px'}>
+                                            <Typography>Sales Person:</Typography>
+                                            <Typography fontWeight={'bold'}>{item.sales_person}</Typography>
+                                        </Box>
+                            </CardContent>
+                        </Card>
+                    ))}
+                    <Box display="flex" justifyContent="center" mt="20px">
+                            <Pagination count={totalPages} page={currentPage} onChange={handlePageChange} color="secondary" />
+                    </Box>
+                </Box>
+                        </Box>
+                    
+                          ) : (
+
+                            <Box>
+
+                            <Box>
+                                  <Box display="flex" justifyContent="center" mt="20px">
+                                      <ReactToPrint
+                                        trigger={() => (
+                                          <Button
+                                            variant="contained"
+                                            color="primary"
+                                            sx={{
+                                              backgroundColor: "#a4a9fc",
+                                              color: "#141414",
+                                              '&:hover': {
+                                                backgroundColor: "#6870fa",
+                                              },
+                                              padding: "10px 20px",
+                                              fontSize: "16px",
+                                              fontWeight: "bold",
+                                            }}
+                                          >
+                                            Print
+                                          </Button>
+                                        )}
+                                        content={() => componentRef.current}
+                                      />
+                                    </Box>
                             </Box>
-                         </Box>
+
+                            <Box m="20px" ref={componentRef}>
+                              <Typography 
+                                  fontSize='30px'
+                                  fontWeight='bold'
+                                  textAlign='center'
+                              >
+                                  INVOICES
+                              </Typography>
+                              <Box
+                                  height="75vh"
+                              >
+                                  <DataGrid
+                                  rows={vat}
+                                  columns={invoices}
+                                  components={{ Toolbar: GridToolbar }}
+                                  getRowId={(row) => row.id}
+                                  />
+                              </Box>
+                            </Box>
+
+                           
+
+                            </Box>
+
+                            
+                          )}
           </Box>
                          
         </Box>

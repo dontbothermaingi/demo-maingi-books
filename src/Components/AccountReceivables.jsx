@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Box, Typography,  Select, MenuItem, FormControl, InputLabel } from "@mui/material";
+import { Box, Typography, Select, MenuItem, FormControl, InputLabel, useMediaQuery, Card, CardContent, Pagination } from "@mui/material";
 import { DataGrid, GridToolbar } from "@mui/x-data-grid";
 import { useNavigate } from "react-router-dom";
 import StatBox from "./StatBox";
@@ -9,6 +9,11 @@ import {useTheme } from "@mui/material";
 
 function AccountsReceivables() {
 
+  const [currentPage, setCurrentPage] = useState(1)
+  const itemsPerPage = 16;
+  const isMobile = useMediaQuery('(max-width: 768px)');
+  const token = localStorage.getItem('access_token')
+  
 
   const currencyOptions = [
     { code: "AED", label: "United Arab Emirates Dirham" },
@@ -182,7 +187,13 @@ function AccountsReceivables() {
     const navigate = useNavigate();
 
   useEffect(() => {
-    fetch('https://db-demo-u07o.onrender.com/customers')
+    fetch('https://db-demo-u07o.onrender.com/customers',{
+            method:'GET',
+            headers:{
+                'Authorization':`Bearer ${token}`
+            },
+            credentials:'include'
+    })
       .then((response) => response.json())
       .then((data) => {
         const filtered = data.filter((item) => item.total_amount_owed > 0);
@@ -195,7 +206,7 @@ function AccountsReceivables() {
       .catch((error) => {
         console.error("Error fetching customer data:", error);
       });
-  }, []);
+  }, [token]);
 
 
   useEffect(() => {
@@ -370,11 +381,18 @@ function AccountsReceivables() {
 
   ];
 
+  const totalPages = Math.ceil(filteredReceivables.length / itemsPerPage)
+  const displayedItems = filteredReceivables.slice((currentPage-1) * itemsPerPage, currentPage * itemsPerPage)
+
+  const handlePageChange = (event, value) => {
+      setCurrentPage(value);
+  };
+
   return (
-    <Box>
+    <Box margin={{md:'40px', xs:'20px'}}>
 
       {/* Currency Selector */}
-      <FormControl width="50px" margin="normal">
+      <FormControl width="50px" sx={{margin:'20px'}}>
           <InputLabel>Select Currency</InputLabel>
           <Select
             value={selectedCurrency}
@@ -390,14 +408,10 @@ function AccountsReceivables() {
       </FormControl>
 
         <Box
-            display="grid"
-            gridTemplateColumns="repeat(12, 1fr)"
-            gridAutoRows="140px"
+            display={'grid'}
+            gridTemplateColumns={{xs:'repeat(1,1fr)', sm:'repeat(2,1fr)'}}
             gap="10px"
-            mb="20px"
-            mt="20px"
-            width='1630px'
-            // ml="10px"
+            margin="0 10px"
         >
             <Box
                 gridColumn="span 3"
@@ -408,7 +422,7 @@ function AccountsReceivables() {
                 justifyContent="center"
             >
                 <StatBox
-                    title={`$${new Intl.NumberFormat().format(total)}`}
+                    title={`${new Intl.NumberFormat('en-KE',{style:'currency', currency:'KES'}).format(total)}`}
                     subtitle="AMOUNT RECEIVABLE"
                     icon={
                         <PointOfSale
@@ -418,53 +432,91 @@ function AccountsReceivables() {
                 />
             </Box>
         </Box>
-    <Box m="20px">
-      <Typography
-        fontSize="30px"
-        fontWeight="bold"
-        textAlign="center"
-        mb={4}
-      >
-        ACCOUNT RECEIVABLES
-      </Typography>
-      <Box
-        m="40px 0 0 0"
-        height="75vh"
-        sx={{
-          "& .MuiDataGrid-root": {
-            border: "none",
-          },
-          "& .MuiDataGrid-cell": {
-            borderBottom: "none",
-          },
-          "& .name-column--cell": {
-            color: "#1a73e8",
-            fontWeight: "600",
-          },
-          "& .MuiDataGrid-columnHeaders": {
-            backgroundColor: "#f5f5f5",
-            borderBottom: "1px solid #e0e0e0",
-          },
-          "& .MuiDataGrid-virtualScroller": {
-            backgroundColor: "#ffffff",
-          },
-          "& .MuiDataGrid-footerContainer": {
-            borderTop: "none",
-            backgroundColor: "#f5f5f5",
-          },
-          "& .MuiCheckbox-root": {
-            color: "#1a73e8 !important",
-          },
-        }}
-      >
-        <DataGrid
-          rows={filteredReceivables}
-          columns={columns}
-          components={{ Toolbar: GridToolbar }}
-          getRowId={(row) => row.id}
-        />
-      </Box>
-    </Box>
+        {isMobile ? (
+                <Box>
+                    <Typography textAlign={'center'} fontSize={'30px'} fontWeight={'bold'}>ACCOUNT RECEIVABLES</Typography>
+                    <Box
+                        display={'grid'}
+                        gridTemplateColumns={{xs:'repeat(1,1fr)', sm:'repeat(2,1fr)'}}
+                        gap="10px"
+                        margin="0 10px"
+                    >
+                        {displayedItems.map((item) => (
+                            <Card
+                            key={item.id}
+                            onClick={() => handleViewDetails(item.vendor_name)}
+                            sx={{
+                                borderRadius: '15px',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                height: 'auto', // Adjust height for better flexibility
+                                boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
+                                padding: '10px',
+                                backgroundColor: '#fff',
+                                transition: 'transform 0.3s ease-in-out',
+                                '&:hover': {
+                                    transform: 'scale(1.03)',
+                                    boxShadow: '0 8px 30px rgba(0,0,0,0.15)',
+                                },
+                            }}
+                            >
+
+                                <CardContent>
+                                    <Typography>Customer Name: {item.customer_name}</Typography>
+                                    <Typography>Customer Email: {item.customer_email}</Typography>
+                                    <Typography>Customer Phone: {item.customer_phone}</Typography>
+                                    <Typography>KRA Pin: {item.kra_pin}</Typography>
+                                    <Typography>Currency: {item.currency}</Typography>
+                                    <Typography>Amount Owed: {item.total_amount_owed}</Typography>
+                                    <Typography>Date: {item.date}</Typography>
+                                </CardContent>
+
+                            </Card>
+                        ))}
+
+                    </Box>
+
+                    <Box display="flex" justifyContent="center" mt="20px">
+                            <Pagination count={totalPages} page={currentPage} onChange={handlePageChange} color="primary" />
+                    </Box>
+                </Box>
+            ):(
+                 <Box m="20px" mt='50px'>
+                 <Typography fontWeight="bold" variant="h5" textAlign="center">
+                      ACCOUNT RECEIVABLES
+                 </Typography>
+                 <Box
+                   margin='auto'
+                   mt='20px'
+                   height="75vh"
+                   // width="1000px"
+                   sx={{
+                     "& .MuiDataGrid-root": {
+                       border: "none",
+                     },
+                     "& .MuiDataGrid-cell": {
+                       borderBottom: "none",
+                     },
+                     "& .name-column--cell": {},
+                     "& .MuiDataGrid-columnHeaders": {
+                       borderBottom: "none",
+                     },
+                     "& .MuiDataGrid-virtualScroller": {},
+                     "& .MuiDataGrid-footerContainer": {
+                       borderTop: "none",
+                     },
+                     "& .MuiCheckbox-root": {},
+                     "& .MuiDataGrid-toolbarContainer .MuiButton-text": {},
+                   }}
+                 >
+                   <DataGrid
+                     rows={filteredReceivables}
+                     columns={columns}
+                     components={{ Toolbar: GridToolbar }}
+                   />
+                 </Box>
+               </Box> 
+            )}
     </Box>
   );
 }

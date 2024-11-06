@@ -1,11 +1,19 @@
-import { Route, Routes,} from 'react-router-dom';
+import { Route, Routes, useNavigate,} from 'react-router-dom';
 import Bill from './Components/Purchases/Bill';
 import Vendor from './Components/Purchases/Vendor';
 import Paymentsmade from './Components/Purchases/Paymentsmade';
-import { lazy, Suspense, useEffect } from 'react';
+import { lazy, Suspense, useEffect} from 'react';
 import TruckReportPage from './Components/MoreTruckInfo/TruckDetails';
 import ReportLayout from './Components/OverallReport/reportlayout';
 import PrivateRoutes from './Components/PrivateRoutes';
+import { Box } from '@mui/material';
+import { jwtDecode } from 'jwt-decode';
+import UserAccount from './Components/Useraccount';
+import EditInvoice from './Components/InvoiceEdit';
+import BillEdit from './Components/BillEdit';
+import FuelInvoice from './Components/Sales/FuelInvoices';
+import FitUsedTyre from './Components/FitUsedTyre';
+import UnfitUsedTyres from './Components/UnfitUsedTyres';
 
 
 const Customer = lazy(() => import('./Components/Sales/Customer'));
@@ -102,68 +110,79 @@ const PaymentsDetails = lazy(() => import('./Components/Payments /PaymentsDetail
 const InvoiceTransport = lazy(() => import('./Components/Sales/InvoiceTransport'));
 const DeliveryNote = lazy(() => import('./Components/Sales/DeliveryNote'));
 const DeliveryNoteDetails = lazy(() => import('./Components/DeliveryNote/DeliveryNoteDetails'));
+const PumpCorrections = lazy(() => import('./Components/PumpCorrection'));
 
-function App({ onLogout }) {
 
-  
-  const handleLogin = (userData) => {
-    console.log('User logged in:', userData);
-    // Handle login, such as updating the state or context
-  };  
+function App() {
+  const navigate = useNavigate()
+  const token = localStorage.getItem('access_token')
 
-  useEffect(() => {
-    function handleLogOut() {
-        // Clear storage or cookies as needed
-        localStorage.removeItem('access_token');
-        sessionStorage.removeItem('access_token'); 
-        document.cookie = "access_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;"; 
 
-        fetch("https://maingi-server-3.onrender.com/logout", {
-            method: "DELETE",
-        }).then(() => onLogout())
-          .catch(error => console.error('Logout error:', error));
-    }
+        useEffect(()=>{
+          fetch('https://maingi-server-3.onrender.com/check_session', {
+              method:'GET',
+              credentials:'include',
+              headers:{
+                'Authorization':`Bearer ${token}`
+            }
+          })
+          .then(response => {
+            // Check if the response indicates an error (e.g., unauthorized access)
+            if (response.ok) {
+                return response.json(); // Call the function to get the JSON data
+            } else {
+                // If the response is not OK, navigate to login
+                navigate('/login');
+            }
+          })
+          .catch(error => {
+              console.error('Error fetching session:', error);
+            });
+      },[navigate,token])
 
-    let logoutTimer;
-    const inactivityTimeout = 300000; // Set the inactivity timeout duration in milliseconds (e.g., 5 minutes)
+        const handleLogOut = () => {
+          // Remove access token, refresh token, and token expiry time from localStorage
+          localStorage.removeItem("access_token");
+          localStorage.removeItem("refresh_token");
+          localStorage.removeItem("token_expiry");
+        };
 
-    const startLogoutTimer = () => {
-        // Set a timer to log out after a period of inactivity
-        logoutTimer = setTimeout(() => {
-            handleLogOut();
-        }, inactivityTimeout);
-    };
-
-    const resetLogoutTimer = () => {
-        // Clear the timer if the user is active
-        clearTimeout(logoutTimer);
-    };
-
-    const handleVisibilityChange = () => {
-        if (document.visibilityState === 'hidden') {
-            // Start the logout timer when the tab is hidden
-            startLogoutTimer();
+      const handleLogin = (userData) => {
+        const { access_token, refresh_token } = userData;
+      
+        // Decode the JWT token to get its expiry time
+        const decodedToken = jwtDecode(access_token);
+        const tokenExpiry = decodedToken.exp * 1000; // `exp` is in seconds, so convert it to milliseconds
+      
+        // Store the access token, refresh token, and expiry time
+        localStorage.setItem("access_token", access_token);
+        localStorage.setItem("refresh_token", refresh_token);
+        localStorage.setItem("token_expiry", tokenExpiry);
+      
+        // Start a timer to check token expiry and refresh token when necessary
+        startTokenExpiryTimer(tokenExpiry);
+      };
+    
+      const startTokenExpiryTimer = (expiryTime) => {
+        const currentTime = Date.now();
+        const timeUntilExpiry = expiryTime - currentTime;
+        
+        // Ensure there's at least 1 minute remaining
+        if (timeUntilExpiry > 60000) {
+          setTimeout(timeUntilExpiry - 60000);
         } else {
-            // Reset the timer when the tab becomes visible
-            resetLogoutTimer();
+          navigate('/login')
         }
-    };
-
-    window.addEventListener('visibilitychange', handleVisibilityChange);
-
-    return () => {
-        // Cleanup the event listener and the timer
-        window.removeEventListener('visibilitychange', handleVisibilityChange);
-        clearTimeout(logoutTimer);
-    };
-}, [onLogout]);
+      };
 
   return (
       <Suspense fallback={<div>Loading...</div>}>
-            <Routes>
-                    <Route path='/register' element={<Register />}></Route>
-                    <Route path='/login' element={<Login onLogin={handleLogin}/>}></Route>
-                        <Route element={<PrivateRoutes/>}>
+            <Box>
+                    <Box>
+                    <Routes>
+                        <Route path='/register' element={<Register />}></Route>
+                        <Route path='/login' element={<Login onLogin={handleLogin}/>}></Route>
+                        <Route element={<PrivateRoutes />}>
                             <Route path='/' exact element={<Dashboard />}></Route>
                             <Route path='/bill' element={<Bill />}></Route>
                             <Route path='/bill-fuel' element={<BillFuel />}></Route>
@@ -252,20 +271,28 @@ function App({ onLogout }) {
                             <Route path="/payments-received-report" element={<PaymentsReceivedReport />} />
                             <Route path="/trading-profit-loss-account" element={<TradingProfitLossAccount />} />
                             <Route path="/truck-edit/:truckId" element={<TruckEdit />} />
-                            <Route path="/user-edit/:userId" element={<UserEdit />} />
+                            <Route path="/user-edit" element={<UserEdit />} />
                             <Route path="/fuel-transactions" element={<FuelTransactions />} />
                             <Route path="/pump-reports" element={<PumpReport />} />
                             <Route path="/expenses-reports" element={<ExpensesReport />} />
                             <Route path="/repairs-made" element={<RepairMade />} />
                             <Route path="/quotes" element={<Quote />} />
+                            <Route path="/fuel-invoice" element={<FuelInvoice />} />
                             <Route path="/delivery-notes" element={<DeliveryNote />} />
                             <Route path="/invoice-transport" element={<InvoiceTransport />} />
                             <Route path="/quote-details/:quoteId" element={<QuoteDetails />} />
                             <Route path="/payment-details/:madeId" element={<PaymentsDetails />} />
+                            <Route path="/invoice-edit/:invoiceId" element={<EditInvoice />} />
+                            <Route path="/bill-edit/:billId" element={<BillEdit />} />
+                            <Route path="/pump-corrections/:pumpId" element={<PumpCorrections />} />
                             <Route path="/delivery-note/:deliveryId" element={<DeliveryNoteDetails />} />
+                            <Route path="/user-accounts" element={<UserAccount onLogout={handleLogOut} />} />
+                            <Route path="/fit-used-tyre" element={<FitUsedTyre />} />
+                            <Route path="/unfit-used-tyre" element={<UnfitUsedTyres />} />
                         </Route>
-
-                  </Routes>
+                    </Routes>
+                    </Box>
+            </Box>
           </Suspense>
   );
 }

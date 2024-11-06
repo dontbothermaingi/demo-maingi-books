@@ -1,12 +1,14 @@
 import { useEffect, useState } from "react";
-import { Box, Typography} from "@mui/material";
+import { Box, Button, Card, CardContent, FormControl, MenuItem, Pagination, Select, TextField, Typography, useMediaQuery} from "@mui/material";
 import { DataGrid, GridToolbar } from "@mui/x-data-grid";
-import './Vendor.css'
-import { useNavigate } from "react-router-dom";
 
 function Vendor() {
     const [vendors, setVendors] = useState([]);
     const [isVatInclusive, setIsVatInclusive] = useState([])
+    const [currentPage, setCurrentPage] = useState(1)
+    const itemsPerPage = 16;
+    const isMobile = useMediaQuery('(max-width: 768px)');
+    const token = localStorage.getItem('access_token')
     const [formData, setFormData] = useState({
         vendor_name: "",
         vendor_email: "",
@@ -18,7 +20,6 @@ function Vendor() {
         kra_pin:"",
     });
 
-    const navigate = useNavigate()
 
     const currencyOptions = [
         { code: "AED", label: "United Arab Emirates Dirham" },
@@ -184,7 +185,13 @@ function Vendor() {
     ];
 
     useEffect(() => {
-        fetch('https://db-demo-u07o.onrender.com/vendors')
+        fetch('https://db-demo-u07o.onrender.com/vendors',{
+            method:'GET',
+            headers:{
+                'Authorization':`Bearer ${token}`
+            },
+            credentials:'include'
+        })
             .then(response => response.json())
             .then((data) => {
                 const formattedVendors = data.map((vendor) => ({
@@ -192,7 +199,7 @@ function Vendor() {
                     total_amount_owed: new Intl.NumberFormat().format(vendor.total_amount_owed)
                 }))
                 setVendors(formattedVendors)});
-    }, []);
+    }, [token]);
 
     function handleChange(event) {
         const {name,value} = event.target
@@ -209,8 +216,10 @@ function Vendor() {
         fetch('https://db-demo-u07o.onrender.com/vendors', {
             method: "POST",
             headers: {
-                "Content-Type": "application/json"
+                "Content-Type": "application/json",
+                "Authorization" : `Bearer ${token}`
             },
+            credentials:'include',
             body: JSON.stringify({
                 ...formData,
                 total_amount_owed: 0,
@@ -221,7 +230,13 @@ function Vendor() {
             .then((data) => {
                 console.log(data);
 
-                fetch('https://db-demo-u07o.onrender.com/vendors')
+                fetch('https://db-demo-u07o.onrender.com/vendors', {
+                    method:'GET',
+                    headers:{
+                        'Authorization':`Bearer ${token}`
+                    },
+                    credentials:'include'
+                })
                 .then(response => response.json())
                 .then((data) => {
                     const formattedVendors = data.map((vendor) => ({
@@ -249,10 +264,6 @@ function Vendor() {
         setIsVatInclusive(!isVatInclusive);
     }
 
-    const handleViewDetails = (vendorId) => {
-        navigate(`/vendors/${vendorId}`);
-    };
-
     const columns = [
         {
           field: "vendor_name",
@@ -269,7 +280,6 @@ function Vendor() {
               cursor: 'pointer', 
               margin: '15px'
             }}
-            onClick={() => handleViewDetails(params.row.vendor_name)}
           >
             <Typography>
               {params.value}
@@ -292,172 +302,197 @@ function Vendor() {
           headerName: "KRA PIN",
           flex: 0.2,
         },
-        // {
-        //     field: "opening_balance",
-        //     headerName: "OPENING BALANCE",
-        //     flex: 0.15,
-        //   },
-        // {
-        //   field: "total_amount_owed",
-        //   headerName: "TOTAL AMOUNT OWED",
-        //   flex: 0.15,
-        // },
+        
       ];
 
-    return (
-        <div>
+      const totalPages = Math.ceil(vendors.length / itemsPerPage)
+      const displayedItems = vendors.slice((currentPage - 1)*itemsPerPage, currentPage * itemsPerPage)
+    
 
-            <button
+      const handlePageChange = (event, value) => {
+        setCurrentPage(value);
+       };
+
+    return (
+        <Box height={'100vh'} overflow={'auto'}>
+
+            <Button
                type="button"
                onClick={handleToggleVat}
-               className="button"
+               color="secondary"
+               variant="contained"
+               sx={{margin:'30px'}}
             >
-                {isVatInclusive ? 'New Vendors' : 'All Vendors'}
-            </button>
+                {isVatInclusive ? 'New Vendor' : 'All Vendors'}
+            </Button>
 
             {isVatInclusive ? "" : <div className="bill-content">
-                <div>
-                    <h2 className="h2">NEW VENDOR</h2>
-                    <form className="bill-form" onSubmit={handleSubmit}>
+                <Box>
+                    <Typography fontSize={'27px'} fontWeight={'bold'} textAlign={'center'}>NEW VENDOR</Typography>
+                    <Box>
+                        <form style={{display:'flex', flexDirection:'column', margin:'40px'}} onSubmit={handleSubmit}>
 
-                    <div className="bill-input">
-                        <label>Vendor Name</label>
-                        <input
-                            type="text"
-                            name="vendor_name"
-                            placeholder="Vendor Name"
-                            className="bill-inputfield"
-                            value={formData.vendor_name}
-                            onChange={handleChange}
-                            required
-                        />
-                    </div>
-                        
-                    <div className="bill-input">
-                      <label>Vendor Email</label>
-                        <input
-                            type="text"
-                            name="vendor_email"
-                            placeholder="Vendor Email"
-                            className="bill-inputfield"
-                            value={formData.vendor_email}
-                            onChange={handleChange}
-                            // required
-                        />
-                    </div>
-
-                    <div className="bill-input">
-                      <label>Vendor Phone</label>
-                        <input
-                            type="text"
-                            name="vendor_phone"
-                            placeholder="Vendor Phone"
-                            className="bill-inputfield"
-                            value={formData.vendor_phone}
-                            onChange={handleChange}
-                            // required
-                        />
-                    </div>
-
-                    <div className="bill-input">
-                      <label>KRA Pin</label>
-                        <input
-                            type="text"
-                            name="kra_pin"
-                            placeholder="KRA PIN"
-                            className="bill-inputfield"
-                            value={formData.kra_pin}
-                            onChange={handleChange}
-                            // required
-                        />
-                    </div>
-
-                    <div className="bill-input">
-                                <label>CURRENCY</label>
-                                <select
-                                value={formData.currency}
-                                name="currency"
+                            <TextField
+                                type="text"
+                                name="vendor_name"
+                                label="Vendor Name"
+                                value={formData.vendor_name}
                                 onChange={handleChange}
+                                required
+                                variant="outlined"
+                                sx={{mb:'20px'}}
+                            />
+                            
+                            <TextField
+                                type="text"
+                                name="vendor_email"
+                                label="Vendor Email"
                                 className="bill-inputfield"
-                                >
-                                <option value="">Select Currency</option>
-                                {currencyOptions.map((option) => (
-                                    <option key={option.code} value={option.code}>
-                                    {option.label}
-                                    </option>
-                                ))}
-                                </select>
-                      </div>
+                                value={formData.vendor_email}
+                                onChange={handleChange}
+                                variant="outlined"
+                                sx={{mb:'20px'}}
+                            />
 
-                    <div className="bill-input">
-                      <label>Opening Balance</label>
-                        <input
-                            type="number"
-                            name="opening_balance"
-                            placeholder="Opening Balance"
-                            className="bill-inputfield"
-                            value={formData.opening_balance}
-                            onChange={handleChange}
-                            required
-                        />
-                    </div>
-                        <button type="submit" className="button">Save and Send</button>
-                    </form>
-                </div>
+                            <TextField
+                                type="text"
+                                name="vendor_phone"
+                                label="Vendor Phone"
+                                value={formData.vendor_phone}
+                                onChange={handleChange}
+                                variant="outlined"
+                                sx={{mb:'20px'}}
+                            />
+
+                            <TextField
+                                type="text"
+                                name="kra_pin"
+                                label="KRA PIN"
+                                value={formData.kra_pin}
+                                onChange={handleChange}
+                                variant="outlined"
+                                sx={{mb:'20px'}}
+                            />
+
+                            <FormControl>
+                                    <Typography fontWeight={'bold'}>CURRENCY</Typography>
+                                    <Select
+                                    value={formData.currency}
+                                    name="currency"
+                                    onChange={handleChange}
+                                    className="bill-inputfield"
+                                    sx={{mb:'20px'}}
+                                    >
+                                    <MenuItem value="">Select Currency</MenuItem>
+                                    {currencyOptions.map((option) => (
+                                        <MenuItem key={option.code} value={option.code}>
+                                        {option.label}
+                                        </MenuItem>
+                                    ))}
+                                    </Select>
+                            </FormControl>
+
+                            <TextField
+                                type="number"
+                                name="opening_balance"
+                                placeholder="Opening Balance"
+                                className="bill-inputfield"
+                                value={formData.opening_balance}
+                                onChange={handleChange}
+                                variant="outlined"
+                                sx={{mb:'20px'}}
+                                required
+                            />
+
+                            <Button type="submit" variant="contained" color="secondary">Save</Button>
+                        </form>
+                    </Box>
+                </Box>
             </div>
             }
 
-            <Box m="20px">
-                <Typography 
-                    fontSize='30px'
-                    fontWeight='bold'
-                    textAlign='center'
-                >
-                    VENDORS
-                </Typography>
-                <Box
-                    m="40px 0 0 0"
-                    height="75vh"
-                    sx={{
-                    "& .MuiDataGrid-root": {
-                        border: "none",
-                    },
-                    "& .MuiDataGrid-cell": {
-                        borderBottom: "none",
-                        // fontSize: "16px",
-                    },
-                    "& .name-column--cell": {
-                        // color: colors.greenAccent[300],
-                    },
-                    "& .MuiDataGrid-columnHeaders": {
-                        // backgroundColor: colors.blueAccent[700],
-                        borderBottom: "none",
-                        // fontSize: "16px",
-                    },
-                    "& .MuiDataGrid-virtualScroller": {
-                        // backgroundColor: colors.primary[400],
-                    },
-                    "& .MuiDataGrid-footerContainer": {
-                        borderTop: "none",
-                        // backgroundColor: colors.blueAccent[700],
-                    },
-                    "& .MuiCheckbox-root": {
-                        // color: `${colors.greenAccent[200]} !important`,
-                    },
-                    "& .MuiDataGrid-toolbarContainer .MuiButton-text": {
-                        // color: `${colors.grey[100]} !important`,
-                    },
-                    }}
-                >
-                    <DataGrid
-                    rows={vendors}
-                    columns={columns}
-                    components={{ Toolbar: GridToolbar }}
-                    getRowId={(row) => `${row.vendor_name}-${row.vendor_email}-${row.vendor_phone}-${row.opening_balance}-${row.total_amount_owed}`}
-                    />
+<Box>
+            {isMobile ? (
+                <Box>
+                    <Typography textAlign={'center'} fontSize={'30px'} fontWeight={'bold'}>VENDORS</Typography>
+                    <Box
+                        display={'grid'}
+                        gridTemplateColumns={{xs:'repeat(1,1fr)', sm:'repeat(2,1fr)'}}
+                        gap="10px"
+                        margin="0 10px"
+                    >
+
+                        {displayedItems.map((item) => (
+                            <Card
+                            key={item.id}
+                            sx={{
+                                borderRadius: '15px',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                height: 'auto', // Adjust height for better flexibility
+                                boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
+                                padding: '10px',
+                                backgroundColor: '#fff',
+                                transition: 'transform 0.3s ease-in-out',
+                                '&:hover': {
+                                    transform: 'scale(1.03)',
+                                    boxShadow: '0 8px 30px rgba(0,0,0,0.15)',
+                                },
+                            }}
+                            >
+
+                                <CardContent>
+                                  <Box display={'flex'} gap={'5px'}>
+                                    <Typography>Name:</Typography>
+                                    <Typography fontWeight={'bold'}>{item.vendor_name}</Typography>
+                                  </Box>
+
+                                  <Box display={'flex'} gap={'5px'}>
+                                    <Typography>Phone:</Typography>
+                                    <Typography fontWeight={'bold'}>{item.vendor_phone}</Typography>
+                                  </Box>
+                                  
+                                  <Box display={'flex'} gap={'5px'}>
+                                    <Typography>Email:</Typography>
+                                    <Typography fontWeight={'bold'}>{item.vendor_email}</Typography>
+                                  </Box>
+                                  
+                                  <Box display={'flex'} gap={'5px'}>
+                                    <Typography>KRA Pin:</Typography>
+                                    <Typography fontWeight={'bold'}>{item.kra_pin}</Typography>
+                                  </Box>
+                                    
+                                </CardContent>
+
+                            </Card>
+                        ))}
+
+                    </Box>
+
+                    <Box display="flex" justifyContent="center" mt="20px">
+                            <Pagination count={totalPages} page={currentPage} onChange={handlePageChange} color="primary" />
+                    </Box>
                 </Box>
-            </Box>
-        </div>
+            ):(
+                 <Box m="20px" mt='50px'>
+                 <Typography fontWeight="bold" variant="h5" textAlign="center">
+                       VENDORS
+                 </Typography>
+                 <Box
+                   margin='auto'
+                   mt='20px'
+                   height="75vh"
+                 >
+                   <DataGrid
+                     rows={vendors}
+                     columns={columns}
+                     components={{ Toolbar: GridToolbar }}
+                   />
+                 </Box>
+               </Box> 
+            )}
+        </Box>
+        </Box>
     );
 }
 

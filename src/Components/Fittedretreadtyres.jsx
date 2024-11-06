@@ -1,15 +1,25 @@
-import { Box} from "@mui/material";
+import { Box, Button, Card, CardContent, Pagination, Typography, useMediaQuery} from "@mui/material";
 import { DataGrid, GridToolbar } from "@mui/x-data-grid";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import Header from "./Header";
+
 
 const FittedRetreadTyres = () => {
   const [tyres, setTyres] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1)
+  const itemsPerPage = 16;
+  const isMobile = useMediaQuery('(max-width: 768px)');
+  const token = localStorage.getItem('access_token')
   const navigate = useNavigate();
 
   useEffect(() => {
-    fetch('https://db-demo-u07o.onrender.com/retreadtyresremove')
+    fetch('https://db-demo-u07o.onrender.com/retreadtyresremove', {
+            method:'GET',
+            headers:{
+                'Authorization':`Bearer ${token}`
+            },
+            credentials:'include'
+    })
       .then(response => {
         if (!response.ok) {
           throw new Error('Network response was not ok');
@@ -30,7 +40,7 @@ const FittedRetreadTyres = () => {
       .catch((error) => {
         console.error('There has been a problem with your fetch operation:', error);
       });
-  }, []);
+  }, [token]);
 
   const handleRetreadControl = () => {
     navigate('/retread-tyres-control');
@@ -77,63 +87,124 @@ const FittedRetreadTyres = () => {
     },
   ];
 
+  const totalPages = Math.ceil(tyres.length / itemsPerPage)
+  const displayedItems = tyres.slice((currentPage - 1)*itemsPerPage, currentPage * itemsPerPage)
+    
+
+    const handlePageChange = (event, value) => {
+        setCurrentPage(value);
+    };
+
   return (
-    <Box>
-      <button
+    <Box margin={{md:'40px', xs:'20px'}}>
+            <Button
                type="button"
-               className="button"
+               variant="contained"
+               color="secondary"
                onClick={()=> handleRetreadControl()}
+               sx={{margin:'20px'}}
             >
                 BACK
-            </button>
-    <Box m="20px">
-      <Header
-        title="RETREAD TYRES"
-        subtitle="List of all retread tyres"
-      />
-      <Box
-        m="40px 0 0 0"
-        height="75vh"
-        // width='900px'
-        sx={{
-          "& .MuiDataGrid-root": {
-            border: "none",
-          },
-          "& .MuiDataGrid-cell": {
-            borderBottom: "none",
-            // fontSize: "16px",  // Increase the font size of the data
-          },
-          "& .name-column--cell": {
-            // color: colors.greenAccent[300],
-          },
-          "& .MuiDataGrid-columnHeaders": {
-            // backgroundColor: colors.blueAccent[700],
-            borderBottom: "none",
-            // fontSize: "16px",  // Increase the font size of the header
-          },
-          "& .MuiDataGrid-virtualScroller": {
-            // backgroundColor: colors.primary[400],
-          },
-          "& .MuiDataGrid-footerContainer": {
-            borderTop: "none",
-            // backgroundColor: colors.blueAccent[700],
-          },
-          "& .MuiCheckbox-root": {
-            // color: `${colors.greenAccent[200]} !important`,
-          },
-          "& .MuiDataGrid-toolbarContainer .MuiButton-text": {
-            // color: `${colors.grey[100]} !important`,
-          },
-        }}
-      >
-        <DataGrid
-          rows={tyres}
-          columns={columns}
-          components={{ Toolbar: GridToolbar }}
-          getRowId={(row) => `${row.truck_number}-${row.size}-${row.item_details}-${row.position}-${row.date}-${row.serial_number}-${row.starting_mileage}`}
-        />
-      </Box>
-    </Box>
+            </Button>
+
+            <Box>
+
+                      {isMobile ? (
+                                <Box>
+                                <Typography fontSize={'27px'} fontWeight={'bold'} textAlign={'center'}>FITTED RETREAD TYRES</Typography>
+                                <Box
+                                    display={'grid'}
+                                    gridTemplateColumns={{xs:'repeat(1,1fr)', sm:'repeat(2,1fr)'}}
+                                    gap="10px"
+                                    margin="0 10px"
+                                >
+
+                                    {displayedItems.map((item) => (
+                                        <Card
+                                            key={item.id}
+                                            sx={{
+                                                borderRadius: '15px',
+                                                display: 'flex',
+                                                flexDirection: 'column',
+                                                height: 'auto', // Adjust height for better flexibility
+                                                boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
+                                                padding: '10px',
+                                                backgroundColor: '#fff',
+                                                transition: 'transform 0.3s ease-in-out',
+                                                '&:hover': {
+                                                    transform: 'scale(1.03)',
+                                                    boxShadow: '0 8px 30px rgba(0,0,0,0.15)',
+                                                },
+                                            }}
+                                        >
+                                            <CardContent>
+                                                    <Box display={'flex'} gap={'4px'}>
+                                                        <Typography>Tyre Name:</Typography>
+                                                        <Typography fontWeight={'bold'}>{item.name}</Typography>
+                                                    </Box>
+
+                                                    <Box display={'flex'} gap={'4px'}>
+                                                        <Typography>Size:</Typography>
+                                                        <Typography fontWeight={'bold'}>{item.size}</Typography>
+                                                    </Box>
+                                                    
+                                                    <Box display={'flex'} gap={'4px'}>
+                                                        <Typography>Truck Number:</Typography>
+                                                        <Typography fontWeight={'bold'}>{item.truck_number}</Typography>
+                                                    </Box>
+                                                    
+                                                    <Box display={'flex'} gap={'4px'}>
+                                                        <Typography>Serial Number:</Typography>
+                                                        <Typography fontWeight={'bold'}>{item.serial_number}</Typography>
+                                                    </Box>
+                                                        
+                                                    
+                                                    <Box display={'flex'} gap={'4px'}>
+                                                        <Typography>Position:</Typography>
+                                                        <Typography fontWeight={'bold'}>{item.position}</Typography>
+                                                    </Box>
+                                                    
+                                                    <Box display={'flex'} gap={'4px'}>
+                                                        <Typography>Status:</Typography>
+                                                        <Typography fontWeight={'bold'}>{item.status}</Typography>
+                                                    </Box>
+                                                    
+
+                                                    <Box display={'flex'} gap={'4px'}>
+                                                        <Typography>Date:</Typography>
+                                                        <Typography fontWeight={'bold'}>{item.date}</Typography>
+                                                    </Box>
+                                            </CardContent>
+                                        </Card>
+                                    ))}
+                                    <Box display="flex" justifyContent="center" mt="20px">
+                                            <Pagination count={totalPages} page={currentPage} onChange={handlePageChange} color="secondary" />
+                                    </Box>
+                                </Box>
+                                </Box>
+                
+                          ) : (
+                                    <Box m="20px">
+                                    <Typography 
+                                        fontSize='30px'
+                                        fontWeight='bold'
+                                        textAlign='center'
+                                    >
+                                        FITTED RETREAD TYRES
+                                    </Typography>
+                                    <Box
+                                        height="75vh"
+                                    >
+                                        <DataGrid
+                                        rows={tyres}
+                                        columns={columns}
+                                        components={{ Toolbar: GridToolbar }}
+                                        getRowId={(row) => row.id}
+                                        />
+                                    </Box>
+                                    </Box>
+                      )}
+            </Box>
   </Box>
   );
 };

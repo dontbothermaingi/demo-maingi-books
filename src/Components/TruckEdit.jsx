@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import Typography from "@mui/material/Typography"; // Import Typography from Material-UI
+import { Box, Button, FormControl, MenuItem, Select, TextField } from "@mui/material";
 
 function TruckEdit() {
   const { truckId } = useParams(); // Get truckId from URL parameters
@@ -16,10 +17,17 @@ function TruckEdit() {
   // State to track loading and error states
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const token = localStorage.getItem('access_token')
 
   useEffect(() => {
     // Fetch truck details to prefill the form
-    fetch(`https://maingi-server-3.onrender.com/trucks/${truckId}`)
+    fetch(`https://db-demo-u07o.onrender.com/trucks/${truckId}`,{
+            method:'GET',
+            headers:{
+                'Authorization':`Bearer ${token}`
+            },
+            credentials:'include'
+    })
       .then((response) => {
         if (!response.ok) {
           throw new Error("Failed to fetch truck details");
@@ -33,6 +41,7 @@ function TruckEdit() {
           vehicle_type: data.vehicle_type || "",
           manufacturer: data.manufacturer || "",
           driver: data.driver || "",
+          contact: data.contact || "",
           trailer: data.trailer || "",
         });
         setLoading(false);
@@ -42,7 +51,7 @@ function TruckEdit() {
         setError(error.message);
         setLoading(false);
       });
-  }, [truckId]); // Dependency array: triggers the effect whenever truckId changes
+  }, [truckId, token]); // Dependency array: triggers the effect whenever truckId changes
 
   function handleChange(event) {
     const { name, value } = event.target; // Correct destructuring
@@ -55,11 +64,13 @@ function TruckEdit() {
   function handleSubmit(event) {
     event.preventDefault();
 
-    fetch(`https://maingi-server-3.onrender.com/trucks/${truckId}`, {
+    fetch(`https://db-demo-u07o.onrender.com/trucks/${truckId}`, {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",
+        'Authorization': `Bearer ${token}`
       },
+      credentials:'include',
       body: JSON.stringify(formData),
     })
       .then((response) => response.json())
@@ -77,79 +88,113 @@ function TruckEdit() {
   if (error) return <p>Error: {error}</p>;
 
   return (
-    <div>
-      <Typography textAlign="center" fontSize="30px" fontWeight="bold">
+    <Box>
+
+      <Typography textAlign="center" fontSize="30px" fontWeight="bold" mt={'30px'}>
         EDIT VEHICLE
       </Typography>
 
-      <form className="bill-form" onSubmit={handleSubmit}>
-        <div className="bill-input">
-          <label>VEHICLE TYPE</label>
-          <select
+      <Box
+          sx={{
+            borderRadius: '15px',
+            display: 'flex',
+            flexDirection: 'column',
+            height: 'auto', // Adjust height for better flexibility
+            boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
+            padding: '10px',
+            margin: '30px',
+            backgroundColor: '#fff',
+            // Media queries for responsive design
+            '@media (max-width: 600px)': {
+              margin: '15px', // Adjust margin for smaller screens
+              padding: '5px', // Adjust padding for smaller screens
+            },
+            '@media (min-width: 600px)': {
+              margin: '30px', // Keep margin for medium screens and above
+              padding: '10px', // Keep padding for medium screens and above
+            },
+          }}
+      >
+      <form style={{display:'flex', flexDirection:'column', margin:'30px'}} onSubmit={handleSubmit}>
+        
+        <FormControl>
+          <Typography>VEHICLE TYPE</Typography>
+          <Select
             name="vehicle_type"
             value={formData.vehicle_type}
             className="bill-inputfield"
             onChange={handleChange}
+            sx={{mb:'20px'}}
           >
-            <option value="">Select Vehicle Type</option>
-            <option value="Heavy Commercial Vehicle">
+            <MenuItem value="">Select Vehicle Type</MenuItem>
+            <MenuItem value="Heavy Commercial Vehicle">
               Heavy Commercial Vehicle
-            </option>
-            <option value="Light Commercial Vehicle">
+            </MenuItem>
+            <MenuItem value="Light Commercial Vehicle">
               Light Commercial Vehicle
-            </option>
-          </select>
-        </div>
+            </MenuItem>
+          </Select>
+        </FormControl>
 
-        <div className="bill-input">
-          <label>VEHICLE NUMBER PLATE</label>
-          <input
+          <TextField
             type="text"
             name="truck_number"
             value={formData.truck_number}
-            placeholder="Vehicle number plate"
-            className="bill-inputfield"
+            label="Vehicle number plate"
             onChange={handleChange}
+            variant="outlined"
+            sx={{mb:'20px'}}
           />
-        </div>
-        <div className="bill-input">
-          <label>TRAILER NUMBER PLATE</label>
-          <input
+
+          <TextField
             type="text"
             name="trailer"
             value={formData.trailer}
-            placeholder="Trailer number plate"
-            className="bill-inputfield"
+            label="Trailer number plate"
             onChange={handleChange}
+            variant="outlined"
+            sx={{mb:'20px'}}
           />
-        </div>
-        <div className="bill-input">
-          <label>DRIVER</label>
-          <input
+
+          <TextField
             type="text"
             name="driver"
             value={formData.driver}
-            placeholder="Driver"
-            className="bill-inputfield"
+            label="Driver"
             onChange={handleChange}
+            variant="outlined"
+            sx={{mb:'20px'}}
           />
-        </div>
-        <div className="bill-input">
-          <label>MANUFACTURER</label>
-          <input
+
+
+          <TextField
+            type="text"
+            name="contact"
+            value={formData.contact}
+            label="Contact"
+            onChange={handleChange}
+            variant="outlined"
+            sx={{mb:'20px'}}
+          />
+
+
+          <TextField
             type="text"
             name="manufacturer"
             value={formData.manufacturer}
-            placeholder="Manufacturer"
-            className="bill-inputfield"
+            label="Manufacturer"
             onChange={handleChange}
+            variant="outlined"
+            sx={{mb:'20px'}}
           />
-        </div>
-        <button type="submit" className="button">
+
+        <Button type="submit" variant="contained" color="secondary">
           UPDATE VEHICLE
-        </button>
+        </Button>
       </form>
-    </div>
+
+      </Box>
+    </Box>
   );
 }
 

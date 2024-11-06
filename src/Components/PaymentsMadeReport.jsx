@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Box, TextField, Typography, Select, MenuItem, FormControl, InputLabel } from "@mui/material";
+import { Box, TextField, Typography, Select, MenuItem, FormControl, InputLabel, useMediaQuery, Card, CardContent, Pagination } from "@mui/material";
 import { DataGrid, GridToolbar } from "@mui/x-data-grid";
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
@@ -9,6 +9,10 @@ import PointOfSale from "@mui/icons-material/PointOfSale";
 import { useNavigate } from "react-router-dom";
 
 function PaymentsMadeReport(){
+
+    const itemsPerPage = 16;
+    const isMobile = useMediaQuery('(max-width: 768px)');
+    const [currentPage, setCurrentPage] = useState(1)
 
 
     const currencyOptions = [
@@ -182,6 +186,7 @@ function PaymentsMadeReport(){
     const [filteredReceivables, setFilteredReceivables] = useState([]);
     const [filteredTotals, setFilteredTotals] = useState([]);
     const navigate = useNavigate();
+    const token = localStorage.getItem('access_token')
 
     const filterByDateRange = (items, startDate, endDate) => {
         if (!startDate || !endDate) return items; // No filter if dates are not set
@@ -193,7 +198,13 @@ function PaymentsMadeReport(){
       };
 
     useEffect(()=>{
-        fetch('https://db-demo-u07o.onrender.com/paymentsmade')
+        fetch('https://db-demo-u07o.onrender.com/paymentsmade',{
+          method:'GET',
+          headers:{
+            'Authorization':`Bearer ${token}`
+          },
+          credentials:'include'
+        })
         .then(response => response.json())
         .then(data => {
             const datefilter = filterByDateRange(data, startDate,endDate)
@@ -204,7 +215,7 @@ function PaymentsMadeReport(){
             setPayments(all)
             setTotals(datefilter)
         })
-    },[startDate,endDate])
+    },[startDate,endDate,token])
 
       useEffect(() => {
         // Filter data by selected currency
@@ -219,7 +230,6 @@ function PaymentsMadeReport(){
       };
 
       const calculatetotal = filteredTotals.reduce((total,item) => total + item.payment_amount, 0)
-      const total = new Intl.NumberFormat().format(calculatetotal)
 
       const handleViewDetails = (vendorId) => {
         navigate(`/vendors/${vendorId}`);
@@ -228,6 +238,8 @@ function PaymentsMadeReport(){
     const handleViewSlip = (madeId) => {
         navigate(`/payment-details/${madeId}`);
     };
+
+    
 
     const columns = [
         { field: "id", headerName: "ID", flex: 0.05 },
@@ -293,6 +305,27 @@ function PaymentsMadeReport(){
           field: "payment_amount",
           headerName: "Amount Paid",
           flex: 0.1,
+          renderCell: (params) => {
+            // Use Intl.NumberFormat for currency formatting
+            const formattedAmount = new Intl.NumberFormat(currencyLocaleMap[params.row.currency] || 'en-KE', {
+              style: 'currency',
+              currency: params.row.currency, // Replace with your desired currency
+            }).format(params.value);
+        
+            return (
+              <Box 
+                sx={{ 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  cursor: 'pointer', 
+                }}
+              >
+                <Typography variant="h7">
+                  {formattedAmount}  {/* Display formatted amount */}
+                </Typography>
+              </Box>
+            );
+          },
         },
         {
           field: "payment_date",
@@ -307,11 +340,45 @@ function PaymentsMadeReport(){
         
     ]
 
+    const currencyLocaleMap = {
+        AED: "en-AE", // United Arab Emirates Dirham
+        AUD: "en-AU", // Australian Dollar
+        CAD: "en-CA", // Canadian Dollar
+        CHF: "de-CH", // Swiss Franc
+        CNY: "zh-CN", // Chinese Yuan
+        EUR: "de-DE", // Euro
+        GBP: "en-GB", // British Pound
+        HKD: "en-HK", // Hong Kong Dollar
+        IDR: "id-ID", // Indonesian Rupiah
+        ILS: "he-IL", // Israeli New Shekel
+        INR: "en-IN", // Indian Rupee
+        JPY: "ja-JP", // Japanese Yen
+        KES: "en-KE", // Kenyan Shilling
+        NZD: "en-NZ", // New Zealand Dollar
+        SGD: "en-SG", // Singapore Dollar
+        THB: "th-TH", // Thai Baht
+        TRY: "tr-TR", // Turkish Lira
+        USD: "en-US", // United States Dollar
+        ZAR: "en-ZA", // South African Rand
+        MXN: "es-MX", // Mexican Peso
+        BRL: "pt-BR", // Brazilian Real
+      };
+
+    const totalPages = Math.ceil(filteredReceivables.length / itemsPerPage)
+    const displayedItems = filteredReceivables.slice((currentPage - 1)*itemsPerPage, currentPage * itemsPerPage)
+
+    const total = new Intl.NumberFormat(currencyLocaleMap[selectedCurrency], {style:'currency', currency:selectedCurrency}).format(calculatetotal)
+    
+
+    const handlePageChange = (event, value) => {
+        setCurrentPage(value);
+    };
+
     return ( 
-        <div>
+        <Box margin={{md:'40px', xs:'10px'}}>
 
             {/* Currency Selector */}
-            <FormControl width="50px" margin="normal">
+            <FormControl width="50px" sx={{margin:'30px'}}>
                 <InputLabel>Select Currency</InputLabel>
                 <Select
                     value={selectedCurrency}
@@ -326,7 +393,7 @@ function PaymentsMadeReport(){
                 </Select>
             </FormControl>
 
-            <Box mb='20px'>
+            <Box m='30px'>
                 <LocalizationProvider dateAdapter={AdapterDateFns}>
                 <Typography
                     fontSize='23px'
@@ -334,27 +401,28 @@ function PaymentsMadeReport(){
                 >
                   FILTER BY DATE
                 </Typography>
-                    <DatePicker
-                        label="Start Date"
-                        value={startDate}
-                        onChange={(date) => setStartDate(date)}
-                        renderInput={(params) => <TextField {...params} />}
-                    />
-                    <DatePicker
-                        label="End Date"
-                        value={endDate}
-                        onChange={(date) => setEndDate(date)}
-                        renderInput={(params) => <TextField {...params} />}
-                    />
+                    <Box display={'flex'} gap={'20px'}>
+                        <DatePicker
+                            label="Start Date"
+                            value={startDate}
+                            onChange={(date) => setStartDate(date)}
+                            renderInput={(params) => <TextField {...params} />}
+                        />
+                        <DatePicker
+                            label="End Date"
+                            value={endDate}
+                            onChange={(date) => setEndDate(date)}
+                            renderInput={(params) => <TextField {...params} />}
+                        />
+                    </Box>
                 </LocalizationProvider>
             </Box>
 
             <Box
-                display="grid"
-                gridTemplateColumns="repeat(12, 1fr)"
-                marginRight='20px'
-                gridAutoRows="140px"
-                gap="20px"
+                display={'grid'}
+                gridTemplateColumns={{xs:'repeat(1,1fr)', sm:'repeat(2,1fr)'}}
+                gap="10px"
+                margin="0 10px"
             >
                 {/* ROW 1 */}
                 <Box
@@ -380,57 +448,71 @@ function PaymentsMadeReport(){
                 
                 </Box>
 
-            <Box m="20px">
-                <Typography 
-                    fontSize='30px'
-                    fontWeight='bold'
-                    textAlign='center'
-                >
-                    PAYMENTS MADE
-                </Typography>
-                <Box
-                    m="40px 0 0 0"
-                    height="75vh"
-                    sx={{
-                    "& .MuiDataGrid-root": {
-                        border: "none",
-                    },
-                    "& .MuiDataGrid-cell": {
-                        borderBottom: "none",
-                        // fontSize: "16px",
-                    },
-                    "& .name-column--cell": {
-                        // color: colors.greenAccent[300],
-                    },
-                    "& .MuiDataGrid-columnHeaders": {
-                        // backgroundColor: colors.blueAccent[700],
-                        borderBottom: "none",
-                        // fontSize: "16px",
-                    },
-                    "& .MuiDataGrid-virtualScroller": {
-                        // backgroundColor: colors.primary[400],
-                    },
-                    "& .MuiDataGrid-footerContainer": {
-                        borderTop: "none",
-                        // backgroundColor: colors.blueAccent[700],
-                    },
-                    "& .MuiCheckbox-root": {
-                        // color: `${colors.greenAccent[200]} !important`,
-                    },
-                    "& .MuiDataGrid-toolbarContainer .MuiButton-text": {
-                        // color: `${colors.grey[100]} !important`,
-                    },
-                    }}
-                >
-                    <DataGrid
-                    rows={filteredReceivables}
-                    columns={columns}
-                    components={{ Toolbar: GridToolbar }}
-                    getRowId={(row) => `${row.customer_name}-${row.amount_received}-${row.bank_charges}-${row.payment_date}-${row.payment}-${row.payment_mode}`}
-                    />
+                {isMobile ? (
+                    <Box>
+                        <Typography fontSize={'27px'} fontWeight={'bold'} textAlign={'center'} mt={"20px"}>PAYMENTS MADE</Typography>
+                        <Box
+                            display={'grid'}
+                            gridTemplateColumns={{xs:'repeat(1,1fr)', sm:'repeat(2,1fr)'}}
+                            gap="10px"
+                            margin="0 10px"
+                        >
+
+                            {displayedItems.map((item) => (
+                                <Card
+                                    key={item.id}
+                                    sx={{
+                                        borderRadius: '15px',
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        height: 'auto', // Adjust height for better flexibility
+                                        boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
+                                        padding: '10px',
+                                        backgroundColor: '#fff',
+                                        transition: 'transform 0.3s ease-in-out',
+                                        '&:hover': {
+                                            transform: 'scale(1.03)',
+                                            boxShadow: '0 8px 30px rgba(0,0,0,0.15)',
+                                        },
+                                    }}
+                                >
+                                    <CardContent>
+                                            <Typography>Vendor Name: {item.vendor_name}</Typography>
+                                            <Typography>Vendor Phone: {item.vendor_name}</Typography>
+                                            <Typography>Vendor Email: {item.vendor_email}</Typography>
+                                            <Typography>Amount: {new Intl.NumberFormat(currencyLocaleMap[item.currency] || 'en-KE', {style:'currency', currency:item.currency}).format(item.payment_amount)}</Typography>
+                                            <Typography>Payment Date: {item.payment_date}</Typography>
+                                            <Typography>Payment Mode: {item.payment_mode}</Typography>
+                                    </CardContent>
+                                </Card>
+                            ))}
+                            <Box display="flex" justifyContent="center" mt="20px">
+                                    <Pagination count={totalPages} page={currentPage} onChange={handlePageChange} color="secondary" />
+                            </Box>
+                        </Box>
+                    </Box>
+              ) : (
+                <Box m="20px">
+                  <Typography 
+                      fontSize='30px'
+                      fontWeight='bold'
+                      textAlign='center'
+                  >
+                      PAYMENTS MADE
+                  </Typography>
+                  <Box
+                      height="75vh"
+                  >
+                      <DataGrid
+                      rows={filteredReceivables}
+                      columns={columns}
+                      components={{ Toolbar: GridToolbar }}
+                      getRowId={(row) => row.id}
+                      />
+                  </Box>
                 </Box>
-            </Box>
-        </div>
+              )}
+        </Box>
      );
 }
  

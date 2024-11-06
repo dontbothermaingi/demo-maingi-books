@@ -10,9 +10,17 @@ function RepairReport() {
     const navigate = useNavigate();
     const [repairs, setRepairs] = useState([]);
     const [tableItems, setTableItems] = useState([]);
+    const token = localStorage.getItem('access_token')
+    
 
     useEffect(() => {
-        fetch(`https://db-demo-u07o.onrender.com/vehiclemantainances/${repairId}`)
+        fetch(`https://db-demo-u07o.onrender.com/vehiclemantainances/${repairId}`,{
+            method:'GET',
+            headers:{
+                'Authorization':`Bearer ${token}`
+            },
+            credentials:'include'
+        })
             .then(response => response.json())
             .then(data => {
                 console.log("Data received:", data);
@@ -26,7 +34,7 @@ function RepairReport() {
             .catch(error => {
                 console.error("Error fetching repairs:", error);
             });
-    }, [repairId]);
+    }, [repairId,token]);
 
     const cost = tableItems.reduce((total,item) => item.price + total, 0)
 
@@ -35,14 +43,16 @@ function RepairReport() {
     };
 
     return (
-        <div>
-            <button
+        <Box>
+            <Button
                 type="button"
-                className="button"
+                variant="contained"
+                color="secondary"
                 onClick={() => handleCustomBill()}
             >
                 BACK
-            </button>
+            </Button>
+
             <Box ref={componentRef} className="a4-print" padding='20px'>
                 <Box display='flex' justifyContent='space-between' gap='10px' margin='20px'>
                     <Box>
@@ -124,7 +134,7 @@ function RepairReport() {
                     content={() => componentRef.current}
                 />
             </Box>
-        </div>
+        </Box>
     );
 }
 

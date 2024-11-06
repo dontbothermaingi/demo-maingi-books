@@ -1,16 +1,21 @@
 import { useEffect, useState} from "react";
 import { useNavigate } from "react-router-dom";
-import { Box, Typography,IconButton } from "@mui/material";
+import { Box, Typography,IconButton, FormControl, Select, MenuItem, TextField, TableContainer, Table, TableHead, TableCell, TableBody, Card, CardContent, Pagination, Paper, TableRow, Button } from "@mui/material";
 import { DataGrid, GridToolbar } from "@mui/x-data-grid";
 import CloseIcon from '@mui/icons-material/Close';
-import './DeliveryNote.css'
+import { useTheme } from '@mui/material/styles';
+import useMediaQuery from '@mui/material/useMediaQuery';
 
 function DeliveryNote(){
     const navigate = useNavigate();
     const [deliveryNote, setDeliveryNote] = useState([]);
-    const [invoices, setInvoices] = useState([]);
     const [trucks, setTrucks] = useState([]);
     const [customers,setCustomers] = useState([]);
+    const [currentPage, setCurrentPage] = useState(1)
+    const token = localStorage.getItem('access_token')
+    const itemsPerPage = 16;
+    const theme = useTheme();
+    const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
     const [formData,setFormData] = useState({
         customer_name: "",
         truck_number:"",
@@ -36,41 +41,46 @@ function DeliveryNote(){
 
 
     useEffect(()=>{
-        fetch('https://db-demo-u07o.onrender.com/deliverynotes')
+        fetch('https://db-demo-u07o.onrender.com/deliverynotes', {
+            method:'GET',
+            headers:{
+                'Authorization':`Bearer ${token}`
+            },
+            credentials:'include'
+        })
         .then(response => response.json())
         .then((data) => {
             setDeliveryNote(data)
         })
-    },[])
+    },[token])
 
     useEffect(()=>{
-        fetch('https://db-demo-u07o.onrender.com/trucks')
+        fetch('https://db-demo-u07o.onrender.com/trucks',{
+            method:'GET',
+            headers:{
+                'Authorization':`Bearer ${token}`
+            },
+            credentials:'include'
+        })
         .then(response => response.json())
         .then((data) => {
             setTrucks(data)
         })
-    },[])
+    },[token])
 
     useEffect(()=>{
-        fetch('https://db-demo-u07o.onrender.com/customers')
+        fetch('https://db-demo-u07o.onrender.com/customers', {
+            method:'GET',
+            headers:{
+                'Authorization':`Bearer ${token}`
+            },
+            credentials:'include'
+        })
         .then(response => response.json())
         .then((data) => {
             setCustomers(data)
         })
-    },[])
-
-    useEffect(() => {
-        fetch('https://db-demo-u07o.onrender.com/invoices')
-        .then(response => response.json())
-        .then((data) => {
-            const invoiceNumbers = data.map(invoice => invoice.invoice_number);
-            setInvoices(invoiceNumbers);
-        })
-        .catch((error) => {
-            console.error('Error fetching invoices:', error);
-        });
-    }, []);
-    
+    },[token])
 
     function handleSelectCustomer(event) {
         const selectedValue = event.target.value;
@@ -157,8 +167,10 @@ function DeliveryNote(){
         fetch('https://db-demo-u07o.onrender.com/deliverynotes', { 
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
             },
+            credentials:'include',
             body: JSON.stringify({
                 ...formData,
                 delivery_number:deliveryNumber
@@ -172,7 +184,13 @@ function DeliveryNote(){
         })
         .then((data) => {
             // Assuming `data` contains the updated delivery notes
-            fetch('https://maingi-server-3.onrender.com/deliverynotes')
+            fetch('https://db-demo-u07o.onrender.com/deliverynotes', {
+                method:'GET',
+                headers:{
+                    'Authorization':`Bearer ${token}`
+                },
+                credentials:'include'
+            })
             .then(response => response.json())
             .then((data) => {
                 setDeliveryNote(data)
@@ -436,305 +454,345 @@ function DeliveryNote(){
           },
     ]
 
+    const totalPages = Math.ceil(deliveryNote.length / itemsPerPage)
+    const displayedItems = deliveryNote.slice((currentPage - 1)*itemsPerPage, currentPage * itemsPerPage)
+    
+
+    const handlePageChange = (event, value) => {
+        setCurrentPage(value);
+    };
+
 
 
     return ( 
         <div>
-        <div className="invoice-content">
-            <div>
-                <h2 className="h2">NEW DELIVERY NOTE</h2>
-                <form className="invoice-form" onSubmit={handleSubmit}>
+        <Box>
 
-                <div className="bill-input">
-                    <label>Customer Name</label>
-                    <select name="customer_name" className="bill-inputfield" value={formData.customer_name} onChange={handleSelectCustomer}>
-                        <option value="">Select Customer</option>
-                        {customers.map((customer, index) => (
-                            <option key={index} value={customer.customer_name}>{customer.customer_name}</option>
-                        ))}
-                         <option value="new_customer">Create New Customer</option>
-                    </select>
-                </div>
+                <Typography fontSize={'27px'} fontWeight={'bold'} textAlign={'center'}>NEW DELIVERY NOTE</Typography>
+                <Box
+                   sx={{
+                    borderRadius: '15px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    height: 'auto', // Adjust height for better flexibility
+                    boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
+                    padding: '10px',
+                    margin: '30px',
+                    backgroundColor: '#fff',
+                    // Media queries for responsive design
+                    '@media (max-width: 600px)': {
+                      margin: '15px', // Adjust margin for smaller screens
+                      padding: '5px', // Adjust padding for smaller screens
+                    },
+                    '@media (min-width: 600px)': {
+                      margin: '30px', // Keep margin for medium screens and above
+                      padding: '10px', // Keep padding for medium screens and above
+                    },
+                  }}
+                
+                >
+                    <form onSubmit={handleSubmit}>
+                        <FormControl sx={{display:'flex', margin:'30px'}}>
+                                <Typography fontWeight={'bold'}>Customer Name</Typography>
+                                <Select name="customer_name" className="bill-inputfield" value={formData.customer_name} onChange={handleSelectCustomer} sx={{mb:'20px'}}>
+                                    <MenuItem value="">Select Customer</MenuItem>
+                                    {customers.map((customer, index) => (
+                                        <MenuItem key={index} value={customer.customer_name}>{customer.customer_name}</MenuItem>
+                                    ))}
+                                    <MenuItem value="new_customer">Create New Customer</MenuItem>
+                                </Select>
 
-                <div className="bill-input">
-                    <label>Customer Phone</label>
-                    <input
-                        type="text"
-                        name="customer_phone"
-                        placeholder="Customer Phone"
-                        className="bill-inputfield"
-                        value={formData.customer_phone}
-                        onChange={handleChange}
-                        readOnly
-                    />
-                </div>
-
-                <div className="bill-input">
-                    <label>Customer Email</label>
-                    <input
-                        type="text"
-                        name="customer_email"
-                        placeholder="Customer Email"
-                        className="bill-inputfield"
-                        value={formData.customer_email}
-                        onChange={handleChange}
-                        readOnly
-                    />
-                </div>
-
-                <div className="bill-input">
-                    <label>Customer Pin</label>
-                    <input
-                        type="text"
-                        name="customer_pin"
-                        placeholder="Customer Pin"
-                        className="bill-inputfield"
-                        value={formData.vendor_pin}
-                        onChange={handleChange}
-                        readOnly
-                    />
-                </div>
-
-                <div className="bill-input">
-                    <label>Invoice Number</label>
-
-                    <select name="invoice_number" className="bill-inputfield" value={formData.invoice_number} onChange={handleChange}>
-                            <option value="">Select Invoice</option>
-                            {invoices?.map((invoice, index) => (
-                                <option key={index} value={invoice.invoice_number}>
-                                    {invoice.invoice_number}
-                                </option>
-                            ))}
-                    </select>
-                </div>
-
-                <div className="bill-input">
-                    <label>Date</label>
-                    <input
-                        type="date"
-                        name="delivery_date"
-                        placeholder="Date"
-                        className="input"
-                        value={formData.delivery_date}
-                        onChange={handleChange}
-                        required
-                    />
-                </div>
-
-                <div className="bill-input">
-                    <label>Vehicle Number</label>
-
-                    <select name="truck_number" className="bill-inputfield" value={formData.truck_number} onChange={handleTrucks}>
-                            <option value="">Select Truck</option>
-                            {trucks.map((truck, index) => (
-                                <option key={index} value={truck.truck_number}>
-                                    {truck.truck_number}
-                                </option>
-                            ))}
-                    </select>
-                </div>
-
-                <div className="bill-input">
-                    <label>Driver</label>
-                    <input
-                        type="text"
-                        name="driver"
-                        placeholder="Driver"
-                        className="bill-inputfield"
-                        value={formData.driver}
-                        onChange={handleChange}
-                        required
-                    />
-                </div>
-
-                <div className="bill-input">
-                    <label>Driver Phone Number</label>
-                    <input
-                        type="text"
-                        name="driver_contact"
-                        placeholder="Driver Phone NUmber"
-                        className="bill-inputfield"
-                        value={formData.driver_contact}
-                        onChange={handleChange}
-                        required
-                    />
-                </div>
-
-                <div className="bill-input">
-                    <label>Origin Location</label>
-                    <input
-                        type="text"
-                        name="origin_place"
-                        placeholder="Origin Location"
-                        className="bill-inputfield"
-                        value={formData.origin_place}
-                        onChange={handleChange}
-                        required
-                    />
-                </div>
-
-                <div className="bill-input">
-                    <label>Destination</label>
-                    <input
-                        type="text"
-                        name="destination"
-                        placeholder="destination"
-                        className="bill-inputfield"
-                        value={formData.destination}
-                        onChange={handleChange}
-                        required
-                    />
-                </div>
-
-                    <div className="bill-input">
-                    <label>Items</label>
-                    <table className="item-table">
-                        <thead>
-                            <tr>
-                                <th>Container Number</th>
-                                <th>Cargo Description</th>
-                                <th>Quantity</th>
-                                <th>Weight</th>
-                                <th>Measurement</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {formData.items.map((item, index) => (
-                                <tr key={index}>
-                                    <td>{item.container_number}</td>
-                                    <td>{item.cargo_description}</td>
-                                    <td>{item.quantity}</td>
-                                    <td>{item.weight}</td>
-                                    <td>{item.measurement}</td>
-                                    <td>
-                                        <IconButton 
-                                            color="error"
-                                            onClick={() => handleDeleteItem(index)}
-                                        >
-                                            <CloseIcon />
-                                        </IconButton>
-                                    </td>
-                                </tr>
-                            ))}
-                            <tr>
-                                <td>
-                                    <input
+                                    <TextField
                                         type="text"
-                                        name="container_number"
-                                        placeholder="Container Number"
-                                        className="bill-inputfield"
-                                        value={newItem.container_number}
-                                        onChange={handleNewItemChange}
+                                        name="customer_phone"
+                                        label="Customer Phone"
+                                        value={formData.customer_phone}
+                                        onChange={handleChange}
+                                        readOnly
+                                        variant="outlined"
+                                        sx={{mb:'20px'}}
                                     />
-                                </td>
-                                <td>
-                                    <input
+
+                        
+                                    <TextField
                                         type="text"
-                                        name="cargo_description"
-                                        placeholder="Cargo Description"
-                                        className="bill-inputfield"
-                                        value={newItem.cargo_description}
-                                        onChange={handleNewItemChange}
+                                        name="customer_email"
+                                        label="Customer Email"
+                                        value={formData.customer_email}
+                                        onChange={handleChange}
+                                        readOnly
+                                        variant="outlined"
+                                        sx={{mb:'20px'}}
                                     />
-                                </td>
-                                <td>
-                                    <input
-                                        type="number"
-                                        name="quantity"
-                                        placeholder="Quantity"
-                                        className="bill-inputfield"
-                                        value={newItem.quantity}
-                                        onChange={handleNewItemChange}
+
+                                    <TextField
+                                        type="text"
+                                        name="customer_pin"
+                                        label="Customer Pin"
+                                        value={formData.vendor_pin}
+                                        onChange={handleChange}
+                                        readOnly
+                                        variant="outlined"
+                                        sx={{mb:'20px'}}
                                     />
-                                </td>
-                                <td>
-                                    <input
-                                        type="number"
-                                        name="weight"
-                                        placeholder="Weight"
-                                        className="bill-inputfield"
-                                        value={newItem.weight}
-                                        onChange={handleNewItemChange}
-                                    />
-                                </td>
-                                <td>
-                                        <select 
-                                               type="text"
-                                               name="measurement"
-                                               placeholder="Quantity"
-                                               className="bill-inputfield"
-                                               value={newItem.measurement}
-                                               onChange={handleNewItemChange}
-                                        >
-                                            <option value="">Select</option>
-                                            {units.map((unit) => (
-                                            <option key={unit.value} value={unit.value}>
-                                                {unit.label}
-                                            </option>
-                                            ))}
-                                        </select>
-                                    </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                    </div>
+
+
+                                        <Typography fontWeight={'bold'}>Date</Typography>
+                                        <TextField
+                                            type="date"
+                                            name="delivery_date"
+                                            value={formData.delivery_date}
+                                            onChange={handleChange}
+                                            required
+                                            variant="outlined"
+                                            sx={{mb:'20px'}}
+                                        />
+
+                                            <Typography>Vehicle Number</Typography>
+                                            <Select name="truck_number" className="bill-inputfield" value={formData.truck_number} onChange={handleTrucks} sx={{mb:'20px'}}>
+                                                    <MenuItem value="">Select Truck</MenuItem>
+                                                    {trucks.map((truck, index) => (
+                                                        <MenuItem key={index} value={truck.truck_number}>
+                                                            {truck.truck_number}
+                                                        </ MenuItem>
+                                                    ))}
+                                            </Select>
+
+                                            <TextField
+                                                type="text"
+                                                name="driver"
+                                                label="Driver"
+                                                value={formData.driver}
+                                                onChange={handleChange}
+                                                required
+                                                variant="outlined"
+                                                sx={{mb:'20px'}}
+                                            />
+
+                                            <TextField
+                                                type="text"
+                                                name="driver_contact"
+                                                label="Driver Phone NUmber"
+                                                value={formData.driver_contact}
+                                                onChange={handleChange}
+                                                required
+                                                variant="outlined"
+                                                sx={{mb:'20px'}}
+                                            />
+
+                                            <TextField
+                                                type="text"
+                                                name="origin_place"
+                                                label="Origin Location"
+                                                value={formData.origin_place}
+                                                onChange={handleChange}
+                                                required
+                                                variant="outlined"
+                                                sx={{mb:'20px'}}
+                                            />
+
+                                            <TextField
+                                                type="text"
+                                                name="destination"
+                                                label="destination"
+                                                className="bill-inputfield"
+                                                value={formData.destination}
+                                                onChange={handleChange}
+                                                required
+                                                variant="outlined"
+                                                sx={{mb:'20px'}}
+                                            />
+
+                                <Box>
+                                    <Typography fontSize={'25px'} fontWeight={'bold'}>Items</Typography>
+                                    <TableContainer component={Paper} sx={{ overflowX: 'auto', width: '100%', marginTop: 2 }}>
+                                        <Table aria-label="Invoice Table" sx={{ minWidth: isMobile ? 900 : 'auto' }}>
+                                            <TableHead>
+                                                <TableRow>
+                                                    <TableCell sx={{ minWidth: 150 }}><Typography fontWeight="bold">Container NUmber</Typography></TableCell>
+                                                    <TableCell sx={{ minWidth: 430 }}><Typography fontWeight="bold">Cargo Description</Typography></TableCell>
+                                                    <TableCell sx={{ minWidth: 150 }}><Typography fontWeight="bold">Quantity</Typography></TableCell>
+                                                    <TableCell sx={{ minWidth: 150 }}><Typography fontWeight="bold">Weight</Typography></TableCell>
+                                                    <TableCell sx={{ minWidth: 150 }}><Typography fontWeight="bold">Measurement</Typography></TableCell>
+                                                </TableRow>
+                                            </TableHead>
+                                            <TableBody>
+                                                {formData.items.map((item, index) => (
+                                                    <TableRow key={index}>
+                                                        <TableCell>{item.container_number}</TableCell>
+                                                        <TableCell>{item.cargo_description}</TableCell>
+                                                        <TableCell>{item.quantity}</TableCell>
+                                                        <TableCell>{item.weight}</TableCell>
+                                                        <TableCell>{item.measurement}</TableCell>
+                                                        <TableCell>
+                                                            <IconButton 
+                                                                color="error"
+                                                                onClick={() => handleDeleteItem(index)}
+                                                            >
+                                                                <CloseIcon />
+                                                            </IconButton>
+                                                        </TableCell>
+                                                    </TableRow>
+                                                ))}
+                                                <TableRow>
+                                                    <TableCell>
+                                                        <TextField
+                                                            type="text"
+                                                            name="container_number"
+                                                            lable="Container Number"
+                                                            className="bill-inputfield"
+                                                            value={newItem.container_number}
+                                                            onChange={handleNewItemChange}
+                                                            variant="outlined"
+                                                            size="small"
+                                                            fullWidth
+                                                        />
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <TextField
+                                                            type="text"
+                                                            name="cargo_description"
+                                                            placeholder="Cargo Description"
+                                                            className="bill-inputfield"
+                                                            value={newItem.cargo_description}
+                                                            onChange={handleNewItemChange}
+                                                            variant="outlined"
+                                                            size="small"
+                                                            fullWidth
+                                                            multiline
+                                                            minRows={4}  // Initial number of rows
+                                                            maxRows={50}   // Maximum number of rows
+                                                        />
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <TextField
+                                                            type="number"
+                                                            name="quantity"
+                                                            placeholder="Quantity"
+                                                            className="bill-inputfield"
+                                                            value={newItem.quantity}
+                                                            onChange={handleNewItemChange}
+                                                            variant="outlined"
+                                                            size="small"
+                                                            fullWidth
+                                                        />
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <TextField
+                                                            type="number"
+                                                            name="weight"
+                                                            placeholder="Weight"
+                                                            className="bill-inputfield"
+                                                            value={newItem.weight}
+                                                            onChange={handleNewItemChange}
+                                                            variant="outlined"
+                                                            size="small"
+                                                            fullWidth
+                                                        />
+                                                    </TableCell>
+                                                    <TableCell>
+                                                            <Select 
+                                                                type="text"
+                                                                name="measurement"
+                                                                placeholder="Quantity"
+                                                                className="bill-inputfield"
+                                                                value={newItem.measurement}
+                                                                onChange={handleNewItemChange}
+                                                                fullWidth 
+                                                                displayEmpty
+                                                            >
+                                                                <MenuItem value="">Select</MenuItem>
+                                                                {units.map((unit) => (
+                                                                <MenuItem key={unit.value} value={unit.value}>
+                                                                    {unit.label}
+                                                                </MenuItem>
+                                                                ))}
+                                                            </Select>
+                                                        </TableCell>
+                                                </TableRow>
+                                            </TableBody>
+                                        </Table>
+                                    </TableContainer>
+                                </Box>
+                        
                     
-                    <button type="button" className="button" onClick={addItem}>Add Item</button>
-                    <button type="submit" className="button">Save Delivery Note</button>
-                </form>
-            </div>
-        </div>
-    
-        <Box m="20px">
-            <Typography 
-                fontSize='30px'
-                fontWeight='bold'
-                textAlign='center'
-            >
-                DELIVERY NOTES
-            </Typography>
-            <Box
-                m="40px 0 0 0"
-                height="75vh"
-                sx={{
-                "& .MuiDataGrid-root": {
-                    border: "none",
-                },
-                "& .MuiDataGrid-cell": {
-                    borderBottom: "none",
-                    // fontSize: "16px",
-                },
-                "& .name-column--cell": {
-                    // color: colors.greenAccent[300],
-                },
-                "& .MuiDataGrid-columnHeaders": {
-                    // backgroundColor: colors.blueAccent[700],
-                    borderBottom: "none",
-                    // fontSize: "16px",
-                },
-                "& .MuiDataGrid-virtualScroller": {
-                    // backgroundColor: colors.primary[400],
-                },
-                "& .MuiDataGrid-footerContainer": {
-                    borderTop: "none",
-                    // backgroundColor: colors.blueAccent[700],
-                },
-                "& .MuiCheckbox-root": {
-                    // color: `${colors.greenAccent[200]} !important`,
-                },
-                "& .MuiDataGrid-toolbarContainer .MuiButton-text": {
-                    // color: `${colors.grey[100]} !important`,
-                },
-                }}
-            >
-                <DataGrid
-                rows={deliveryNote || []}
-                columns={columns}
-                components={{ Toolbar: GridToolbar }}
-                getRowId={(row) => row.id}
-                />
-            </Box>
+                        </FormControl>
+                        <Box display={'flex'} flexDirection={'column'} gap={'30px'} width={{xs:'50%', md:'20%'}} ml={'30px'} mb={'30px'}>
+                            <Button type="button" variant="contained" color="secondary" onClick={addItem}>Add Item</Button>
+                            <Button type="submit" variant="contained" color="secondary">Save Delivery Note</Button>
+                        </Box>
+                    </form>
+                </Box>
+
         </Box>
+    
+        {isMobile ? (
+                <Box>
+                <Typography fontSize={'27px'} fontWeight={'bold'} textAlign={'center'} mt={"20px"}>DELIVERY NOTES</Typography>
+                <Box
+                    display={'grid'}
+                    gridTemplateColumns={{xs:'repeat(1,1fr)', sm:'repeat(2,1fr)'}}
+                    gap="10px"
+                    margin="0 10px"
+                >
+
+                    {displayedItems.map((item) => (
+                        <Card
+                            key={item.id}
+                            onClick={() => handleViewDetails(item.invoice_number)}
+                            sx={{
+                                borderRadius: '15px',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                height: 'auto', // Adjust height for better flexibility
+                                boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
+                                padding: '10px',
+                                margin: '30px',
+                                backgroundColor: '#fff',
+                                transition: 'transform 0.3s ease-in-out',
+                                '&:hover': {
+                                    transform: 'scale(1.03)',
+                                    boxShadow: '0 8px 30px rgba(0,0,0,0.15)',
+                                },
+                            }}
+                        >
+                            <CardContent>
+                                    <Typography>Customer Name: {item.customer_name}</Typography>
+                                    <Typography>Customer Phone: {item.customer_name}</Typography>
+                                    <Typography>Truck Number: {item.truck_number}</Typography>
+                                    <Typography>Weight: {item.weight}</Typography>
+                                    <Typography>Container Number: {item.container_number}</Typography>
+                                    <Typography>Invoice Number: {item.invoice_number}</Typography>
+                                    <Typography>Cargo Description: {item.cargo_description}</Typography>
+                            </CardContent>
+                        </Card>
+                    ))}
+                    <Box display="flex" justifyContent="center" mt="20px">
+                            <Pagination count={totalPages} page={currentPage} onChange={handlePageChange} color="secondary" />
+                    </Box>
+                </Box>
+            </Box>
+              ) : (
+                <Box m="20px">
+                  <Typography 
+                      fontSize='30px'
+                      fontWeight='bold'
+                      textAlign='center'
+                  >
+                      DELIVERY NOTES
+                  </Typography>
+                  <Box
+                      height="75vh"
+                  >
+                      <DataGrid
+                      rows={deliveryNote}
+                      columns={columns}
+                      components={{ Toolbar: GridToolbar }}
+                      getRowId={(row) => row.id}
+                      />
+                  </Box>
+                </Box>
+              )}
 
 
     </div>

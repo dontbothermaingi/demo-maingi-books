@@ -1,56 +1,8 @@
-html,
-body,
-#root,
-.app,
-.content {
-  /* width: 100%; */
-  font-family: sans-serif;
+body {
   margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
-
-::-webkit-scrollbar {
-  width: 10px;
-}
-
-::-webkit-scrollbar-track {
-  background: #e0e0e0;
-}
-
-::-webkit-scrollbar-thumb {
-  background: #888;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: #555;
-}
-
-.app {
-  display: flex;
-}
-
-.sidebar {
-  max-height: 100%;
-}
-
-.main-content {
-  /* margin-left: 250px; Adjust width to match Navbar */
-  width: calc(100% - 250px);
-  display: flex;
-  flex-direction: column;
-  height: 100vh;
-  overflow: hidden;
-}
-
-.topbar {
-  flex: 0 0 auto;
-}
-
-.content {
-  flex: 1 1 auto;
-  overflow-y: auto;
-  padding: 20px;
-  height: 100%;
-  width: 100%;
-}
-
-

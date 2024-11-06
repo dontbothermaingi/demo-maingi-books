@@ -1,15 +1,18 @@
-import { Box, IconButton, Typography } from "@mui/material";
 import { DataGrid, GridToolbar } from "@mui/x-data-grid";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import CloseIcon from '@mui/icons-material/Close';
-
+import { Box, Typography, Button, IconButton, FormControl, Select, MenuItem, TextField, RadioGroup, FormControlLabel, TableContainer, Paper, Table, TableHead, TableRow, TableCell, TableBody, Card, CardContent, Pagination, Radio, useMediaQuery } from "@mui/material";
 
 function Quotes (){
 
     const [quotes,setQuotes] = useState([]);
     const navigate = useNavigate()
     const [isVatInclusive, setIsVatInclusive] = useState(true);
+    const [currentPage, setCurrentPage] = useState(1)
+    const itemsPerPage = 16;
+    const isMobile = useMediaQuery('(max-width: 768px)');
+    const token = localStorage.getItem('access_token')
     const [customers,setCustomers] = useState([]);
     const [formData, setFormData] = useState({
         customer_name: "",
@@ -18,6 +21,7 @@ function Quotes (){
         quote_number: "",
         quote_date: "",
         vendor_pin: "",
+        currency:"",
         type_vat:"Inclusive Tax",
         items: [],
     })
@@ -34,13 +38,25 @@ function Quotes (){
     })
 
     useEffect(()=>{
-        fetch('https://db-demo-u07o.onrender.com/customers')
+        fetch('https://db-demo-u07o.onrender.com/customers', {
+            method:'GET',
+            headers:{
+                'Authorization':`Bearer ${token}`
+            },
+            credentials:'include'
+        })
         .then(response => response.json())
         .then(data => setCustomers(data))
-    }, [])
+    }, [token])
 
     useEffect(()=>{
-        fetch('https://db-demo-u07o.onrender.com/quotes')
+        fetch('https://db-demo-u07o.onrender.com/quotes', {
+            method:'GET',
+            headers:{
+                'Authorization':`Bearer ${token}`
+            },
+            credentials:'include'
+        })
         .then(response => response.json())
         .then((data) => {
 
@@ -54,7 +70,7 @@ function Quotes (){
 
             setQuotes(quote_total)
         })
-    },[])
+    },[token])
 
     function handleChange(event){
         const{name,value} = event.target
@@ -136,14 +152,22 @@ function Quotes (){
         fetch('https://db-demo-u07o.onrender.com/quotes', {
             method:'POST',
             headers:{
-                'Content-Type':'application/json'
+                'Content-Type':'application/json',
+                'Authorization': `Bearer ${token}`
             },
+            credentials:'include',
             body:JSON.stringify({...formData, quote_number:quoteNumber})
         })
         .then(response => response.json())
         .then(data => {
 
-                fetch('https://db-demo-u07o.onrender.com/quotes')
+                fetch('https://db-demo-u07o.onrender.com/quotes',{
+                    method:'GET',
+                    headers:{
+                        'Authorization':`Bearer ${token}`
+                    },
+                    credentials:'include'
+                })
                 .then(response => response.json())
                 .then((data) => {
                     
@@ -162,6 +186,7 @@ function Quotes (){
                 customer_phone: "",
                 customer_email: "",
                 quote_number: "",
+                currency:"",
                 quote_date: "",
                 vendor_pin: "",
                 type_vat:"Inclusive Tax",
@@ -276,269 +301,376 @@ function Quotes (){
         },
     ]
 
+    const totalPages = Math.ceil(quotes.length / itemsPerPage)
+    const displayedItems = quotes.slice((currentPage - 1)*itemsPerPage, currentPage * itemsPerPage)
+
+    const handlePageChange = (event, value) => {
+        setCurrentPage(value);
+    };
+
     return ( 
-        <div>
-            <div className="invoice-content">
-                <div>
-                    <Typography fontSize='25px' fontWeight="bold" textAlign='center'>NEW QUOTE</Typography>
-                    <form className="bill-form" onSubmit={handleSubmit}>
+        <Box margin={'40px'}>
+            <Box>
+                <Box 
+                    sx={{
+                      borderRadius: '15px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      height: 'auto', // Adjust height for better flexibility
+                      boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
+                      padding: '10px',
+                      backgroundColor: '#fff',
+                      // Media queries for responsive design
+                      '@media (max-width: 600px)': {
+                        padding: '5px', // Adjust padding for smaller screens
+                      },
+                      '@media (min-width: 600px)': {
+                        padding: '10px', // Keep padding for medium screens and above
+                      },
+                    }}
+                  
+                >
+                    <Typography fontSize={'30px'} fontWeight={'bold'} textAlign={'center'} marginTop={'20px'}>NEW QUOTE</Typography>
+                    <form style={{display:'flex', flexDirection:'column', margin:'20px'}} onSubmit={handleSubmit}>
 
-                    <div className="bill-input">
-                        <label>Customer Name</label>
-                        <select name="customer_name" className="bill-inputfield" value={formData.customer_name} onChange={handleSelectCustomer}>
-                            <option value="">Select Customer</option>
-                            {customers.map((customer, index) => (
-                                <option key={index} value={customer.customer_name}>{customer.customer_name}</option>
-                            ))}
-                             <option value="new_customer">Create New Customer</option>
-                        </select>
-                    </div>
+                        <FormControl>
+                            <Typography fontWeight={'bold'}>Customer Name</Typography>
+                            <Select name="customer_name" value={formData.customer_name} onChange={handleSelectCustomer} sx={{mb:'20px'}}>
+                                <MenuItem value="">Select Customer</MenuItem>
+                                {customers.map((customer, index) => (
+                                    <MenuItem key={index} value={customer.customer_name}>{customer.customer_name}</MenuItem>
+                                ))}
+                                <MenuItem value="new_customer">Create New Customer</MenuItem>
+                            </Select>
+                        </FormControl>
 
-                    <div className="bill-input">
-                        <label>Customer Phone</label>
-                        <input
+
+                        <TextField
                             type="text"
                             name="customer_phone"
-                            placeholder="Customer Phone"
-                            className="bill-inputfield"
+                            label="Customer Phone"
                             value={formData.customer_phone}
                             onChange={handleChange}
                             readOnly
+                            variant="outlined"
+                            sx={{mb:'20px'}}
                         />
-                    </div>
 
-                    <div className="bill-input">
-                        <label>Customer Email</label>
-                        <input
+                        <TextField
                             type="text"
                             name="customer_email"
-                            placeholder="Customer Email"
-                            className="bill-inputfield"
+                            label="Customer Email"
                             value={formData.customer_email}
                             onChange={handleChange}
                             readOnly
+                            variant="outlined"
+                            sx={{mb:'20px'}}
                         />
-                    </div>
 
-                    <div className="bill-input">
-                        <label>Customer Pin</label>
-                        <input
+                        <TextField
                             type="text"
                             name="customer_pin"
-                            placeholder="Customer Pin"
-                            className="bill-inputfield"
+                            label="Customer Pin"
                             value={formData.vendor_pin}
                             onChange={handleChange}
                             readOnly
+                            variant="outlined"
+                            sx={{mb:'20px'}}
                         />
-                    </div>
 
-                    <div className="bill-input">
-                        <label>Currency</label>
-                        <input
+                        <TextField
                             type="text"
-                            name="currency"
-                            placeholder="Currency"
-                            className="bill-inputfield"
-                            value={formData.currency}
+                            name="quote_number"
+                            label="Quote Number"
+                            value={formData.quote_number}
                             onChange={handleChange}
                             readOnly
+                            variant="outlined"
+                            sx={{mb:'20px'}}
                         />
-                    </div>
 
-                    <div className="bill-input">
-                        <label>Quote Date</label>
-                        <input
-                            type="date"
+                        <TextField
+                            type="text"
                             name="quote_date"
-                            placeholder="Quote Date"
-                            className="input"
+                            label="Date"
+                            className="bill-inputfield"
                             value={formData.quote_date}
                             onChange={handleChange}
-                            required
+                            readOnly
+                            variant="outlined"
+                            sx={{mb:'20px'}}
                         />
-                    </div>
 
-                        <div className="vat-options">
-                                <div className="vat-option">
-                                    <input
-                                        type="radio"
-                                        id="inclusiveVat"
-                                        name="vat_type"
-                                        value="Inclusive VAT"
-                                        checked={isVatInclusive}
-                                        onChange={handleToggleVat}
-                                    />
-                                    <label htmlFor="inclusiveVat">Inclusive VAT</label>
-                                </div>
-                                <div className="vat-option">
-                                    <input
-                                        type="radio"
-                                        id="exclusiveVat"
-                                        name="vat_type"
-                                        value="Exclusive VAT"
-                                        checked={!isVatInclusive}
-                                        onChange={handleToggleVat}
-                                    />
-                                    <label htmlFor="exclusiveVat">Exclusive VAT</label>
-                                </div>
-                            </div>
-                        <div className="bill-input">
-                        <label>Items</label>
-                        <table className="item-table">
-                            <thead>
-                                <tr>
-                                    <th>Item</th>
-                                    <th>Description</th>
-                                    <th>Quantity</th>
-                                    <th>Rate</th>
-                                    <th>Sub Total</th>
-                                    <th>VAT</th>
-                                    <th>VAT Amount</th>
-                                    <th>Total Amount</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {formData.items.map((item, index) => (
-                                    <tr key={index}>
-                                        <td>{item.item_details}</td>
-                                        <td>{item.description}</td>
-                                        <td>{item.quantity}</td>
-                                        <td>{item.rate}</td>
-                                        <td>{item.sub_total}</td>
-                                        <td>{item.vat}</td>
-                                        <td>{item.rate_vat}</td>
-                                        <td>{item.amount.toLocaleString()}</td>
-                                        <td>
-                                            <IconButton 
-                                                color="error"
-                                                onClick={() => handleDeleteItem(index)}
-                                            >
-                                                <CloseIcon />
-                                            </IconButton>
-                                        </td>
-                                    </tr>
-                                ))}
-                                <tr>
-                                    <td>
-                                        <input
-                                            type="text"
-                                            name="item_details"
-                                            placeholder="Item Details"
-                                            className="bill-inputfield"
-                                            value={newItem.item_details}
-                                            onChange={handleNewItemChange}
-                                        />
-                                    </td>
-                                    <td>
-                                        <input
-                                            type="text"
-                                            name="description"
-                                            placeholder="Description"
-                                            className="bill-inputfield"
-                                            value={newItem.description}
-                                            onChange={handleNewItemChange}
-                                        />
-                                    </td>
-                                    <td>
-                                        <input
-                                            type="number"
-                                            name="quantity"
-                                            placeholder="Quantity"
-                                            className="bill-inputfield"
-                                            value={newItem.quantity}
-                                            onChange={handleNewItemChange}
-                                        />
-                                    </td>
-                                    <td>
-                                        <input
-                                            type="number"
-                                            name="rate"
-                                            placeholder="Rate"
-                                            className="bill-inputfield"
-                                            value={newItem.rate}
-                                            onChange={handleNewItemChange}
-                                        />
-                                    </td>
-                                    <td><input value={newItem.sub_total.toLocaleString()}/></td>
-                                    <td>
+                        <RadioGroup
+                            name="vat_type"
+                            value={isVatInclusive ? "Inclusive VAT" : "Exclusive VAT"} // use value for better control
+                            onChange={handleToggleVat}
+                            sx={{display:'flex', flexDirection:'row'}}
+                        >
+                            <FormControlLabel
+                                value="Inclusive VAT"
+                                control={<Radio />}
+                                label="Inclusive VAT"
+                                checked={isVatInclusive}
+                            />
+                            <FormControlLabel
+                                value="Exclusive VAT"
+                                control={<Radio />}
+                                label="Exclusive VAT"
+                                checked={!isVatInclusive}
+                            />
+                        </RadioGroup>
 
-                                        <select value={newItem.vat} className="bill-input" name="vat" onChange={handleNewItemChange}>
-                                                {/* <option value=''>Select vat</option> */}
-                                                <option value='16'>16%</option>
-                                                <option value='0'> 0% </option>
-                                        </select>
+                        <Typography fontSize={'25px'} fontWeight={'bold'}>Items</Typography>
+                        <TableContainer component={Paper} sx={{ overflowX: 'auto', width: '100%', marginTop: 2 }}>
+                            <Table aria-label="Invoice Table" sx={{ minWidth: isMobile ? 900 : 'auto' }}>
+                                <TableHead>
+                                    <TableRow>
+                                        <TableCell sx={{ minWidth: 150 }}><Typography fontWeight="bold">Item</Typography></TableCell>
+                                        <TableCell sx={{ minWidth: 280 }}><Typography fontWeight="bold">Description</Typography></TableCell>
+                                        <TableCell sx={{ minWidth: 150 }}><Typography fontWeight="bold">Quantity</Typography></TableCell>
+                                        <TableCell sx={{ minWidth: 150 }}><Typography fontWeight="bold">Rate</Typography></TableCell>
+                                        <TableCell sx={{ minWidth: 150 }}><Typography fontWeight="bold">Sub Total</Typography></TableCell>
+                                        <TableCell sx={{ minWidth: 150 }}><Typography fontWeight="bold">VAT</Typography></TableCell>
+                                        <TableCell sx={{ minWidth: 150 }}><Typography fontWeight="bold">VAT Amount</Typography></TableCell>
+                                        <TableCell sx={{ minWidth: 150 }}><Typography fontWeight="bold">Total Amount</Typography></TableCell>
+                                    </TableRow>
+                                </TableHead>
+                                <TableBody>
+                                    {formData.items.map((item, index) => (
+                                        <TableRow key={index}>
+                                            <TableCell>{item.item_details}</TableCell>
+                                            <TableCell>{item.description}</TableCell>
+                                            <TableCell>{item.quantity}</TableCell>
+                                            <TableCell>{item.rate}</TableCell>
+                                            <TableCell>{item.sub_total}</TableCell>
+                                            <TableCell>{item.vat}</TableCell>
+                                            <TableCell>{item.rate_vat}</TableCell>
+                                            <TableCell>{item.amount.toLocaleString()}</TableCell>
+                                            <TableCell>
+                                                <IconButton 
+                                                    color="error"
+                                                    onClick={() => handleDeleteItem(index)}
+                                                >
+                                                    <CloseIcon />
+                                                </IconButton>
+                                            </TableCell>
+                                        </TableRow>
+                                    ))}
+                                    <TableRow>
+                                        <TableCell>
+                                            <TextField
+                                                name="item_dtails"
+                                                placeholder="Item Details"
+                                                value={newItem.item_details}
+                                                onChange={handleNewItemChange}
+                                                variant="outlined"
+                                                size="small"
+                                                fullWidth
+                                            />
+                                            
+                                            
+                                        </TableCell>
 
-                                    </td>
-                                    <td><input value={newItem.rate_vat.toLocaleString()}/></td>
-                                    <td><input value={newItem.amount.toLocaleString()}/></td>
-                                </tr>
-                            </tbody>
-                        </table>
-                        </div>
+                                        <TableCell>
+                                            <TextField
+                                                name="description"
+                                                placeholder="Description"
+                                                value={newItem.description}
+                                                onChange={handleNewItemChange}
+                                                variant="outlined"
+                                                size="small"
+                                                fullWidth
+                                                multiline
+                                                minRows={4}  // Initial number of rows
+                                                maxRows={20}   // Maximum number of rows
+                                            />
+                                        </TableCell>
+
+                                        <TableCell>
+                                            <TextField
+                                                type="number"
+                                                name="quantity"
+                                                placeholder="Quantity"
+                                                className="bill-inputfield"
+                                                value={newItem.quantity}
+                                                onChange={handleNewItemChange}
+                                                variant="outlined"
+                                                size="small"
+                                                fullWidth
+                                            />
+                                        </TableCell>
+                                        <TableCell>
+                                            <TextField
+                                                type="number"
+                                                name="rate"
+                                                placeholder="Rate"
+                                                className="bill-inputfield"
+                                                value={newItem.rate}
+                                                onChange={handleNewItemChange}
+                                                variant="outlined"
+                                                size="small"
+                                                fullWidth
+                                            />
+                                        </TableCell>
+
+                                        <TableCell>
+                                            <TextField
+                                                placeholder="Sub Total"
+                                                variant="outlined"
+                                                size="small"
+                                                fullWidth
+                                                value={newItem.sub_total}
+                                                InputProps={{ readOnly: true }}
+                                            />
+                                        </TableCell>
+
+                                        <TableCell>
+                                            <FormControl>
+                                                <Select
+                                                    value={newItem.vat}
+                                                    name="vat"
+                                                    fullWidth
+                                                    onChange={handleNewItemChange}
+                                                    displayEmpty
+                                                >
+                                                    <MenuItem value=""><em>Select VAT</em></MenuItem>
+                                                    <MenuItem value={16}>16%</MenuItem>
+                                                    <MenuItem value={0}>0%</MenuItem>
+                                                </Select>
+                                            </FormControl>
+                                        </TableCell>
+
+                                        <TableCell>
+                                            <TextField
+                                                placeholder="VAT Amount"
+                                                variant="outlined"
+                                                size="small"
+                                                fullWidth
+                                                value={newItem.rate_vat}
+                                                InputProps={{ readOnly: true }}
+                                            />
+                                            </TableCell>
+
+                                            <TableCell>
+                                            <TextField
+                                                placeholder="Total Amount"
+                                                variant="outlined"
+                                                size="small"
+                                                fullWidth
+                                                value={newItem.amount}
+                                                InputProps={{ readOnly: true }}
+                                            />
+                                        </TableCell>
+                                    </TableRow>
+                                </TableBody>
+                            </Table>
+                        </TableContainer>
                         
-                        <button type="button" className="button" onClick={addItem}>Add Item</button>
-                        <h3 className="total-amount">Sub Total Amount: {subTotalAmount.toLocaleString()}</h3>
-                        <h3 className="total-amount">VAT Amount: {vatAmount.toLocaleString()}</h3>
-                        <h3 className="total-amount">Total Amount: {totalAmount.toLocaleString()}</h3>
-                        <button type="submit" className="button">Save and Send</button>
+                        <Button variant="contained" color="secondary" onClick={addItem} sx={{margin:'20px'}}>Add Item</Button>
+                        <Box display={'flex'} flexDirection={'column'} gap={'15px'} m={'10px'} textAlign={'right'} fontWeight={'bold'}>
+                            <Typography fontWeight={'bold'}>
+                                    Sub Total Amount:{" "}
+                                    {formData.currency ? (
+                                        new Intl.NumberFormat('en-KE', { style: 'currency', currency: 'KES' }).format(subTotalAmount)
+                                    ) : (
+                                        subTotalAmount
+                                    )}
+                            </Typography>
+
+                            <Typography fontWeight={'bold'}>VAT Amount: {" "}
+                                    {formData.currency ? (
+                                        new Intl.NumberFormat('en-KE', { style: 'currency', currency: 'KES' }).format(vatAmount)
+                                    ) : (
+                                        vatAmount
+                                    )}
+                            </Typography>
+
+                            <Typography fontWeight={'bold'}>Total Amount: {" "}
+                                { formData.currency ? (
+                                    new Intl.NumberFormat('en-KE', {currency:'KES', style:'currency'}).format(totalAmount)
+                                ):(
+                                    totalAmount
+                                )}
+                            </Typography>
+                        </Box>
+
+                        <Button variant="contained" color="secondary" type="submit" className="button">Save</Button>
+
                     </form>
-                </div>
-            </div>
-        
-            <Box m="20px">
-                <Typography 
-                    fontSize='30px'
-                    fontWeight='bold'
-                    textAlign='center'
-                >
-                    QUOTES
-                </Typography>
-                <Box
-                    m="40px 0 0 0"
-                    height="75vh"
-                    sx={{
-                    "& .MuiDataGrid-root": {
-                        border: "none",
-                    },
-                    "& .MuiDataGrid-cell": {
-                        borderBottom: "none",
-                        // fontSize: "16px",
-                    },
-                    "& .name-column--cell": {
-                        // color: colors.greenAccent[300],
-                    },
-                    "& .MuiDataGrid-columnHeaders": {
-                        // backgroundColor: colors.blueAccent[700],
-                        borderBottom: "none",
-                        // fontSize: "16px",
-                    },
-                    "& .MuiDataGrid-virtualScroller": {
-                        // backgroundColor: colors.primary[400],
-                    },
-                    "& .MuiDataGrid-footerContainer": {
-                        borderTop: "none",
-                        // backgroundColor: colors.blueAccent[700],
-                    },
-                    "& .MuiCheckbox-root": {
-                        // color: `${colors.greenAccent[200]} !important`,
-                    },
-                    "& .MuiDataGrid-toolbarContainer .MuiButton-text": {
-                        // color: `${colors.grey[100]} !important`,
-                    },
-                    }}
-                >
-                    <DataGrid
-                    rows={quotes}
-                    columns={columns}
-                    components={{ Toolbar: GridToolbar }}
-                    getRowId={(row) => row.id}
-                    />
                 </Box>
             </Box>
+            
+            {isMobile ? (
+                <Box>
+                <Typography fontSize={'27px'} fontWeight={'bold'} textAlign={'center'}>QUOTES</Typography>
+                <Box
+                    display={'grid'}
+                    gridTemplateColumns={{xs:'repeat(1,1fr)', sm:'repeat(2,1fr)'}}
+                    gap="10px"
+                    margin="0 10px"
+                >
+
+                    {displayedItems.map((item) => (
+                        <Card
+                            key={item.id}
+                            onClick={() => handleViewDetails(item.quote_number)}
+                            sx={{
+                                borderRadius: '15px',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                height: 'auto', // Adjust height for better flexibility
+                                boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
+                                padding: '10px',
+                                backgroundColor: '#fff',
+                                transition: 'transform 0.3s ease-in-out',
+                                '&:hover': {
+                                    transform: 'scale(1.03)',
+                                    boxShadow: '0 8px 30px rgba(0,0,0,0.15)',
+                                },
+                            }}
+                        >
+                            <CardContent>
+                                    <Typography>Customer Name: {item.customer_name}</Typography>
+                                    <Typography>Invoice Number: {item.invoice_number}</Typography>
+                                    <Typography>Amount: { new Intl.NumberFormat('en-KE', {style:'currency', currency:'KES'}).format(item.totalAmount)}</Typography>
+                                    <Typography>Currency: {item.currency}</Typography>
+                                    <Typography>Date: {item.invoice_date}</Typography>
+                                    <Typography>Status: {item.status}</Typography>
+                                    <Typography>Sales Person: {item.sales_person}</Typography>
+                            </CardContent>
+                        </Card>
+                    ))}
+                    <Box display="flex" justifyContent="center" mt="20px">
+                            <Pagination count={totalPages} page={currentPage} onChange={handlePageChange} color="secondary" />
+                    </Box>
+                </Box>
+            </Box>
+        
+              ) : (
+                <Box m="20px">
+                  <Typography 
+                      fontSize='30px'
+                      fontWeight='bold'
+                      textAlign='center'
+                  >
+                      QUOTES
+                  </Typography>
+                  <Box
+                      height="75vh"
+                  >
+                      <DataGrid
+                      rows={quotes}
+                      columns={columns}
+                      components={{ Toolbar: GridToolbar }}
+                      getRowId={(row) => row.id}
+                      />
+                  </Box>
+                </Box>
+              )}
 
 
-        </div>
+        </Box>
      );
 }
  

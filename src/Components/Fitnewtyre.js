@@ -1,17 +1,18 @@
 import { useEffect, useState } from "react";
-import { Box, Typography } from "@mui/material";
+import { Box, Button, Card, CardContent, FormControl, MenuItem, Pagination, Select, TextField, Typography, useMediaQuery } from "@mui/material";
 import { DataGrid, GridToolbar } from "@mui/x-data-grid";
-import PieChart from "./PieChart";
-import "./Fitnewtyre.css";
 import { useNavigate } from "react-router-dom";
 
 function Tyre() {
-    const [type, setType] = useState([]);
     const [trucks, setTrucks] = useState([]);
     const [items, setItems] = useState([]);
     const [filteredBanks, setFilteredBanks] = useState([]);
     const [tyreInventory, setTyreInventory] = useState([]);
+    const [currentPage, setCurrentPage] = useState(1)
+    const itemsPerPage = 16;
+    const isMobile = useMediaQuery('(max-width: 768px)');
     const [selectedTyreItem, setSelectedTyreItem] = useState(null);
+    const token = localStorage.getItem('access_token')
     const [formData, setFormData] = useState({
         item_details: "",
         size: "",
@@ -27,43 +28,33 @@ function Tyre() {
 
     // Fetch tyre data and update state
     useEffect(() => {
-        fetch('https://db-demo-u07o.onrender.com/tyres')
+        fetch('https://db-demo-u07o.onrender.com/tyres',{
+            method:'GET',
+            headers:{
+                'Authorization':`Bearer ${token}`
+            },
+            credentials:'include'
+        })
             .then(response => response.json())
             .then(data => {
                 const sortedItems = data.sort((a, b) => new Date(b.date) - new Date(a.date));
                 setItems(sortedItems);
                 setTyreInventory(data);
             });
-    }, []);
+    }, [token]);
 
     // Fetch truck data and update state
     useEffect(() => {
-        fetch('https://db-demo-u07o.onrender.com/trucks')
+        fetch('https://db-demo-u07o.onrender.com/trucks', {
+            method:'GET',
+            headers:{
+                'Authorization':`Bearer ${token}`
+            },
+            credentials:'include'
+        })
             .then(response => response.json())
             .then(data => setTrucks(data));
-    }, []);
-
-    // Fetch removed tyre data and update type for PieChart
-    useEffect(() => {
-        fetch('https://db-demo-u07o.onrender.com/removetyres')
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
-                return response.json();
-            })
-            .then(data => {
-                const receiptsItem = data.reduce((acc, item) => {
-                    acc[item.item_details] = (acc[item.item_details] || 0) + item.quantity;
-                    return acc;
-                }, {});
-                const formattedReceipts = Object.entries(receiptsItem).map(([item_details, quantity]) => ({
-                    id: item_details,
-                    value: quantity
-                }));
-                setType(formattedReceipts);
-            });
-    }, []);
+    }, [token]);
 
     // Update filtered tyres when size or inventory changes
     useEffect(() => {
@@ -73,7 +64,7 @@ function Tyre() {
         } else {
             setFilteredBanks([]);
         }
-    }, [formData.size, tyreInventory]);
+    }, [formData.size, tyreInventory,token]);
 
     const axel = [
         { axels: "Steering Axle Left" },
@@ -123,13 +114,20 @@ function Tyre() {
 
         fetch('https://db-demo-u07o.onrender.com/removetyres', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'application/json', 'Authorization':`Bearer ${token}` },
+            credentials:'include',
             body: JSON.stringify({ ...formData, status: 'FITTED', price: formData.price})
         })
             .then(response => response.json())
             .then(() => {
 
-                fetch('https://db-demo-u07o.onrender.com/tyres')
+                fetch('https://db-demo-u07o.onrender.com/tyres', {
+                    method:'GET',
+                    headers:{
+                        'Authorization':`Bearer ${token}`
+                    },
+                    credentials:'include',
+                })
                 .then(response => response.json())
                 .then(data => {
                     const sortedItems = data.sort((a, b) => new Date(b.date) - new Date(a.date));
@@ -183,153 +181,215 @@ function Tyre() {
         "170/60-17"
     ];
 
+    const totalPages = Math.ceil(items.length / itemsPerPage)
+    const displayedItems = items.slice((currentPage - 1)*itemsPerPage, currentPage * itemsPerPage)
+    
+
+    const handlePageChange = (event, value) => {
+        setCurrentPage(value);
+    };
+
     return (
-        <div>
-            <div className="bill-content">
-                <button type="button" className="button" onClick={handleTyreContol}>
+        <Box margin={{md:'40px', xs:'10px'}}>
+            <Box>
+                <Button type="button" variant="contained" color="secondary" onClick={handleTyreContol} sx={{margin:'30px'}}>
                     BACK
-                </button>
-                <div>
-                    <h2 className="h2">FIT TYRE</h2>
-                    <form className="bill-form" onSubmit={handleSubmit}>
-                        <div className="bill-input">
-                            <label>Tyre Size</label>
-                            <select className="bill-inputfield" onChange={handleSelectSize} name="size" value={formData.size}>
-                                <option value="">Select a Size</option>
-                                {tyreSizes.map(size => (
-                                    <option key={size} value={size}>
-                                        {size}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-
-                        <div className="bill-input">
-                            <label>Tyre</label>
-                            <select className="bill-inputfield" onChange={handleChange} name="item_details" value={formData.item_details}>
-                                <option value="">Select an item</option>
-                                {filteredBanks.map((item, index) => (
-                                    <option key={index} value={item.item_details}>
-                                        {item.item_details}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-
-                        <div className="bill-input">
-                            <label>Quantity</label>
-                            <input
-                                className="bill-inputfield"
-                                type="number"
-                                name="quantity"
-                                placeholder="Quantity Removed"
-                                value={formData.quantity}
-                                onChange={handleChange}
-                                readOnly
-                            />
-                        </div>
-
-                        <div className="bill-input">
-                            <label>Truck Number</label>
-                            <select value={formData.truck_number} onChange={handleChange} className="bill-inputfield" name="truck_number">
-                                <option value="">Select a truck</option>
-                                {trucks.map(truck => (
-                                    <option key={truck.id} value={truck.truck_number}>
-                                        {truck.truck_number}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-
-                        <div className="bill-input">
-                            <label>Serial Number</label>
-                            <input
-                                type="text"
-                                name="serial_number"
-                                placeholder="Serial Number"
-                                className="bill-inputfield"
-                                value={formData.serial_number}
-                                onChange={handleChange}
-                                required
-                            />
-                        </div>
-
-                        <div className="bill-input">
-                            <label>Starting Mileage</label>
-                            <input
-                                type="number"
-                                name="starting_mileage"
-                                placeholder="Starting Mileage"
-                                className="bill-inputfield"
-                                value={formData.starting_mileage}
-                                onChange={handleChange}
-                                required
-                            />
-                        </div>
-
-                        <div className="bill-input">
-                            <label>Position</label>
-                            <select value={formData.position} onChange={handleChange} name="position" className="bill-inputfield">
-                                <option value=''>Select Axle</option>
-                                {axel.map((axelOption, index) => (
-                                    <option key={index} value={axelOption.axels}>
-                                        {axelOption.axels}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-
-                        <div className="bill-input">
-                            <label>Fitment Date</label>
-                            <input
-                                type="date"
-                                name="date"
-                                placeholder="Date"
-                                className="bill-inputfield"
-                                value={formData.date}
-                                onChange={handleChange}
-                                required
-                            />
-                        </div>
-
-                        {selectedTyreItem && selectedTyreItem.quantity === 0 && <p>Tyre is out of stock.</p>}
-                        <button type="submit" className="button">FIT NEW TYRE</button>
-                    </form>
-                </div>
-
-                <Box m="20px">
-                    <Typography fontWeight='bold' variant="h5" textAlign='center'>
-                        BRAND OF TYRES FITTED
-                    </Typography>
-                    <PieChart chartdata={type} />
-                    <Typography fontWeight='bold' variant="h5" textAlign='center'>
-                        AVAILABLE NEW TYRES
-                    </Typography>
+                </Button>
+                <Box>
+                    <Typography fontSize={'27px'} fontWeight={'bold'} textAlign={'center'}>FIT TYRE</Typography>
+                
                     <Box
-                        width='1000px'
-                        ml='300px'
-                        height="75vh"
-                        sx={{
-                            "& .MuiDataGrid-root": { border: "none" },
-                            "& .MuiDataGrid-cell": { borderBottom: "none" },
-                            "& .name-column--cell": {},
-                            "& .MuiDataGrid-columnHeaders": { borderBottom: "none" },
-                            "& .MuiDataGrid-virtualScroller": {},
-                            "& .MuiDataGrid-footerContainer": { borderTop: "none" },
-                            "& .MuiCheckbox-root": {},
-                            "& .MuiDataGrid-toolbarContainer .MuiButton-text": {}
+                         sx={{
+                            borderRadius: '15px',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            height: 'auto', // Adjust height for better flexibility
+                            boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
+                            padding: '10px',
+                            backgroundColor: '#fff',
+                            // Media queries for responsive design
+                            '@media (max-width: 600px)': {
+                              padding: '5px', // Adjust padding for smaller screens
+                            },
+                            '@media (min-width: 600px)': {
+                              padding: '10px', // Keep padding for medium screens and above
+                            },
                         }}
                     >
-                        <DataGrid
-                            rows={items}
-                            columns={columns}
-                            components={{ Toolbar: GridToolbar }}
-                            getRowId={(row) => row.id}
-                        />
+                        <form style={{display:'flex', flexDirection:'column', margin:'30px'}} onSubmit={handleSubmit}>
+                            <FormControl>
+                                <Typography fontWeight={'bold'}>Tyre Size</Typography>
+                                <Select onChange={handleSelectSize} name="size" value={formData.size} sx={{mb:'20px'}}>
+                                    <MenuItem value="">Select a Size</MenuItem>
+                                    {tyreSizes.map(size => (
+                                        <MenuItem key={size} value={size}>
+                                            {size}
+                                        </MenuItem>
+                                    ))}
+                                </Select>
+                            </FormControl>
+
+                            <FormControl>
+                                <Typography fontWeight={'bold'}>Tyre</Typography>
+                                <Select onChange={handleChange} name="item_details" value={formData.item_details} sx={{mb:'20px'}}>
+                                    <MenuItem value="">Select an item</MenuItem>
+                                    {filteredBanks.map((item, index) => (
+                                        <MenuItem key={index} value={item.item_details}>
+                                            {item.item_details}
+                                        </MenuItem>
+                                    ))}
+                                </Select>
+                            </FormControl>
+
+                                <TextField
+                                    type="number"
+                                    name="quantity"
+                                    label="Quantity Removed"
+                                    value={formData.quantity}
+                                    onChange={handleChange}
+                                    inputProps={{readOnly:true}}
+                                    variant="outlined"
+                                    sx={{mb:'20px'}}
+                                />
+
+                            <FormControl>
+                                <Typography fontWeight={'bold'}>Truck Number</Typography>
+                                <Select value={formData.truck_number} onChange={handleChange} name="truck_number" sx={{mb:'20px'}}>
+                                    <MenuItem value="">Select a truck</MenuItem>
+                                    {trucks.map(truck => (
+                                        <MenuItem key={truck.id} value={truck.truck_number}>
+                                            {truck.truck_number}
+                                        </MenuItem>
+                                    ))}
+                                </Select>
+                            </FormControl>
+
+                                <TextField
+                                    type="text"
+                                    name="serial_number"
+                                    label="Serial Number"
+                                    value={formData.serial_number}
+                                    onChange={handleChange}
+                                    required
+                                    variant="outlined"
+                                    sx={{mb:'20px'}}
+                                />
+
+                                <TextField
+                                    type="number"
+                                    name="starting_mileage"
+                                    label="Starting Mileage"
+                                    value={formData.starting_mileage}
+                                    onChange={handleChange}
+                                    required
+                                    variant="outlined"
+                                    sx={{mb:'20px'}}
+                                />
+
+                            <FormControl>
+                                <Typography fontWeight={'bold'}>Position</Typography>
+                                <Select value={formData.position} onChange={handleChange} name="position" sx={{mb:'20px'}}>
+                                    <MenuItem value=''>Select Axle</MenuItem>
+                                    {axel.map((axelOption, index) => (
+                                        <MenuItem key={index} value={axelOption.axels}>
+                                            {axelOption.axels}
+                                        </MenuItem>
+                                    ))}
+                                </Select>
+                            </FormControl>
+
+                                <Typography fontWeight={'bold'}>Fitment Date</Typography>
+                                <TextField
+                                    type="date"
+                                    name="date"
+                                    value={formData.date}
+                                    onChange={handleChange}
+                                    required
+                                    variant="outlined"
+                                    sx={{mb:'20px'}}
+                                />
+
+                            {selectedTyreItem && selectedTyreItem.quantity === 0 && <p>Tyre is out of stock.</p>}
+                            <Button type="submit" variant="contained" color="secondary">FIT NEW TYRE</Button>
+                        </form>
                     </Box>
                 </Box>
-            </div>
-        </div>
+
+                {isMobile ? (
+                <Box>
+                <Typography fontSize={'27px'} fontWeight={'bold'} textAlign={'center'} marginTop={'30px'} marginBottom={'30px'}>NEW TYRES AVAILABLE</Typography>
+                <Box
+                    display={'grid'}
+                    gridTemplateColumns={{xs:'repeat(1,1fr)', sm:'repeat(2,1fr)'}}
+                    gap="10px"
+                    margin="0 10px"
+                >
+
+                    {displayedItems.map((item) => (
+                        <Card
+                            key={item.id}
+                            sx={{
+                                borderRadius: '15px',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                height: 'auto', // Adjust height for better flexibility
+                                boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
+                                padding: '10px',
+                                backgroundColor: '#fff',
+                                transition: 'transform 0.3s ease-in-out',
+                                '&:hover': {
+                                    transform: 'scale(1.03)',
+                                    boxShadow: '0 8px 30px rgba(0,0,0,0.15)',
+                                },
+                            }}
+                        >
+                            <CardContent>
+                                    <Box display={'flex'} gap={'5px'}>
+                                        <Typography>Tyre Name:</Typography>
+                                        <Typography fontWeight={'bold'}>{item.item_details}</Typography>
+                                    </Box>
+
+                                    <Box display={'flex'} gap={'5px'}>
+                                        <Typography>Quantity:</Typography>
+                                        <Typography fontWeight={'bold'}>{item.quantity}</Typography>
+                                    </Box>
+
+                                    <Box display={'flex'} gap={'5px'}>
+                                        <Typography>Size:</Typography>
+                                        <Typography fontWeight={'bold'}>{item.size}</Typography>
+                                    </Box>
+                            </CardContent>
+                        </Card>
+                    ))}
+                    <Box display="flex" justifyContent="center" mt="20px">
+                            <Pagination count={totalPages} page={currentPage} onChange={handlePageChange} color="secondary" />
+                    </Box>
+                </Box>
+            </Box>
+        
+              ) : (
+                <Box m="20px">
+                  <Typography 
+                      fontSize='30px'
+                      fontWeight='bold'
+                      textAlign='center'
+                  >
+                      NEW TYRES AVAILABLE
+                  </Typography>
+                  <Box
+                      height="75vh"
+                  >
+                      <DataGrid
+                      rows={items}
+                      columns={columns}
+                      components={{ Toolbar: GridToolbar }}
+                      getRowId={(row) => row.id}
+                      />
+                  </Box>
+                </Box>
+              )}
+            </Box>
+        </Box>
     );
 }
 

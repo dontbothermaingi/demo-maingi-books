@@ -1,23 +1,44 @@
 import { useEffect, useState } from "react";
-import { Box, Typography } from '@mui/material';
+import { Box, Card, CardContent, Pagination, Typography, useMediaQuery } from '@mui/material';
 import { DataGrid, GridToolbar } from '@mui/x-data-grid';
-import './UsedTyre.css';
 
 function CheckUsedTyre() {
     const [items, setItems] = useState([]);
-    
+    const [currentPage, setCurrentPage] = useState(1)
+    const itemsPerPage = 16;
+    const isMobile = useMediaQuery('(max-width: 768px)');
+    const token = localStorage.getItem('access_token')
+
     useEffect(() => {
         // Fetch used tyres
-        fetch('https://db-demo-u07o.onrender.com/usedtyres')
+        fetch('https://db-demo-u07o.onrender.com/usedtyres', {
+            method: 'GET',
+            credentials: 'include',
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        })
             .then(response => response.json())
             .then(data => {
-                const formatted = data.map(item => ({
-                    ...item,
-                    tyre_mileage: new Intl.NumberFormat().format(item.tyre_mileage),
-                  }));
-                setItems(formatted);
-            });
-    }, []);
+                const formatted = data.map(item => {
+                    const date = new Date(item.date);
+                    const formattedDate = 
+                        ('0' + date.getDate()).slice(-2) + '/' + 
+                        ('0' + (date.getMonth() + 1)).slice(-2) + '/' + 
+                        date.getFullYear(); // Format to dd/mm/yyyy
+    
+                    return {
+                        ...item,
+                        tyre_mileage: new Intl.NumberFormat().format(item.tyre_mileage), // Format tyre mileage
+                        date: formattedDate // Set formatted date
+                    };
+                });
+
+                const filter = formatted.filter(item => item.retread_status === 'NOT AVAILABLE')
+                setItems(filter); // Set formatted data to state
+            })
+            .catch(error => console.error('Error fetching tyres:', error));
+    }, [token]);    
 
 
     const columns = [
@@ -61,7 +82,7 @@ function CheckUsedTyre() {
         },
         {
             field: "status",
-            headerName: "Status",
+            headerName: "STATUS",
             flex: 0.25,
         },
         {
@@ -72,52 +93,117 @@ function CheckUsedTyre() {
         
     ];
 
+    const totalPages = Math.ceil(items.length / itemsPerPage)
+    const displayedItems = items.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
+  
+      const handlePageChange = (event, value) => {
+          setCurrentPage(value);
+      };
+
     return (
-        <div>
+        <Box margin={{md:'40px', xs:'20px'}}>
             
-                <Box m="20px">
-                    <Typography
-                        textAlign='center'
-                        fontWeight='bolder'
-                        fontSize='30px'
-                    >
-                        USED TYRES
-                    </Typography>
-                    <Box
-                        m="40px 0 0 0"
-                        height="75vh"
-                        sx={{
-                        "& .MuiDataGrid-root": {
-                            border: "none",
-                        },
-                        "& .MuiDataGrid-cell": {
-                            borderBottom: "none",
-                        },
-                        "& .name-column--cell": {
-                        },
-                        "& .MuiDataGrid-columnHeaders": {
-                            backgroundColor: "black",
-                        },
-                        "& .MuiDataGrid-virtualScroller": {
-                        },
-                        "& .MuiDataGrid-footerContainer": {
-                            borderTop: "none",
-                        },
-                        "& .MuiCheckbox-root": {
-                        },
-                        "& .MuiDataGrid-toolbarContainer .MuiButton-text": {
-                        },
-                        }}
-                    >
-                        <DataGrid
-                            rows={items}
-                            columns={columns}
-                            components={{ Toolbar: GridToolbar }}
-                            getRowId={(row) => row.id}
-                        />
-                    </Box>
-                </Box>
-        </div>
+            {isMobile ? (
+                                <Box>
+                                <Typography fontSize={'27px'} fontWeight={'bold'} textAlign={'center'}>USED TYRES</Typography>
+                                <Box
+                                    display={'grid'}
+                                    gridTemplateColumns={{xs:'repeat(1,1fr)', sm:'repeat(2,1fr)'}}
+                                    gap="10px"
+                                    margin="0 10px"
+                                >
+
+                                    {displayedItems.map((item) => (
+                                        <Card
+                                            key={item.id}
+                                            sx={{
+                                                borderRadius: '15px',
+                                                display: 'flex',
+                                                flexDirection: 'column',
+                                                height: 'auto', // Adjust height for better flexibility
+                                                boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
+                                                padding: '10px',
+                                                backgroundColor: '#fff',
+                                                transition: 'transform 0.3s ease-in-out',
+                                                '&:hover': {
+                                                    transform: 'scale(1.03)',
+                                                    boxShadow: '0 8px 30px rgba(0,0,0,0.15)',
+                                                },
+                                            }}
+                                        >
+                                            <CardContent>
+                                                    <Box display={'flex'} gap={'7px'}>
+                                                        <Typography>Tyre Name:</Typography>
+                                                        <Typography fontWeight={'bold'}>{item.item_details}</Typography>
+                                                    </Box>
+
+                                                    <Box display={'flex'} gap={'7px'}>
+                                                        <Typography>Size:</Typography>
+                                                        <Typography fontWeight={'bold'}>{item.size}</Typography>
+                                                    </Box>
+                                                    
+                                                    <Box display={'flex'} gap={'7px'}>
+                                                        <Typography>Truck Number:</Typography>
+                                                        <Typography fontWeight={'bold'}>{item.truck_number}</Typography>
+                                                    </Box>
+                                                    
+                                                    <Box display={'flex'} gap={'7px'}>
+                                                        <Typography>Serial Number:</Typography>
+                                                        <Typography fontWeight={'bold'}>{item.serial_number}</Typography>
+                                                    </Box>
+                                                        
+                                                    
+                                                    <Box display={'flex'} gap={'7px'}>
+                                                        <Typography>Retread Counter:</Typography>
+                                                        <Typography fontWeight={'bold'}>{item.retread_counter}</Typography>
+                                                    </Box>
+
+                                                    <Box display={'flex'} gap={'7px'}>
+                                                        <Typography>Position:</Typography>
+                                                        <Typography fontWeight={'bold'}>{item.position}</Typography>
+                                                    </Box>
+                                                    
+                                                    <Box display={'flex'} gap={'7px'}>
+                                                        <Typography>Status:</Typography>
+                                                        <Typography fontWeight={'bold'}>{item.status}</Typography>
+                                                    </Box>
+                                                    
+
+                                                    <Box display={'flex'} gap={'7px'}>
+                                                        <Typography>Date:</Typography>
+                                                        <Typography fontWeight={'bold'}>{item.date}</Typography>
+                                                    </Box>
+                                            </CardContent>
+                                        </Card>
+                                    ))}
+                                    <Box display="flex" justifyContent="center" mt="20px">
+                                            <Pagination count={totalPages} page={currentPage} onChange={handlePageChange} color="secondary" />
+                                    </Box>
+                                </Box>
+                                </Box>
+                
+                          ) : (
+                                    <Box m="20px">
+                                    <Typography 
+                                        fontSize='30px'
+                                        fontWeight='bold'
+                                        textAlign='center'
+                                    >
+                                        USED TYRES
+                                    </Typography>
+                                    <Box
+                                        height="75vh"
+                                    >
+                                        <DataGrid
+                                        rows={items}
+                                        columns={columns}
+                                        components={{ Toolbar: GridToolbar }}
+                                        getRowId={(row) => row.id}
+                                        />
+                                    </Box>
+                                    </Box>
+                      )}
+        </Box>
     );
 }
 

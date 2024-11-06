@@ -11,11 +11,19 @@ function PaymentsDetails() {
   const [subtotal, setSubtotal] = useState(0); // Initialize subtotal state
   const [total, setTotal] = useState(null);
   const [vatTotal, setVatTotal] = useState(null);
+  const token = localStorage.getItem('access_token')
+
 
 
   useEffect(() => {
     setLoading(true);
-    fetch(`https://db-demo-u07o.onrender.com/paymentsmade/${madeId}`)
+    fetch(`https://db-demo-u07o.onrender.com/paymentsmade/${madeId}`, {
+      method:'GET',
+      headers:{
+        'Authorization':`Bearer ${token}`
+      },
+      credentials:'include'
+    })
       .then((response) => {
         if (!response.ok) {
           throw new Error("Failed to fetch quote details");
@@ -30,7 +38,7 @@ function PaymentsDetails() {
         setError(error.message);
         setLoading(false);
       });
-  }, [madeId]);
+  }, [madeId,token]);
 
   useEffect(() => {
     if (quotes && quotes.items) {

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Box, Button, Typography, IconButton } from "@mui/material";
+import { Box, Button, Typography,IconButton, FormControl, MenuItem, Select, TextField, Divider, ListSubheader, Radio, RadioGroup, FormControlLabel, TableContainer, Table, TableHead, TableRow, TableBody, TableCell, Card, CardContent, Pagination, useMediaQuery } from "@mui/material";
 import { DataGrid, GridToolbar } from "@mui/x-data-grid";
 import CloseIcon from '@mui/icons-material/Close';
 import { Dialog, DialogActions, DialogContent, DialogTitle } from '@mui/material';
@@ -10,6 +10,10 @@ function CreditNote() {
     const [creditnotes, setCreditnotes] = useState([]);
     const [openDialog, setOpenDialog] = useState(false);
     const [storeItems, setStoreItems] = useState([]);
+    const [currentPage, setCurrentPage] = useState(1)
+    const itemsPerPage = 16;
+    const isMobile = useMediaQuery('(max-width: 768px)');
+    const token = localStorage.getItem('access_token')
     const [vendors, setVendors] = useState([]);
     const [isVatInclusive, setIsVatInclusive] = useState(true); // true for inclusive, false for exclusive
     const [formData, setFormData] = useState({
@@ -19,6 +23,7 @@ function CreditNote() {
         vendor_pin:"",
         credit_number: "",
         measurement:"",
+        currency:"",
         credit_date: "",
         category_name:"",
         type_vat: "Inclusive VAT",
@@ -39,7 +44,13 @@ function CreditNote() {
     });
 
     useEffect(() => {
-        fetch('https://db-demo-u07o.onrender.com/creditnotes')
+        fetch('https://db-demo-u07o.onrender.com/creditnotes',{
+            method:'GET',
+            headers:{
+                'Authorization':`Bearer ${token}`
+            },
+            credentials:'include'
+        })
             .then(response => response.json())
             .then((data) => {
                 const invoiceTotal = data.map((invoice) => {
@@ -49,7 +60,7 @@ function CreditNote() {
                 })
                 setCreditnotes(invoiceTotal);
             });
-    }, []);
+    }, [token]);
 
     useEffect(() => {
         if (formData.payment_terms && formData.bill_date) {
@@ -58,17 +69,29 @@ function CreditNote() {
     }, [formData.payment_terms, formData.bill_date]);
 
     useEffect(() => {
-        fetch('https://db-demo-u07o.onrender.com/customers')
+        fetch('https://db-demo-u07o.onrender.com/customers', {
+            method:'GET',
+            headers:{
+                'Authorization':`Bearer ${token}`
+            },
+            credentials:'include'
+        })
             .then(response => response.json())
             .then(data => setVendors(data))
             .catch(error => console.error('Error fetching vendors:', error));
-    }, []);
+    }, [token]);
 
     useEffect(() => {
-        fetch('https://db-demo-u07o.onrender.com/stockitems')
+        fetch('https://db-demo-u07o.onrender.com/stockitems',{
+            method:'GET',
+            headers:{
+                'Authorization':`Bearer ${token}`
+            },
+            credentials:'include'
+        })
             .then(response => response.json())
             .then((data) => setStoreItems(data));
-    }, []);
+    }, [token]);
 
    const navigate = useNavigate()
 
@@ -172,8 +195,10 @@ function CreditNote() {
         fetch('https://db-demo-u07o.onrender.com/creditnotes', {
             method: "POST",
             headers: {
-                "Content-Type": "application/json"
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${token}`
             },
+            credentials:'include',
             body: JSON.stringify({
                 ...formData, 
                 credit_number: paymentNumber,
@@ -183,7 +208,13 @@ function CreditNote() {
             .then(response => response.json())
             .then(data => {
 
-                fetch('https://db-demo-u07o.onrender.com/creditnotes')
+                fetch('https://db-demo-u07o.onrender.com/creditnotes',{
+                    method:'GET',
+                    headers:{
+                        'Authorization':`Bearer ${token}`
+                    },
+                    credentials:'include'
+                })
                 .then(response => response.json())
                 .then((data) => {
                     const invoiceTotal = data.map((invoice) => {
@@ -203,6 +234,7 @@ function CreditNote() {
                     credit_number: "",
                     measurement:"",
                     credit_date: "",
+                    currency:"",
                     category_name:"",
                     type_vat: "",
                     items: [],
@@ -418,292 +450,521 @@ function CreditNote() {
           },
     ]
 
-    return (
-        <div>
+    const totalPages = Math.ceil(creditnotes.length / itemsPerPage)
+    const displayedItems = creditnotes.slice((currentPage - 1)*itemsPerPage, currentPage * itemsPerPage)
+    
 
-                    <Dialog open={openDialog} onClose={handleCloseDialog}>
-                        <DialogTitle>Payment Received?</DialogTitle>
+    const handlePageChange = (event, value) => {
+        setCurrentPage(value);
+    };
+
+    return (
+        <Box margin={'40px'}>
+
+             <Box>
+
+                <Dialog open={openDialog} onClose={handleCloseDialog}>
+                        <DialogTitle>Payment Made?</DialogTitle>
                         <DialogContent>
-                            <Typography variant="body1">Has you paid the vendor?</Typography>
+                            <Typography variant="body1">Have you paid the customer?</Typography>
                         </DialogContent>
                         <DialogActions>
                             <Button onClick={handlePaymentReceived} color="primary">Yes</Button>
                             <Button onClick={handleCloseDialog} color="secondary">No</Button>
                         </DialogActions>
-                    </Dialog>
+                </Dialog>
 
-             <div className="bill-content">
-                    
-                <div>
-                    <h2 className="h2">NEW CREDIT NOTE</h2>
-                    <form className="bill-form" onSubmit={handleSubmit}>
+                <Box
+                   sx={{
+                    borderRadius: '15px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    height: 'auto', // Adjust height for better flexibility
+                    boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
+                    padding: '10px',
+                    backgroundColor: '#fff',
+                    // Media queries for responsive design
+                    '@media (max-width: 600px)': {
+                      padding: '5px', // Adjust padding for smaller screens
+                    },
+                    '@media (min-width: 600px)': {
+                      padding: '10px', // Keep padding for medium screens and above
+                    },
+                  }}
+                   
+                >
+                    <Typography fontSize={'27px'} fontWeight={'bold'} textAlign={'center'}>NEW CREDIT NOTE</Typography>
+                    <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', margin: '30px' }}>
 
-                        <div className="bill-input">
-                        <label>Customer Name</label>
-                        <select name="customer_name" className="bill-inputfield" value={formData.customer_name} onChange={handleSelectVendor}>
-                            <option value="">Select Customer</option>
+                        <FormControl>
+                        <Typography fontWeight={'bold'}>Vendor Name</Typography>
+                        <Select name="customer_name" value={formData.customer_name} onChange={handleSelectVendor} sx={{mb:'20px'}}>
+                            <MenuItem value="">Select Vendor</MenuItem>
                             {vendors.map((vendor, index) => (
-                                <option key={index}>{vendor.customer_name}</option>
+                                <MenuItem key={index} value={vendor.customer_name}>{vendor.customer_name}</MenuItem>
                             ))}
-                        </select>
-                        </div>
+                        </Select>
+                        </FormControl>
                         
 
-                        <div className="bill-input">
-                        <label>Credit Number:</label>
-                        <input
+                        <TextField
                             type="text"
                             name="credit_number"
-                            placeholder="Credit Number"
-                            className="bill-inputfield"
+                            label="Credit Number"
                             value={paymentNumber}
                             onChange={handleChange}
                             required
+                            variant='outlined'
+                            sx={{mb:'20px'}}
                         />
-                        </div>
 
-                        <div className="bill-input">
-                        <label>Customer Email</label>
-                        <input
+                        <TextField
                             type="text"
                             name="customer_email"
-                            placeholder="Customer Email"
-                            className="bill-input"
+                            label="Customer Email"
                             value={formData.customer_email}
                             onChange={handleChange}
                             required
+                            variant='outlined'
+                            sx={{mb:'20px'}}
                         />
-                        </div>
 
 
-                        <div className="bill-input">
-                        <label>Customer Phone</label>
-                        <input
+                        <TextField
                             type="text"
                             name="customer_phone"
-                            placeholder="Customer Phone"
-                            className="bill-input"
+                            label="Customer Phone"
                             value={formData.customer_phone}
                             onChange={handleChange}
                             required
+                            variant='outlined'
+                            sx={{mb:'20px'}}
                         />
-                        </div>
 
-                        <div className="bill-input">
-                        <label>Customer Pin</label>
-                        <input
+                        <TextField
                             type="text"
                             name="vendor_pin"
-                            placeholder="Customer Pin"
-                            className="bill-input"
+                            label="Customer Pin"
                             value={formData.vendor_pin}
                             onChange={handleChange}
                             required
+                            variant='outlined'
+                            sx={{mb:'20px'}}
                         />
-                        </div>
 
-                        <div className="bill-input">
-                        <label>Credit Date</label>
-                        <input
-                            type="date"
-                            name="credit_date"
-                            placeholder="Credit Date"
-                            className="bill-input"
-                            value={formData.credit_date}
+                        <TextField
+                            type="text"
+                            name="currency"
+                            label="Currency"
+                            value={formData.currency}
                             onChange={handleChange}
                             required
+                            variant='outlined'
+                            sx={{mb:'20px'}}
                         />
-                        </div>
+ 
+                        <FormControl>
+                                <Typography fontWeight={'bold'}>Account</Typography>
+                                <Select name="category_name" sx={{mb:'20px'}} value={formData.category_name} onChange={handleChange}>
+                                    <MenuItem value=''>Select Account</MenuItem>
 
-                        <div className="vat-options">
-                                <div className="vat-option">
-                                    <input
-                                        type="radio"
-                                        id="inclusiveVat"
-                                        name="vat_type"
-                                        value="Inclusive VAT"
-                                        checked={isVatInclusive}
-                                        onChange={handleToggleVat}
-                                    />
-                                    <label htmlFor="inclusiveVat">Inclusive VAT</label>
-                                </div>
-                                <div className="vat-option">
-                                    <input
-                                        type="radio"
-                                        id="exclusiveVat"
-                                        name="vat_type"
-                                        value="Exclusive VAT"
-                                        checked={!isVatInclusive}
-                                        onChange={handleToggleVat}
-                                    />
-                                    <label htmlFor="exclusiveVat">Exclusive VAT</label>
-                                </div>
-                            </div>
+                                    <ListSubheader sx={{fontWeight:"bold", fontSize:'18px',}}>Fixed Assets</ListSubheader>
+                                    <Divider orientation="horizontal" sx={{ml:'20px', mr:'20px'}}/>
+                                        <MenuItem value='Furniture'>Furniture</MenuItem>
+                                        <MenuItem value='Vehicles'>Vehicles</MenuItem>
+                                        <MenuItem value='Machinery and Equipment'>Machinery and Equipment</MenuItem>
+                                        <MenuItem value='Computer Hardware and Software'>Computer Hardware and Software</MenuItem>
+                                        <MenuItem value='Leasehold Assets'>Leasehold Assets</MenuItem>
+                                        <MenuItem value='Land'>Land</MenuItem>
+
+                                    <ListSubheader sx={{fontWeight:"bold", fontSize:'18px',}}>Current Assets</ListSubheader>
+                                    <Divider orientation="horizontal" sx={{ml:'20px', mr:'20px'}}/>
+                                        <MenuItem value='Cash at Bank'>Cash at Bank</MenuItem>
+                                        <MenuItem value='Cash at Hand'>Cash at Hand</MenuItem>
+                                        <MenuItem value='Debtors'>Debtors</MenuItem>
+                                        <MenuItem value='Stock'>Stock</MenuItem>
+                                        <MenuItem value='Office Supplies'>Office Supplies</MenuItem>
+                                        <MenuItem value='Work in Progress Goods'>Work in Progress Goods</MenuItem>
+                                        <MenuItem value='Finished Goods'>Finished Goods</MenuItem>
+                                        <MenuItem value='Merchandise Inventory'>Merchandise Inventory</MenuItem>
+                                        <MenuItem value='Prepaid Rent'>Prepaid Rent</MenuItem>
+                                        <MenuItem value='Prepaid Insurance'>Prepaid Insurance</MenuItem>
+                                        <MenuItem value='Prepaid Taxes'>Prepaid Taxes</MenuItem>
+                                        <MenuItem value='Accrued Revenue'>Accrued Revenue</MenuItem>
+
+                                    <ListSubheader sx={{fontWeight:"bold", fontSize:'18px',}}>Long Term Liabilities</ListSubheader>
+                                    <Divider orientation="horizontal" sx={{ml:'20px', mr:'20px'}}/>
+                                        <MenuItem value='Long Term Loans'>Long Term Loans</MenuItem>
+
+                                    <ListSubheader sx={{fontWeight:"bold", fontSize:'18px',}}>Short Term Liabilities</ListSubheader>
+                                    <Divider orientation="horizontal" sx={{ml:'20px', mr:'20px'}}/>
+                                        <MenuItem value='Accrued Expenses'>Accrued Expenses</MenuItem>
+                                        <MenuItem value='Unearned Revenue'>Unearned Revenue</MenuItem>
+                                        <MenuItem value='Taxes Payable'>Taxes Payable</MenuItem>
+                                        <MenuItem value='Office Supplies'>Office Supplies</MenuItem>
+                                        <MenuItem value='Unpaid Rent'>Unpaid Rent</MenuItem>
+                                        <MenuItem value='Unpaid Wages'>Unpaid Wages</MenuItem>
+                                        <MenuItem value='Creditor'>Creditor</MenuItem>
+
+                                    <ListSubheader sx={{fontWeight:"bold", fontSize:'18px',}}>Expenses</ListSubheader>
+                                    <Divider orientation="horizontal" sx={{ml:'20px', mr:'20px'}}/>
+                                        <MenuItem value='Advertising and Marketing'>Advertising and Marketing</MenuItem>
+                                        <MenuItem value='Automobile Expense'>Automobile Expense</MenuItem>
+                                        <MenuItem value='Bad Debt'>Bad Debt</MenuItem>
+                                        <MenuItem value='Bank Fees Charges'>Bank Fees Charges</MenuItem>
+                                        <MenuItem value='Consultant Expense'>Consultant Expense</MenuItem>
+                                        <MenuItem value='Depreciation Expense'>Depreciation Expense</MenuItem>
+                                        <MenuItem value='IT and Internet Expense'>IT and Internet Expense</MenuItem>
+                                        <MenuItem value='Janitorial Expense'>Janitorial Expense</MenuItem>
+                                        <MenuItem value='Lodging'>Lodging</MenuItem>
+                                        <MenuItem value='Postage'>Postage</MenuItem>
+                                        <MenuItem value='Printing and Stationery'>Printing and Stationery</MenuItem>
+                                        <MenuItem value='Purchase Discounts'>Purchase Discounts</MenuItem>
+                                        <MenuItem value='Rent Expense'>Rent Expense</MenuItem>
+                                        <MenuItem value='Salaries and Employee Wages'>Salaries and Employee Wages</MenuItem>
+                                        <MenuItem value='Telephone Expense'>Telephone Expense</MenuItem>
+                                        <MenuItem value='Travel Expense'>Travel Expense</MenuItem>
+                                        <MenuItem value='Repairs and Maintenance'>Repairs and Maintenance</MenuItem>
+                                        <MenuItem value='Meals and Entertainment'>Meals and Entertainment</MenuItem>
+                                        <MenuItem value='New Tyres'>New Tyres</MenuItem>
+                                        <MenuItem value='Retread Tyres'>Retread Tyres</MenuItem>
+                                        <MenuItem value='Spare Parts'>Spare Parts</MenuItem>
+
+                                    <ListSubheader sx={{fontWeight:"bold", fontSize:'18px',}}>Income</ListSubheader>
+                                    <Divider orientation="horizontal" sx={{ml:'20px', mr:'20px'}}/>
+                                        <MenuItem value='Discount'>Discount</MenuItem>
+                                        <MenuItem value='General Income'>General Income</MenuItem>
+                                        <MenuItem value='Interest Income'>Interest Income</MenuItem>
+                                        <MenuItem value='Inventory Sales'>Inventory Sales</MenuItem>
+                                        <MenuItem value='Late Fee Income'>Late Fee Income</MenuItem>
+                                        <MenuItem value='Other Charges'>Other Charges</MenuItem>
+                                        <MenuItem value='Other Sales'>Other Sales</MenuItem>
+                                        <MenuItem value='Shipping Charge'>Shipping Charge</MenuItem>
+                                        <MenuItem value='Transport Sales'>Transport Sales</MenuItem>
+
+                                    <MenuItem value='new_account'>Create New Account</MenuItem>
+                                </Select>
+                        </FormControl>
+
+                        <Typography fontWeight={'bold'}>Date</Typography>
+                        <TextField
+                            type="date"
+                            name="bill_date"
+                            value={formData.bill_date}
+                            onChange={handleChange}
+                            required
+                            variant="outlined"
+                            sx={{mb:'20px'}}
+                        />
+                        
+                        <FormControl>
+                            <Typography fontWeight={'bold'}>Payment terms</Typography>
+                                <Select
+                                    value={formData.payment_terms}
+                                    className="bill-input"
+                                    name="payment_terms"
+                                    onChange={handleChange}
+                                    sx={{mb:'20px'}}
+                                >
+                                    <MenuItem value="">Select Payment Term</MenuItem>
+                                    <MenuItem value="Cash">Cash</MenuItem>
+                                    <MenuItem value="15 days">15 days</MenuItem>
+                                    <MenuItem value="30 days">30 days</MenuItem>
+                                    <MenuItem value="45 days">45 days</MenuItem>
+                                    <MenuItem value="60 days">60 days</MenuItem>
+                                </Select>
+                        </FormControl>
+
+                        <Typography fontWeight={'bold'}>Due Date</Typography>
+                        <TextField
+                            type="date"
+                            name="due_date"
+                            value={formData.due_date}
+                            onChange={handleChange}
+                            required
+                            variant='outlined'
+                            sx={{mb:'20px'}}
+                        />
+
+                        <RadioGroup
+                            name="vat_type"
+                            value={isVatInclusive ? "Inclusive VAT" : "Exclusive VAT"} // use value for better control
+                            onChange={handleToggleVat}
+                            sx={{display:'flex', flexDirection:'row'}}
+                        >
+                            <FormControlLabel
+                                value="Inclusive VAT"
+                                control={<Radio />}
+                                label="Inclusive VAT"
+                                checked={isVatInclusive}
+                            />
+                            <FormControlLabel
+                                value="Exclusive VAT"
+                                control={<Radio />}
+                                label="Exclusive VAT"
+                                checked={!isVatInclusive}
+                            />
+                        </RadioGroup>
 
 
-                        <div className="bill-input">
-                        <table className="invoice-table">
-                            <thead>
-                                <tr>
-                                    <th>Item Name</th>
-                                    <th>Quantity</th>
-                                    <th>Measurement</th>
-                                    <th>Rate</th>
-                                    <th>Sub Total</th>
-                                    <th>VAT</th>
-                                    <th>VAT Amount</th>
-                                    <th>Total</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {formData.items.map((item, index) => (
-                                    <tr key={index}>
-                                        <td>{item.item_details}</td>
-                                        <td>{item.quantity}</td>
-                                        <td>{item.measurement}</td>
-                                        <td>{item.rate}</td>
-                                        <td>{item.sub_total}</td>
-                                        <td>{item.vat}</td>
-                                        <td>{item.rate_vat}</td>
-                                        <td>{item.amount.toLocaleString()}</td>
-                                        <td>
-                                            <IconButton 
-                                                color="error"
-                                                onClick={() => handleDeleteItem(index)}
+                        <Box>
+                            <TableContainer>
+                                <Table>
+                                    <TableHead>
+                                        <TableRow>
+                                            <TableCell sx={{ minWidth: 150 }}><Typography fontWeight="bold">Item Details</Typography></TableCell>
+                                            <TableCell sx={{ minWidth: 100 }}><Typography fontWeight="bold">Quantity</Typography></TableCell>
+                                            <TableCell sx={{ minWidth: 150 }}><Typography fontWeight="bold">Measurement</Typography></TableCell>
+                                            <TableCell sx={{ minWidth: 150 }}><Typography fontWeight="bold">Rate</Typography></TableCell>
+                                            <TableCell sx={{ minWidth: 120 }}><Typography fontWeight="bold">Sub Total</Typography></TableCell>
+                                            <TableCell sx={{ minWidth: 80 }}><Typography fontWeight="bold">VAT</Typography></TableCell>
+                                            <TableCell sx={{ minWidth: 120 }}><Typography fontWeight="bold">VAT Amount</Typography></TableCell>
+                                            <TableCell sx={{ minWidth: 120 }}><Typography fontWeight="bold">Total Amount</Typography></TableCell>
+                                            <TableCell sx={{ minWidth: 80 }}><Typography fontWeight="bold">Action</Typography></TableCell>
+                                        </TableRow>
+                                    </TableHead>
+                                    <TableBody>
+                                        {formData.items.map((item, index) => (
+                                            <TableRow key={index}>
+                                                <TableCell>{item.item_details}</TableCell>
+                                                <TableCell>{new Intl.NumberFormat().format(item.quantity)}</TableCell>
+                                                <TableCell>{new Intl.NumberFormat().format(item.measurement)}</TableCell>
+                                                <TableCell>{new Intl.NumberFormat().format(item.rate)}</TableCell>
+                                                <TableCell>{new Intl.NumberFormat().format(item.sub_total)}</TableCell>
+                                                <TableCell>{item.vat}%</TableCell>
+                                                <TableCell>{new Intl.NumberFormat().format(item.rate_vat)}</TableCell>
+                                                <TableCell>{new Intl.NumberFormat().format(item.amount)}</TableCell>
+                                                <TableCell>
+                                                    <IconButton color="error" onClick={() => handleDeleteItem(index)}>
+                                                        <CloseIcon />
+                                                    </IconButton>
+                                                    
+                                                </TableCell>
+                                            </TableRow>
+                                        ))}
+                                        <TableRow>
+                                            <TableCell>
+                                                <Select 
+                                                    type="text"
+                                                    name="item_details"
+                                                    placeholder="Item Details"
+                                                    value={newItem.item_details}
+                                                    onChange={handleNewItemChange}
+                                                    fullWidth
+                                                    displayEmpty
+                                                >
+                                                    <MenuItem value="">Select</MenuItem>
+                                                    {storeItems.map((unit) => (
+                                                    <MenuItem key={unit.value} value={unit.value}>
+                                                        {unit.label}
+                                                    </MenuItem>
+                                                    ))}
+                                                </Select>
+                                            </TableCell>
+
+                                            <TableCell>
+                                                <TextField
+                                                    type="number"
+                                                    name="quantity"
+                                                    placeholder="Quantity"
+                                                    value={newItem.quantity}
+                                                    onChange={handleNewItemChange}
+                                                    variant="outlined"
+                                                    size="small"
+                                                    fullWidth
+                                                />
+                                            </TableCell>
+
+                                            <TableCell>
+                                                <Select 
+                                                    type="number"
+                                                    name="measurement"
+                                                    placeholder="Quantity"
+                                                    value={newItem.measurement}
+                                                    onChange={handleNewItemChange}
+                                                    fullWidth
+                                                    displayEmpty
+                                                >
+                                                    <MenuItem value="">Select</MenuItem>
+                                                    {units.map((unit) => (
+                                                    <MenuItem key={unit.value} value={unit.value}>
+                                                        {unit.label}
+                                                    </MenuItem>
+                                                    ))}
+                                                </Select>
+                                            </TableCell>
+
+                                            <TableCell>
+                                                <TextField
+                                                    type="number"
+                                                    name="rate"
+                                                    placeholder="Rate"
+                                                    className="bill-inputfield"
+                                                    value={newItem.rate}
+                                                    onChange={handleNewItemChange}
+                                                    variant="outlined"
+                                                    size="small"
+                                                    fullWidth
+                                                />
+                                            </TableCell>
+
+                                            <TableCell>
+                                                <TextField
+                                                    placeholder="Sub Total"
+                                                    variant="outlined"
+                                                    size="small"
+                                                    fullWidth
+                                                    value={newItem.sub_total}
+                                                    InputProps={{ readOnly: true }}
+                                                />
+                                            </TableCell>
+
+                                        <TableCell>
+                                            <Select
+                                                value={newItem.vat}
+                                                name="vat"
+                                                fullWidth
+                                                onChange={handleNewItemChange}
+                                                displayEmpty
                                             >
-                                                <CloseIcon />
-                                            </IconButton>
-                                        </td>
-                                    </tr>
-                                ))}
-                                <tr>
-                                <td>
-                                        <select value={newItem.item_details} name="item_details" className="bill-inputfield" onChange={handleNewItemChange}>
-                                            <option value="">Select Item</option>
-                                            {storeItems.map((item, index) => (
-                                                <option key={{index}} value={item.item_details}>{item.item_details}</option>
-                                                
-                                            ))}
-                                        </select>
-                                    </td>
-                                    <td>
-                                        <input
-                                            type="number"
-                                            name="quantity"
-                                            placeholder="Quantity"
-                                            className="bill-inputfield"
-                                            value={newItem.quantity}
-                                            onChange={handleNewItemChange}
-                                        />
-                                    </td>
-                                    <td>
-                                        <select 
-                                               type="number"
-                                               name="measurement"
-                                               placeholder="Quantity"
-                                               className="bill-inputfield"
-                                               value={newItem.measurement}
-                                               onChange={handleNewItemChange}
-                                        >
-                                            <option value="">Select</option>
-                                            {units.map((unit) => (
-                                            <option key={unit.value} value={unit.value}>
-                                                {unit.label}
-                                            </option>
-                                            ))}
-                                            <option value='new_category'>Create New Category</option>
-                                        </select>
-                                    </td>
-                                    <td>
-                                        <input
-                                            type="number"
-                                            name="rate"
-                                            placeholder="Rate"
-                                            className="bill-inputfield"
-                                            value={newItem.rate}
-                                            onChange={handleNewItemChange}
-                                        />
-                                    </td>
-                                    <td>
-                                        <input value={newItem.sub_total.toLocaleString()}/>
-                                    </td>
-                                    <td>
-                                        <select value={newItem.vat} className="bill-input" name="vat" onChange={handleNewItemChange}>
-                                                <option value=''>Select vat</option>
-                                                <option value='16'>16%</option>
-                                                <option value='0'>0%</option>
-                                        </select>
-                                    </td>
-                                    <td>
-                                        <input 
-                                            className="bill-inputfield"
-                                            value={newItem.rate_vat.toLocaleString()}
-                                            readOnly
-                                        />
-                                    </td>
-                                    <td>{newItem.amount.toLocaleString()}</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                        <button type="button" className="button" onClick={addItem}>Add Item</button>
+                                                <MenuItem value="">Select VAT</MenuItem>
+                                                <MenuItem value={16}>16%</MenuItem>
+                                                <MenuItem value={0}>0%</MenuItem>
+                                            </Select>
+                                        </TableCell>
 
-                        <h3 className="total-amount">Sub Total Amount: {subTotalAmount.toLocaleString()}</h3>
-                        <h3 className="total-amount">VAT Amount: {vatAmount.toLocaleString()}</h3>
-                        <h3 className="total-amount">Total Amount: {totalAmount.toLocaleString()}</h3>
-                        </div>
+                                        <TableCell>
+                                            <TextField
+                                                placeholder="VAT Amount"
+                                                variant="outlined"
+                                                size="small"
+                                                fullWidth
+                                                value={newItem.rate_vat}
+                                                InputProps={{ readOnly: true }}
+                                            />
+                                        </TableCell>
 
-                        <button type="submit" className="button">Save and Send</button>
-                    </form>
-                </div>
-            </div> 
+                                        <TableCell>
+                                            <TextField
+                                                placeholder="Total Amount"
+                                                variant="outlined"
+                                                size="small"
+                                                fullWidth
+                                                value={newItem.amount}
+                                                InputProps={{ readOnly: true }}
+                                            />
+                                        </TableCell>
 
-            <Box m="20px">
-                            <Typography
-                            fontWeight='bold'
-                            variant="h5"
-                            textAlign='center'
-                            >
-                                CREDIT NOTES
-                            </Typography>
-                            <Box
-                                height="75vh"
-                                sx={{
-                                "& .MuiDataGrid-root": {
-                                    border: "none",
-                                },
-                                "& .MuiDataGrid-cell": {
-                                    borderBottom: "none",
-                                },
-                                "& .name-column--cell": {
-                                    // color: colors.greenAccent[300],
-                                },
-                                "& .MuiDataGrid-columnHeaders": {
-                                    // backgroundColor: colors.blueAccent[700],
-                                    borderBottom: "none",
-                                },
-                                "& .MuiDataGrid-virtualScroller": {
-                                    // backgroundColor: colors.primary[400],
-                                },
-                                "& .MuiDataGrid-footerContainer": {
-                                    borderTop: "none",
-                                    // backgroundColor: colors.blueAccent[700],
-                                },
-                                "& .MuiCheckbox-root": {
-                                    // color: `${colors.greenAccent[200]} !important`,
-                                },
-                                "& .MuiDataGrid-toolbarContainer .MuiButton-text": {
-                                    // color: `${colors.grey[100]} !important`,
-                                },
-                                }}
-                            >
-                                <DataGrid
-                                rows={creditnotes}
-                                columns={columns}
-                                components={{ Toolbar: GridToolbar }}
-                                />
+                                            <TableCell>
+                                                <IconButton color="primary" onClick={() => handleDeleteItem(formData.items.length)}>
+                                                    <CloseIcon />
+                                                </IconButton>
+                                            </TableCell>
+                                        </TableRow>
+                                    </TableBody>
+                                </Table>
+                            </TableContainer>
+                        <Button type="button" color="secondary" variant="contained" sx={{margin:'20px'}} onClick={addItem}>Add Item</Button>
+
+                        <Box display={'flex'} flexDirection={'column'} gap={'15px'} m={'10px'} textAlign={'right'} fontWeight={'bold'}>
+                                <Typography fontWeight={'bold'}>
+                                        Sub Total Amount:{" "}
+                                        {formData.currency ? (
+                                            new Intl.NumberFormat('en-KE', { style: 'currency', currency:"KES" }).format(subTotalAmount)
+                                        ) : (
+                                            subTotalAmount
+                                        )}
+                                </Typography>
+
+                                <Typography fontWeight={'bold'}>VAT Amount: {" "}
+                                        {formData.currency ? (
+                                            new Intl.NumberFormat('en-KE', { style: 'currency', currency: "KES" }).format(vatAmount)
+                                        ) : (
+                                            vatAmount
+                                        )}
+                                </Typography>
+
+                                <Typography fontWeight={'bold'}>Total Amount: {" "}
+                                    { formData.currency ? (
+                                        new Intl.NumberFormat('en-KE', {currency:"KES", style:'currency'}).format(totalAmount)
+                                    ):(
+                                        totalAmount
+                                    )}
+                                </Typography>
                             </Box>
-                         </Box>
-        </div>
+                        
+                        </Box>
+
+                        <Button type="submit" color="secondary" variant="contained">Save</Button>
+                    </form>
+                </Box>
+            </Box> 
+
+            {isMobile ? (
+                <Box>
+                <Typography fontSize={'27px'} fontWeight={'bold'} textAlign={'center'} mt={"20px"}>BILLS</Typography>
+                <Box
+                    display={'grid'}
+                    gridTemplateColumns={{xs:'repeat(1,1fr)', sm:'repeat(2,1fr)'}}
+                    gap="10px"
+                    margin="0 10px"
+                >
+
+                    {displayedItems.map((item) => (
+                        <Card
+                            key={item.id}
+                            sx={{
+                                borderRadius: '15px',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                height: 'auto', // Adjust height for better flexibility
+                                boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
+                                padding: '10px',
+                                backgroundColor: '#fff',
+                                transition: 'transform 0.3s ease-in-out',
+                                '&:hover': {
+                                    transform: 'scale(1.03)',
+                                    boxShadow: '0 8px 30px rgba(0,0,0,0.15)',
+                                },
+                            }}
+                        >
+                            <CardContent>
+                                    <Typography>ID: {item.id}</Typography>
+                                    <Typography>Customer Name: {item.customer_name}</Typography>
+                                    <Typography>Customer Email: {item.customer_email}</Typography>
+                                    <Typography>Customer Phone: {item.customer_phone}</Typography>
+                                    <Typography>Payment Terms: {item.credit_date}</Typography>
+                                    <Typography>Amount: {new Intl.NumberFormat('en-KE', {style:'currency', currency:'KES'}).format(item.totalAmount)}</Typography>
+                            </CardContent>
+                        </Card>
+                    ))}
+                    <Box display="flex" justifyContent="center" mt="20px">
+                            <Pagination count={totalPages} page={currentPage} onChange={handlePageChange} color="secondary" />
+                    </Box>
+                </Box>
+            </Box>
+              ) : (
+                <Box m="20px">
+                  <Typography 
+                      fontSize='30px'
+                      fontWeight='bold'
+                      textAlign='center'
+                  >
+                      CREDIT NOTES
+                  </Typography>
+                  <Box
+                      height="75vh"
+                  >
+                      <DataGrid
+                      rows={creditnotes}
+                      columns={columns}
+                      components={{ Toolbar: GridToolbar }}
+                      getRowId={(row) => row.id}
+                      />
+                  </Box>
+                </Box>
+              )}
+        </Box>
     );
 }
 

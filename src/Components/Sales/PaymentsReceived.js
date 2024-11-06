@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Box, Typography, Button,Snackbar } from "@mui/material";
+import { Box, Typography, Button,Snackbar, FormControl, Select, MenuItem, TextField, useMediaQuery, CardContent, Pagination, Card } from "@mui/material";
 import { DataGrid, GridToolbar } from "@mui/x-data-grid";
 import './PaymentsReceived.css';
 import { useNavigate } from "react-router-dom";
@@ -10,6 +10,10 @@ function PaymentsReceived() {
     const [customers, setCustomers] = useState([]);
     const [bankAccounts, setBankAccounts] = useState([])
     const [funds,setFunds] = useState([]);
+    const [currentPage, setCurrentPage] = useState(1)
+    const itemsPerPage = 16;
+    const isMobile = useMediaQuery('(max-width: 768px)');
+    const token = localStorage.getItem('access_token')
     const [errorMessage, setErrorMessage] = useState("");
     const [formData, setFormData] = useState({
         customer_name: "",
@@ -32,36 +36,61 @@ function PaymentsReceived() {
 
 
     useEffect(() => {
-        fetch('https://db-demo-u07o.onrender.com/paymentsreceived')
+        fetch('https://db-demo-u07o.onrender.com/paymentsreceived', {
+            method:'GET',
+            headers:{
+                'Authorization':`Bearer ${token}`
+            },
+            credentials:'include'
+        })
             .then(response => response.json())
-            .then((data) => setPaymentsReceived(data));
-    }, []);
+            .then((data) => setPaymentsReceived(data))
+            .catch(error => console.error('Error fetching payments:', error));
+    }, [token]);
 
     useEffect(() => {
-        fetch('https://db-demo-u07o.onrender.com/customers')
+        fetch('https://db-demo-u07o.onrender.com/customers', {
+            method:'GET',
+            headers:{
+                'Authorization':`Bearer ${token}`
+            },
+            credentials:'include'
+        })
             .then(response => response.json())
             .then((data) => setCustomers(data));
-    }, []);
+    }, [token]);
 
     useEffect(() => {
-        fetch('https://db-demo-u07o.onrender.com/funds')
+        fetch('https://db-demo-u07o.onrender.com/funds', {
+            method:'GET',
+            headers:{
+                'Authorization':`Bearer ${token}`
+            },
+            credentials:'include'
+        })
             .then(response => response.json())
             .then((data) => {
                 console.log(data); // Log the data to verify
                 setFunds(data);
             })
             .catch(error => console.error('Error fetching funds:', error));
-    }, []);
+    }, [token]);
 
     useEffect(() => {
-        fetch('https://db-demo-u07o.onrender.com/bankaccounts')
+        fetch('https://db-demo-u07o.onrender.com/bankaccounts', {
+            method:'GET',
+            headers:{
+                'Authorization':`Bearer ${token}`
+            },
+            credentials:'include'
+        })
             .then(response => response.json())
             .then(data => {
     
                 setBankAccounts(data);
             })
             .catch(error => console.error('Error fetching bills:', error));
-    }, []);
+    }, [token]);
 
     function handleChange(event) {
         const { name, value } = event.target;
@@ -94,8 +123,10 @@ function PaymentsReceived() {
         fetch('https://db-demo-u07o.onrender.com/paymentsreceived', {
             method: "POST",
             headers: {
-                "Content-Type": "application/json"
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${token}`
             },
+            credentials:'include',
             body: JSON.stringify({
                 ...formData,
                 payment: paymentNumber, // Update the payment field with the incremented number
@@ -106,9 +137,7 @@ function PaymentsReceived() {
         .then((newPayment) => {
 
 
-            fetch('https://db-demo-u07o.onrender.com/paymentsreceived')
-            .then(response => response.json())
-            .then((data) => setPaymentsReceived(data));
+            setPaymentsReceived(prev => [...prev, newPayment]);
 
             
             let remainingAmount = parseFloat(formData.amount_received);
@@ -128,8 +157,10 @@ function PaymentsReceived() {
                     fetch(`https://db-demo-u07o.onrender.com/invoices/${invoice.invoice_number}`, {
                         method: 'PATCH',
                         headers: {
-                            "Content-Type": "application/json"
+                            "Content-Type": "application/json",
+                            "Authorization": `Bearer ${token}`
                         },
+                        credentials:'include',
                         body: JSON.stringify({
                             status: updatedStatus,
                             amount_paid: updatedPaymentMade,
@@ -154,6 +185,7 @@ function PaymentsReceived() {
                         payment: "",
                         payment_mode: "",
                         deposit_to: "",
+                        currency:"",
                         customer_phone:"",
                         customer_email:"",
                         bank_details:"",
@@ -163,7 +195,13 @@ function PaymentsReceived() {
             };
 
             // Fetch the unpaid or partially paid invoices associated with the customer
-            fetch(`https://db-demo-u07o.onrender.com/invoices?customer_name=${formData.customer_name}&status=UNPAID,PARTIALLY PAID`)
+            fetch(`https://db-demo-u07o.onrender.com/invoices?customer_name=${formData.customer_name}&status=UNPAID,PARTIALLY PAID`,{
+                method:'GET',
+                headers:{
+                    'Authorization':`Bearer ${token}`
+                },
+                credentials:'include'
+            })
             .then(response => response.json())
             .then(invoices => {
                 updateInvoices(invoices);
@@ -177,8 +215,10 @@ function PaymentsReceived() {
                     fetch(`https://db-demo-u07o.onrender.com/bankaccounts/${selectedBank.id}`, {
                         method: "PATCH",
                         headers: {
-                            "Content-Type": "application/json"
+                            "Content-Type": "application/json",
+                            "Authorization": `Bearer ${token}`
                         },
+                        credentials:'include',
                         body: JSON.stringify({
                             amount: selectedBank.amount + parseFloat(formData.amount_received) - parseFloat(formData.bank_charges || 0)
                         })
@@ -234,6 +274,38 @@ function PaymentsReceived() {
     
     const navigate = useNavigate()
 
+    const currencyLocaleMap = {
+        AED: "en-AE", // United Arab Emirates Dirham
+        AUD: "en-AU", // Australian Dollar
+        CAD: "en-CA", // Canadian Dollar
+        CHF: "de-CH", // Swiss Franc
+        CNY: "zh-CN", // Chinese Yuan
+        EUR: "de-DE", // Euro
+        GBP: "en-GB", // British Pound
+        HKD: "en-HK", // Hong Kong Dollar
+        IDR: "id-ID", // Indonesian Rupiah
+        ILS: "he-IL", // Israeli New Shekel
+        INR: "en-IN", // Indian Rupee
+        JPY: "ja-JP", // Japanese Yen
+        KES: "en-KE", // Kenyan Shilling
+        NZD: "en-NZ", // New Zealand Dollar
+        SGD: "en-SG", // Singapore Dollar
+        THB: "th-TH", // Thai Baht
+        TRY: "tr-TR", // Turkish Lira
+        USD: "en-US", // United States Dollar
+        ZAR: "en-ZA", // South African Rand
+        MXN: "es-MX", // Mexican Peso
+        BRL: "pt-BR", // Brazilian Real
+      };
+
+    const totalPages = Math.ceil(paymentsReceived.length / itemsPerPage)
+    const displayedItems = paymentsReceived.slice((currentPage - 1)*itemsPerPage, currentPage * itemsPerPage)
+    
+
+    const handlePageChange = (event, value) => {
+        setCurrentPage(value);
+    };
+
     const columns = [
         { field: "id", headerName: "ID", flex: 0.05 },
         {
@@ -268,6 +340,27 @@ function PaymentsReceived() {
           field: "amount_received",
           headerName: "AMOUNT RECEIVED",
           flex: 0.2,
+          renderCell: (params) => {
+            // Use Intl.NumberFormat for currency formatting
+            const formattedAmount = new Intl.NumberFormat(currencyLocaleMap[params.row.currency] || 'en-KE', {
+              style: 'currency',
+              currency: params.row.currency, // Replace with your desired currency
+            }).format(params.value);
+        
+            return (
+              <Box 
+                sx={{ 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  cursor: 'pointer', 
+                }}
+              >
+                <Typography variant="h7">
+                  {formattedAmount}  {/* Display formatted amount */}
+                </Typography>
+              </Box>
+            );
+          },
         },
         {
           field: "bank_charges",
@@ -287,266 +380,288 @@ function PaymentsReceived() {
       ];
 
     return (
-        <div>
-            <div className="bill-content">
-                <div>
-                    <h2 className="h2">NEW PAYMENT RECEIVED</h2>
-                    <form className="bill-form" onSubmit={handleSubmit}>
+        <Box>
+            <Box>
+                    <Typography fontSize={'27px'} fontWeight={'bold'} textAlign={'center'}>NEW PAYMENT RECEIVED</Typography>
 
-                    <div className="bill-input">
-                        <label>Customer Name</label>
-                        <select name="customer_name" className="bill-inputfield" value={formData.customer_name} onChange={handleSelectCustomer}>
-                            <option value="">Select Customer</option>
-                            {customers.map((customer, index) => (
-                                <option key={index}>{customer.customer_name}</option>
-                            ))}
-                        </select>
-                    </div>
+                    <Box sx={{
+                      borderRadius: '15px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      height: 'auto', // Adjust height for better flexibility
+                      boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
+                      padding: '10px',
+                      margin: '30px',
+                      backgroundColor: '#fff',
+                      // Media queries for responsive design
+                      '@media (max-width: 600px)': {
+                        margin: '15px', // Adjust margin for smaller screens
+                        padding: '5px', // Adjust padding for smaller screens
+                      },
+                      '@media (min-width: 600px)': {
+                        margin: '30px', // Keep margin for medium screens and above
+                        padding: '10px', // Keep padding for medium screens and above
+                      },
+                    }}>
+                        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', margin: '30px' }}>
+                                    <FormControl>
+                                    <Typography fontWeight={'bold'}>Customer Name</Typography>
+                                        <Select name="customer_name" value={formData.customer_name} onChange={handleSelectCustomer} sx={{mb:'20px'}}>
+                                            <MenuItem value="">Select Customer</MenuItem>
+                                            {customers.map((customer, index) => (
+                                                <MenuItem key={index} value={customer.customer_name}>{customer.customer_name}</MenuItem>
+                                            ))}
+                                        </Select>
+                                    </FormControl>
 
-                    <div className="bill-input">
-                        <label>Customer Phone</label>
-                        <input
-                            type="text"
-                            name="customer_phone"
-                            placeholder="Customer Phone"
-                            className="bill-inputfield"
-                            value={formData.customer_phone}
-                            onChange={handleChange}
-                            readOnly
-                        />
-                    </div>
+                                    <TextField
+                                        type="text"
+                                        name="customer_phone"
+                                        label="Customer Phone"
+                                        value={formData.customer_phone}
+                                        onChange={handleChange}
+                                        readOnly
+                                        variant="outlined"
+                                        sx={{mb:'20px'}}
+                                    />
 
-                    <div className="bill-input">
-                        <label>Customer Email</label>
-                        <input
-                            type="text"
-                            name="customer_email"
-                            placeholder="Customer Email"
-                            className="bill-inputfield"
-                            value={formData.customer_email}
-                            onChange={handleChange}
-                            readOnly
-                        />
-                    </div>
+                                    <TextField
+                                        type="text"
+                                        name="customer_email"
+                                        label="Customer Email"
+                                        value={formData.customer_email}
+                                        onChange={handleChange}
+                                        readOnly
+                                        variant="outlined"
+                                        sx={{mb:'20px'}}
+                                    />
 
-                    <div className="bill-input">
-                        <label>Customer Pin</label>
-                        <input
-                            type="text"
-                            name="customer_pin"
-                            placeholder="Customer Pin"
-                            className="bill-inputfield"
-                            value={formData.vendor_pin}
-                            onChange={handleChange}
-                            readOnly
-                        />
-                    </div>
+                                        <TextField
+                                            type="text"
+                                            name="customer_pin"
+                                            label="Customer Pin"
+                                            value={formData.vendor_pin}
+                                            onChange={handleChange}
+                                            readOnly
+                                            variant="outlined"
+                                            sx={{mb:'20px'}}
+                                        />
 
-                    <div className="bill-input">
-                            <label>Currency</label>
-                            <input
-                                type="text"
-                                name="currency"
-                                placeholder="Currency"
-                                className="bill-inputfield"
-                                value={formData.currency}
-                                onChange={handleChange}
-                                readOnly
-                            />
-                        </div>
+                                        <TextField
+                                            type="text"
+                                            name="currency"
+                                            label="Currency"
+                                            value={formData.currency}
+                                            onChange={handleChange}
+                                            readOnly
+                                            variant="outlined"
+                                            sx={{mb:'20px'}}
+                                        />
 
-                        {formData.customer_name ? <h2 className="OWE">{formData.customer_name} OWES YOU {formData.currency} {formData.total_amount_owed}</h2> : ""}
+                            {formData.customer_name ? <h2 className="OWE">{formData.customer_name} OWES YOU {formData.currency} {formData.total_amount_owed}</h2> : ""}
 
-                        <div className="bill-input">
-                        <label>Amount Received</label>
-                            <input
-                                type="number"
-                                name="amount_received"
-                                placeholder="Amount Received"
-                                className="bill-inputfield"
-                                value={formData.amount_received}
-                                onChange={handleChange}
-                                required
-                            />
-                        </div>
+                                        <TextField
+                                            type="number"
+                                            name="amount_received"
+                                            label="Amount Received"
+                                            value={formData.amount_received}
+                                            onChange={handleChange}
+                                            required
+                                            variant="outlined"
+                                            sx={{mb:'20px'}}
+                                        />
 
-                        <div className="bill-input">
-                        <label>Payment Mode</label>
-                        <select value={formData.payment_mode} className="bill-inputfield" name="payment_mode" onChange={handleChange}>
-                            <option value="">Select Payment Mode</option>
-                            <option value="Cash">Cash</option>
-                            <option value="Bank Transfer">Bank Transfer</option>
-                            <option value="Bank Remittance">Bank Remittance</option>
-                            <option value="Cheque">Cheque</option>
-                            <option value="Credit Card">Credit Card</option>
-                        </select>
-                        </div>
+                                        <FormControl>
+                                            <Typography fontWeight={'bold'}>Payment Mode</Typography>
+                                            <Select value={formData.payment_mode} name="payment_mode" onChange={handleChange} sx={{mb:'20px'}}>
+                                                <MenuItem value="">Select Payment Mode</MenuItem>
+                                                <MenuItem value="Cash">Cash</MenuItem>
+                                                <MenuItem value="Bank Transfer">Bank Transfer</MenuItem>
+                                                <MenuItem value="Bank Remittance">Bank Remittance</MenuItem>
+                                                <MenuItem value="Cheque">Cheque</MenuItem>
+                                                <MenuItem value="Credit Card">Credit Card</MenuItem>
+                                            </Select>
+                                        </FormControl>
 
-                        <div className="bill-input">
-                            <label>Deposit To</label>
-                            <select name="deposit_to" className="bill-inputfield" value={formData.deposit_to} onChange={handleChange}>
-                                <option value="">Select</option>
-                                {funds.map((fund, index) => (
-                                    <option key={index} value={fund.fund_name}>{fund.fund_name}</option>
-                                ))}
-                            </select>
-                        </div>
-                        
+                                        <FormControl>
+                                        <Typography>Deposit To</Typography>
+                                        <Select name="deposit_to" value={formData.deposit_to} onChange={handleChange} sx={{mb:'20px'}}>
+                                            <MenuItem value="">Select</MenuItem>
+                                            {funds.map((fund, index) => (
+                                                <MenuItem key={index} value={fund.fund_name}>{fund.fund_name}</MenuItem>
+                                            ))}
+                                        </Select>
+                                        </FormControl>
+                            
 
-                        {formData.deposit_to === 'Bank' ? 
-                            <div className="bill-input">
-                                <label>BANK ACCOUNT</label>
-                                <select name="bank_details" value={formData.bank_details} className="bill-inputfield" onChange={handleSelectBank}>
-                                <option value="">Select Bank Account</option>
-                                {bankAccounts.map((bank,index) => (
-                                <option key={index} value={bank.bank_details}>{bank.bank_details}</option>
-                                ))}
-                                </select>
-                            </div> : ""
-                        }
+                                        {formData.deposit_to === 'Bank' ? 
+                                            <Box>
+                                                 <FormControl>
+                                                <Typography fontWeight={'bold'}>BANK ACCOUNT</Typography>
+                                                <Select name="bank_details" value={formData.bank_details} onChange={handleSelectBank} sx={{mb:'20px'}}>
+                                                <MenuItem value="">Select Bank Account</MenuItem>
+                                                {bankAccounts.map((bank,index) => (
+                                                <MenuItem key={index} value={bank.bank_details}>{bank.bank_details}</MenuItem>
+                                                ))}
+                                                </Select>
+                                                </FormControl>
+                                            </Box> : ""
+                                        }
 
-                        {formData.deposit_to === 'Bank' ? 
-                            <div className="bill-input">
-                                <label>BANK NAME</label>
-                                <input
-                                    type="text"
-                                    name="bank_name"
-                                    placeholder="Bank Name"
-                                    className="bill-inputfield"
-                                    value={formData.bank_name}
-                                    onChange={handleChange}
-                                    readOnly
-                                />
-                            </div>
-                        : "" }
+                                        {formData.deposit_to === 'Bank' ? 
+                                            <Box>
+                                                <TextField
+                                                    type="text"
+                                                    name="bank_name"
+                                                    placeholder="Bank Name"
+                                                    className="bill-inputfield"
+                                                    value={formData.bank_name}
+                                                    onChange={handleChange}
+                                                    readOnly
+                                                    variant="outlined"
+                                                    sx={{mb:'20px'}}
+                                                />
+                                            </Box>
+                                        : "" }
 
-                        {formData.deposit_to === 'Bank' ? 
-                        <div className="bill-input">
-                        <label>Bank Charge</label>
-                        <input
-                            type="text"
-                            name="bank_charges"
-                            placeholder="Bank Charges"
-                            className="bill-inputfield"
-                            value={formData.bank_charges}
-                            onChange={handleChange}
-                        />
-                        </div> : ""}
+                                        {formData.deposit_to === 'Bank' ? 
+                                        <Box>
+                                            <TextField
+                                                type="text"
+                                                name="bank_charges"
+                                                label="Bank Charges"
+                                                value={formData.bank_charges}
+                                                onChange={handleChange}
+                                                variant="outlined"
+                                                sx={{mb:'20px'}}
+                                            />
+                                        </Box> : ""}
 
-                        <div className="bill-input">
-                        <label>Payment Date</label>
-                        <input
-                            type="date"
-                            name="payment_date"
-                            placeholder="Payment Date"
-                            className="bill-inputfield"
-                            value={formData.payment_date}
-                            onChange={handleChange}
-                            required
-                        />
-                        </div>
+                                    <Typography fontWeight={'bold'}>Payment Date</Typography>
+                                    <TextField
+                                        type="date"
+                                        name="payment_date"
+                                        value={formData.payment_date}
+                                        onChange={handleChange}
+                                        required
+                                        variant="outlined"
+                                        sx={{mb:'20px'}}
+                                    />
 
-                        <div className="bill-input">
-                        <label>Sales Person</label>
-                        <input
-                            type="text"
-                            name="sales_person"
-                            placeholder="Sales Person"
-                            className="bill-inputfield"
-                            value={formData.sales_person}
-                            onChange={handleChange}
-                            required
-                        />
-                        </div>
+                                    <TextField
+                                        type="text"
+                                        name="sales_person"
+                                        label="Sales Person"
+                                        value={formData.sales_person}
+                                        onChange={handleChange}
+                                        required
+                                        variant="outlined"
+                                        sx={{mb:'20px'}}
+                                    />
 
-                        <div className="bill-input">
-                        <label>Payment</label>
-                        <input
-                            type="number"
-                            name="payment"
-                            placeholder={`${paymentNumber}`}
-                            className="bill-inputfield"
-                            value={formData.payment}
-                            onChange={handleChange}
-                            readOnly
-                        />
-                        </div>
+                                    <TextField
+                                        type="number"
+                                        name="payment"
+                                        label= 'Payment Number'
+                                        className="bill-inputfield"
+                                        value={`${paymentNumber}`}
+                                        onChange={handleChange}
+                                        InputProps={{ readOnly: true }}
+                                        variant="outlined"
+                                        sx={{mb:'20px',}}
+                                    />
 
-                        <button type="submit" className="button">Save and Send</button>
-                    </form>
-                    {errorMessage && <Snackbar
-                        open={Boolean(errorMessage)}
-                        autoHideDuration={6000}
-                        onClose={() => setErrorMessage('')}
-                        message={errorMessage}
-                        action={
-                            <Button color="inherit" onClick={() => setErrorMessage('')}>Close</Button>
-                        }
-                    />}
-                    {currencyErrorMessage && <Snackbar
-                        open={Boolean(currencyErrorMessage)}
-                        autoHideDuration={6000}
-                        onClose={() => setCurrencyErrorMessage('')}
-                        message={currencyErrorMessage}
-                        action={
-                            <Button color="inherit" onClick={() => setCurrencyErrorMessage('')}>Close</Button>
-                        }
-                    />}
-                </div>
-            </div>
+                            <Button type="submit" variant="contained" color="secondary">Save</Button>
 
-            <Box m="20px">
-                <Typography 
-                    fontSize='30px'
-                    fontWeight='bold'
-                    textAlign='center'
-                >
-                    PAYMENTS RECEIVED
-                </Typography>
-                <Box
-                    m="40px 0 0 0"
-                    height="75vh"
-                    sx={{
-                    "& .MuiDataGrid-root": {
-                        border: "none",
-                    },
-                    "& .MuiDataGrid-cell": {
-                        borderBottom: "none",
-                        // fontSize: "16px",
-                    },
-                    "& .name-column--cell": {
-                        // color: colors.greenAccent[300],
-                    },
-                    "& .MuiDataGrid-columnHeaders": {
-                        // backgroundColor: colors.blueAccent[700],
-                        borderBottom: "none",
-                        // fontSize: "16px",
-                    },
-                    "& .MuiDataGrid-virtualScroller": {
-                        // backgroundColor: colors.primary[400],
-                    },
-                    "& .MuiDataGrid-footerContainer": {
-                        borderTop: "none",
-                        // backgroundColor: colors.blueAccent[700],
-                    },
-                    "& .MuiCheckbox-root": {
-                        // color: `${colors.greenAccent[200]} !important`,
-                    },
-                    "& .MuiDataGrid-toolbarContainer .MuiButton-text": {
-                        // color: `${colors.grey[100]} !important`,
-                    },
-                    }}
-                >
-                    <DataGrid
-                    rows={paymentsReceived}
-                    columns={columns}
-                    components={{ Toolbar: GridToolbar }}
-                    getRowId={(row) => `${row.customer_name}-${row.amount_received}-${row.bank_charges}-${row.payment_date}-${row.payment}-${row.payment_mode}`}
-                    />
-                </Box>
+                        </form>
+                    </Box>
+                        {errorMessage && <Snackbar
+                            open={Boolean(errorMessage)}
+                            autoHideDuration={6000}
+                            onClose={() => setErrorMessage('')}
+                            message={errorMessage}
+                            action={
+                                <Button color="inherit" onClick={() => setErrorMessage('')}>Close</Button>
+                            }
+                        />}
+                        {currencyErrorMessage && <Snackbar
+                            open={Boolean(currencyErrorMessage)}
+                            autoHideDuration={6000}
+                            onClose={() => setCurrencyErrorMessage('')}
+                            message={currencyErrorMessage}
+                            action={
+                                <Button color="inherit" onClick={() => setCurrencyErrorMessage('')}>Close</Button>
+                            }
+                        />}
             </Box>
+
+            {isMobile ? (
+                <Box>
+                <Typography fontSize={'27px'} fontWeight={'bold'} textAlign={'center'} mt={"20px"}>PAYMENTS RECEIVED</Typography>
+                <Box
+                    display={'grid'}
+                    gridTemplateColumns={{xs:'repeat(1,1fr)', sm:'repeat(2,1fr)'}}
+                    gap="10px"
+                    margin="0 10px"
+                >
+
+                    {displayedItems.map((item) => (
+                        <Card
+                            key={item.id}
+                            sx={{
+                                borderRadius: '15px',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                height: 'auto', // Adjust height for better flexibility
+                                boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
+                                padding: '10px',
+                                backgroundColor: '#fff',
+                                transition: 'transform 0.3s ease-in-out',
+                                '&:hover': {
+                                    transform: 'scale(1.03)',
+                                    boxShadow: '0 8px 30px rgba(0,0,0,0.15)',
+                                },
+                            }}
+                        >
+                            <CardContent>
+                                    <Typography>Customer Name: {item.customer_name}</Typography>
+                                    <Typography>Customer Phone: {item.customer_name}</Typography>
+                                    <Typography>Customer Email: {item.customer_email}</Typography>
+                                    <Typography>Amount Received: {new Intl.NumberFormat(currencyLocaleMap[item.currency] || 'en-KE', {style:'currency', currency:item.currency}).format(item.amount_received)}</Typography>
+                                    <Typography>Bank Charges: {item.bank_charges}</Typography>
+                                    <Typography>Payment Date: {item.payment_date}</Typography>
+                                    <Typography>Payment Mode: {item.payment_mode}</Typography>
+                            </CardContent>
+                        </Card>
+                    ))}
+                    <Box display="flex" justifyContent="center" mt="20px">
+                            <Pagination count={totalPages} page={currentPage} onChange={handlePageChange} color="secondary" />
+                    </Box>
+                </Box>
+                </Box>
+              ) : (
+                <Box m="20px">
+                  <Typography 
+                      fontSize='30px'
+                      fontWeight='bold'
+                      textAlign='center'
+                  >
+                      PAYMENTS RECEIVED
+                  </Typography>
+                  <Box
+                      height="75vh"
+                  >
+                      <DataGrid
+                      rows={paymentsReceived}
+                      columns={columns}
+                      components={{ Toolbar: GridToolbar }}
+                      getRowId={(row) => row.id}
+                      />
+                  </Box>
+                </Box>
+              )}
             
-        </div>
+        </Box>
     );
 }
 

@@ -1,20 +1,10 @@
-import { Box,Typography, useTheme } from "@mui/material";
-import { tokens } from "../theme";
-import PointOfSaleIcon from "@mui/icons-material/PointOfSale";
-import PersonAddIcon from "@mui/icons-material/PersonAdd";
-import TrafficIcon from "@mui/icons-material/Traffic";
+import { Box,Card,CardContent,Typography,} from "@mui/material";
 import Header from "./Header";
-import StatBox from "./StatBox";
-import BarChartDashboard from "./BarchartDashboard";
-import PieChart from "./PieChart";
 import { useState, useEffect } from "react";
-import { LocalGasStation } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 import { DataGrid, GridToolbar } from "@mui/x-data-grid";
 
 const Dashboard = () => {
-  const theme = useTheme();
-  const colors = tokens(theme.palette.mode);
   const [billTotal, setBillTotal] = useState([]);
   const [tyres, setTyres] = useState([]);
   const [spare, setSpare] = useState([]);
@@ -23,55 +13,43 @@ const Dashboard = () => {
   const [invoicesNumber, setInvoicesNumber] = useState([]);
   const [customer,setCustomer] = useState([]);
   const [vendor, setVendor] = useState([])
-  const [accounts, setAccounts] = useState([]);
-  const [expense, setExpense] = useState([])
+  const token = localStorage.getItem('access_token')
+
 
   useEffect(() => {
-    fetch('https://db-demo-u07o.onrender.com/totals')
-      .then(response => response.json())
-      .then(data => {
-        // Convert the accumulated data into the desired format
-        const formattedBill = data.map(item => ({
-            account_name: item.account_name,
-            amount: item.amount
-          }));
-
-        setAccounts(formattedBill);
-      })
-      .catch(error => console.error('Error fetching data:', error));
-  }, []);
-
-  useEffect(() => {
-    fetch('https://db-demo-u07o.onrender.com/expenses')
-      .then(response => response.json())
-      .then(data => {
-        const formattedBill = data.map(item => ({
-          id: item.expense_name,
-          value: item.expense_amount
-        }));
-        console.log('Formatted Pie Chart Data:', formattedBill); // Add this line
-        setExpense(formattedBill);
-      })
-      .catch(error => console.error('Error fetching data:', error));
-  }, []);
-  
-
-  useEffect(() => {
-    fetch('https://db-demo-u07o.onrender.com/sparesubcategories')
+    fetch('https://db-demo-u07o.onrender.com/sparesubcategories',{
+      method:'GET',
+      headers:{
+        'Authorization': `Bearer ${token}`
+      },
+      credentials:'include',
+    })
       .then(response => response.json())
       .then(data => {setSpare(data)})
       .catch(error => console.error('Error fetching data:', error));
-  }, []);
+  }, [token]);
 
   useEffect(() => {
-    fetch('https://db-demo-u07o.onrender.com/tyres')
+    fetch('https://db-demo-u07o.onrender.com/tyres',{
+      method:'GET',
+      headers:{
+        'Authorization': `Bearer ${token}`
+      },
+      credentials:'include',
+    })
       .then(response => response.json())
       .then(data => {setTyres(data)})
       .catch(error => console.error('Error fetching data:', error));
-  }, []);
+  }, [token]);
 
   useEffect(() => {
-    fetch('https://db-demo-u07o.onrender.com/invoices')
+    fetch('https://db-demo-u07o.onrender.com/invoices', {
+      method:'GET',
+      headers:{
+        'Authorization': `Bearer ${token}`
+      },
+      credentials:'include',
+    })
       .then(response => response.json())
       .then(data => {
           const invoiceItems = data.flatMap(invoice =>
@@ -85,10 +63,16 @@ const Dashboard = () => {
         setInvoicesNumber(data.length);
       })
       .catch(error => console.error('Error fetching data:', error));
-  }, []);
+  }, [token]);
 
   useEffect(() => {
-    fetch('https://db-demo-u07o.onrender.com/newbills')
+    fetch('https://db-demo-u07o.onrender.com/newbills',{
+      method:'GET',
+      headers:{
+        'Authorization': `Bearer ${token}`
+      },
+      credentials:'include',
+    })
       .then(response => response.json())
       .then(data => {
         const receiptItems = data.flatMap(receipt =>
@@ -102,10 +86,16 @@ const Dashboard = () => {
         setInvoicesNumber(data.length);
       })
       .catch(error => console.error('Error fetching data:', error));
-  }, []);
+  }, [token]);
  
   useEffect(() => {
-    fetch('https://db-demo-u07o.onrender.com/pumpnames')
+    fetch('https://db-demo-u07o.onrender.com/pumpnames', {
+      method:'GET',
+      headers:{
+        'Authorization': `Bearer ${token}`
+      },
+      credentials:'include',
+    })
       .then(response => response.json())
       .then(data => {
 
@@ -113,41 +103,59 @@ const Dashboard = () => {
         setDiesel(total);
       })
       .catch(error => console.error('Error fetching data:', error));
-  }, []);
+  }, [token]);
 
   const totalDiesel = new Intl.NumberFormat().format(diesel);
 
   useEffect(() => {
-    fetch('https://db-demo-u07o.onrender.com/invoices')
+    fetch('https://db-demo-u07o.onrender.com/invoices', {
+      method:'GET',
+      headers:{
+        'Authorization': `Bearer ${token}`
+      },
+      credentials:'include',
+    })
       .then(response => response.json())
       .then(data => {
         setInvoicesNumber(data.length);
       })
       .catch(error => console.error('Error fetching data:', error));
-  }, []);
+  }, [token]);
 
   useEffect(() => {
-    fetch('https://db-demo-u07o.onrender.com/customers')
+    fetch('https://db-demo-u07o.onrender.com/customers', {
+      method:'GET',
+      headers:{
+        'Authorization': `Bearer ${token}`
+      },
+      credentials:'include',
+    })
       .then(response => response.json())
       .then(data => {
         setCustomer(data.length);
       })
       .catch(error => console.error('Error fetching data:', error));
-  }, []);
+  }, [token]);
 
   useEffect(() => {
-    fetch('https://db-demo-u07o.onrender.com/vendors')
+    fetch('https://db-demo-u07o.onrender.com/vendors',{
+      method:'GET',
+      headers:{
+        'Authorization': `Bearer ${token}`
+      },
+      credentials:'include',
+    })
       .then(response => response.json())
       .then(data => {
         setVendor(data.length);
       })
       .catch(error => console.error('Error fetching data:', error));
-  }, []);  
+  }, [token]);  
 
   const calculateTotal = (items) => items.reduce((total, item) => total + item.amount, 0);
 
-  const TotalRevenue =  new Intl.NumberFormat().format(calculateTotal(invoiceTotal))
-  const TotalExpenses =  new Intl.NumberFormat().format(calculateTotal(billTotal))
+  const TotalRevenue =  new Intl.NumberFormat('en-KE',{style:'currency', currency:'KES'}).format(calculateTotal(invoiceTotal))
+  const TotalExpenses = new Intl.NumberFormat('en-KE',{style:'currency', currency:'KES'}).format(calculateTotal(billTotal))
 
 
   const navigate = useNavigate()
@@ -158,6 +166,14 @@ const Dashboard = () => {
 
   const handleViewDiesel = (customerId) => {
     navigate(`/fuelings`);
+  }
+
+  const handleViewExpenses = () => {
+    navigate('/expenses-reports')
+  }
+
+  const handleViewSales = () => {
+    navigate('/sales-report')
   }
 
   const handleViewCustomers = (customerId) => {
@@ -205,326 +221,369 @@ const Dashboard = () => {
     ];
   
   return (
-    <Box m="20px">
+    <Box height={'100vh'} overflow={'auto'} marginLeft={{md:'30px'}}>
       {/* HEADER */}
       <Box display="flex" justifyContent="space-between" alignItems="center">
         <Header title="DASHBOARD" subtitle="Welcome to your dashboard" />
-
-        {/* <Box>
-          <Button
-            sx={{
-              backgroundColor: colors.blueAccent[700],
-              color: colors.grey[100],
-              fontSize: "14px",
-              fontWeight: "bold",
-              padding: "10px 20px",
-            }}
-          >
-            <DownloadOutlinedIcon sx={{ mr: "10px" }} />
-            Download Reports
-          </Button>
-        </Box> */}
       </Box>
 
-      {/* GRID & CHARTS */}
-      <Box
-        display="grid"
-        gridTemplateColumns="repeat(12, 1fr)"
-        marginRight='20px'
-        gridAutoRows="140px"
-        gap="20px"
-      >
-        {/* ROW 1 */}
+      <Box display={'flex'} flexDirection={'column'} gap={'30px'}>
+
         <Box
-          gridColumn="span 3"
-          backgroundColor={colors.primary[400]}
+          display="grid"
+          gridTemplateColumns={{ xs: 'repeat(2, 1fr)', md: 'repeat(4, 1fr)' }}
+          gap="20px"
+          margin="0 10px"
+        >
+        {/* Diesel Card */}
+        <Card
           onClick={handleViewDiesel}
-          borderRadius='10px'
-          display="flex"
-          alignItems="center"
-          justifyContent="center"
+          sx={{
+            borderRadius: '15px',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
+            padding: '10px',
+            backgroundColor: 'orange',
+            transition: 'transform 0.3s ease-in-out',
+            '&:hover': {
+              transform: 'scale(1.03)',
+              boxShadow: '0 8px 30px rgba(0,0,0,0.15)',
+            },
+            '@media (max-width:600px)': {
+              height: '150px',
+            },
+          }}
         >
-          <StatBox
-            title= {totalDiesel}
-            subtitle="DIESEL"
-            // progress="0.75"
-            // increase="+14%"
-            icon={
-              <LocalGasStation
-                sx={{ color: colors.greenAccent[600], fontSize: "26px" }}
-              />
-            }
-          />
-        </Box>
-        <Box
-          gridColumn="span 3"
-          backgroundColor={colors.primary[400]}
-          borderRadius='10px'
-          display="flex"
-          alignItems="center"
-          onClick = {handleViewInvoices}
-          justifyContent="center"
+          <CardContent sx={{ textAlign: 'center' }}>
+            <Typography fontSize={'27px'} fontWeight="bold" gutterBottom>
+              DIESEL
+            </Typography>
+            <Typography fontSize={'20px'} color={'grey'}>
+              {totalDiesel} Litres
+            </Typography>
+          </CardContent>
+        </Card>
+
+        {/* Petrol Card */}
+        <Card
+          onClick={handleViewCustomers}
+          sx={{
+            borderRadius: '15px',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
+            padding: '10px',
+            backgroundColor: 'orange',
+            transition: 'transform 0.3s ease-in-out',
+            '&:hover': {
+              transform: 'scale(1.03)',
+              boxShadow: '0 8px 30px rgba(0,0,0,0.15)',
+            },
+            '@media (max-width:600px)': {
+              height: '150px',
+            },
+          }}
         >
-          <StatBox
-            title={invoicesNumber}
-            subtitle="INVOICES"
-            icon={
-              <PointOfSaleIcon
-                sx={{ color: colors.greenAccent[600], variant:'h4' }}
-              />
-            }
-          />
-        </Box>
-        <Box
-          gridColumn="span 3"
-          backgroundColor={colors.primary[400]}
-          borderRadius='10px'
-          display="flex"
-          alignItems="center"
-          onClick = {handleViewCustomers}
-          justifyContent="center"
+          <CardContent sx={{ textAlign: 'center' }}>
+            <Typography fontSize={'27px'} fontWeight="bold" gutterBottom>
+              CUSTOMERS
+            </Typography>
+            <Typography fontSize={'20px'} color={'grey'}>
+              {customer}
+            </Typography>
+          </CardContent>
+        </Card>
+
+        {/* Oil Card */}
+        <Card
+          onClick={handleViewInvoices}
+          sx={{
+            borderRadius: '15px',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
+            padding: '10px',
+            backgroundColor: 'orange',
+            transition: 'transform 0.3s ease-in-out',
+            '&:hover': {
+              transform: 'scale(1.03)',
+              boxShadow: '0 8px 30px rgba(0,0,0,0.15)',
+            },
+            '@media (max-width:600px)': {
+              height: '150px',
+            },
+          }}
         >
-          <StatBox
-            title={customer}
-            subtitle="CUSTOMERS"
-            icon={
-              <PersonAddIcon
-                sx={{ color: colors.greenAccent[600], fontSize: "26px" }}
-              />
-            }
-          />
-        </Box>
-        <Box
-          gridColumn="span 3"
-          backgroundColor={colors.primary[400]}
-          borderRadius='10px'
-          onClick = {handleViewVendors}
-          display="flex"
-          alignItems="center"
-          justifyContent="center"
+            <CardContent sx={{ textAlign: 'center', }}>
+            <Typography fontSize={'27px'} fontWeight="bold" gutterBottom>
+              INVOICES
+            </Typography>
+            <Typography fontSize={'20px'} color={'grey'}>
+              {invoicesNumber}
+            </Typography>
+          </CardContent>
+        </Card>
+
+        {/* Lubricants Card */}
+        <Card
+          onClick={handleViewVendors}
+          sx={{
+            borderRadius: '15px',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
+            padding: '10px',
+            backgroundColor: 'orange',
+            transition: 'transform 0.3s ease-in-out',
+            '&:hover': {
+              transform: 'scale(1.03)',
+              boxShadow: '0 8px 30px rgba(0,0,0,0.15)',
+            },
+            '@media (max-width:600px)': {
+              height: '150px',
+
+            },
+          }}
         >
-          <StatBox
-            title={vendor}
-            subtitle="VENDORS"
-            icon={
-              <TrafficIcon
-                sx={{ color: colors.greenAccent[600], fontSize: "26px" }}
-              />
-            }
-          />
+          <CardContent sx={{ textAlign: 'center' }}>
+            <Typography fontSize={'27px'} fontWeight="bold" gutterBottom>
+              VENDORS
+            </Typography>
+            <Typography fontSize={'20px'} color={'grey'}>
+              {vendor}
+            </Typography>
+          </CardContent>
+        </Card>
         </Box>
 
-        {/* ROW 2 */}
         <Box
-          gridColumn="span 7"
-          borderRadius='10px'
-          gridRow="span 4"
-          backgroundColor={colors.primary[400]}
-        //   height='400px'
+          display="grid"
+          gridTemplateColumns={{ xs: 'repeat(1, 1fr)', md: 'repeat(2, 1fr)' }}
+          gap="20px"
+          margin="0 10px"
         >
-          <Box
-            mt="25px"
-            p="0 30px"
-            display="flex "
-            justifyContent="space-between"
-            alignItems="center"
-          >
-            <Box>
-              <Typography
-                variant="h5"
-                fontWeight="600"
-                color={colors.grey[100]}
-              >
-                Revenue Generated
-              </Typography>
-              <Typography
-                variant="h3"
-                fontWeight="bold"
-                color={colors.greenAccent[500]}
-              >
-                ${TotalRevenue}
-              </Typography>
-            </Box>
-          </Box>
-          <Box height="250px" ml='30px' >
-            <BarChartDashboard chartdata={accounts} isDashboard={true} />
-          </Box>
-        </Box>
-        <Box
-          gridColumn="span 5"
-          borderRadius='10px'
-          gridRow="span 4"
-          backgroundColor={colors.primary[400]}
-        //   height='400px'
+        {/* Diesel Card */}
+        <Card
+          onClick={handleViewSales}
+          sx={{
+            borderRadius: '15px',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            height: '200px',
+            justifyContent: 'center',
+            boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
+            padding: '10px',
+            backgroundColor: 'purple',
+            transition: 'transform 0.3s ease-in-out',
+            '&:hover': {
+              transform: 'scale(1.03)',
+              boxShadow: '0 8px 30px rgba(0,0,0,0.15)',
+            },
+            '@media (max-width:1600px)': {
+              height: '150px',
+            },
+            '@media (max-width:600px)': {
+              height: '200px',
+              padding: '15px',
+            },
+          }}
         >
-          <Box
-            mt="25px"
-            p="0 30px"
-            display="flex "
-            justifyContent="space-between"
-            alignItems="center"
-          >
-            <Box>
-              <Typography
-                variant="h5"
-                fontWeight="600"
-                color={colors.grey[100]}
-              >
-                Expenses
-              </Typography>
-              <Typography
-                variant="h3"
-                fontWeight="bold"
-                color={colors.greenAccent[500]}
-              >
-                ${TotalExpenses}
-              </Typography>
-            </Box>
-          </Box>
-          <Box height="250px" ml='30px' >
-              <PieChart chartdata={expense} isDashboard={true} />
-          </Box>
+          <CardContent sx={{ textAlign: 'center' }}>
+            <Typography fontSize={'27px'} fontWeight="bold" gutterBottom>
+              REVENUE
+            </Typography>
+
+            <Typography fontSize={'20px'} paragraph>
+              {TotalRevenue}
+            </Typography>
+          </CardContent>
+        </Card>
+
+
+        {/* Petrol Card */}
+        <Card
+          onClick={handleViewExpenses}
+          sx={{
+            borderRadius: '15px',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
+            padding: '10px',
+            backgroundColor: 'orange',
+            transition: 'transform 0.3s ease-in-out',
+            '&:hover': {
+              transform: 'scale(1.03)',
+              boxShadow: '0 8px 30px rgba(0,0,0,0.15)',
+            },
+            '@media (max-width:600px)': {
+              height: '150px',
+            },
+          }}
+        >
+          <CardContent sx={{ textAlign: 'center' }}>
+            <Typography fontSize={'27px'} fontWeight="bold" gutterBottom>
+              EXPENSES
+            </Typography>
+            <Typography fontSize={'20px'} paragraph>
+              {TotalExpenses}
+            </Typography>
+          </CardContent>
+        </Card>
         </Box>
 
-        
+        <Box
+          display="grid"
+          gridTemplateColumns={{ xs: 'repeat(1, 1fr)', md: 'repeat(2, 1fr)' }}
+          gap="20px"
+          margin="0 10px"
+          mb={'30px'}
+        >
+        {/* Tyres Card */}
+        <Card
+          onClick={handleViewCustomers}
+          sx={{
+            borderRadius: '15px',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
+            padding: '10px',
+            backgroundColor: '#fff',
+            '@media (max-width:1600px)': {
+              height: '550px',
+            },
+          }}
+        >
+          <CardContent sx={{ textAlign: 'center', width:'100%' }}>
+            <Typography variant="h6" fontWeight="bold" gutterBottom>
+              TYRES
+            </Typography>
+                  <Box
+                      height="auto"
+                      sx={{
+                      "& .MuiDataGrid-root": {
+                          border: "none",
+                      },
+                      "& .MuiDataGrid-cell": {
+                          borderBottom: "none",
+                          // fontSize: "16px",  // Increase the font size of the data
+                      },
+                      "& .name-column--cell": {
+                          // color: colors.greenAccent[300],
+                      },
+                      "& .MuiDataGrid-columnHeaders": {
+                          // backgroundColor: colors.blueAccent[700],
+                          borderBottom: "none",
+                          // fontSize: "16px",  // Increase the font size of the header
+                      },
+                      "& .MuiDataGrid-virtualScroller": {
+                          // backgroundColor: colors.primary[400],
+                      },
+                      "& .MuiDataGrid-footerContainer": {
+                          borderTop: "none",
+                          // backgroundColor: colors.blueAccent[700],
+                      },
+                      "& .MuiCheckbox-root": {
+                          // color: `${colors.greenAccent[200]} !important`,
+                      },
+                      "& .MuiDataGrid-toolbarContainer .MuiButton-text": {
+                          // color: `${colors.grey[100]} !important`,
+                      },
+                      }}
+                  >
+                      <DataGrid
+                      rows={tyres}
+                      columns={tyre}
+                      components={{ Toolbar: GridToolbar }}
+                      getRowId={(row) => `${row.item_details}-${row.quantity}`}
+                      />
+                  </Box>
+          </CardContent>
+        </Card>
 
-        {/* ROW 3 */}
-        <Box
-          gridColumn="span 4"
-          gridRow="span 4"
-          borderRadius='10px'
-          backgroundColor={colors.primary[400]}
-          p="30px"
-        //   height='500px'
+
+        {/* Spare Card */}
+        <Card
+          onClick={handleViewCustomers}
+          sx={{
+            borderRadius: '15px',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
+            padding: '10px',
+            backgroundColor: '#fff',
+            '@media (max-width:600px)': {
+              height: '550px',
+            },
+          }}
         >
-          <Typography variant="h5" fontWeight="600">
-            Spares
-          </Typography>
-          <Box
-            display="flex"
-            flexDirection="column"
-            alignItems="center"
-          >
-            <Box m="20px">
-                <Box
-                    // m="40px 0 0 0"
-                    height="55vh"
-                    sx={{
-                    "& .MuiDataGrid-root": {
-                        border: "none",
-                    },
-                    "& .MuiDataGrid-cell": {
-                        borderBottom: "none",
-                        // fontSize: "16px",  // Increase the font size of the data
-                    },
-                    "& .name-column--cell": {
-                        // color: colors.greenAccent[300],
-                    },
-                    "& .MuiDataGrid-columnHeaders": {
-                        // backgroundColor: colors.blueAccent[700],
-                        borderBottom: "none",
-                        // fontSize: "16px",  // Increase the font size of the header
-                    },
-                    "& .MuiDataGrid-virtualScroller": {
-                        // backgroundColor: colors.primary[400],
-                    },
-                    "& .MuiDataGrid-footerContainer": {
-                        borderTop: "none",
-                        // backgroundColor: colors.blueAccent[700],
-                    },
-                    "& .MuiCheckbox-root": {
-                        // color: `${colors.greenAccent[200]} !important`,
-                    },
-                    "& .MuiDataGrid-toolbarContainer .MuiButton-text": {
-                        // color: `${colors.grey[100]} !important`,
-                    },
-                    }}
-                >
-                    <DataGrid
-                    rows={spare}
-                    columns={columns}
-                    components={{ Toolbar: GridToolbar }}
-                    getRowId={(row) => `${row.item_details}-${row.quantity}`}
-                    />
-                </Box>
-            </Box>
-          </Box>
+          <CardContent sx={{ textAlign: 'center',width:'100%' }}>
+            <Typography variant="h6" fontWeight="bold" gutterBottom>
+              SPARES
+            </Typography>
+              <Box m="20px">
+                  <Box
+                      height="auto"
+                      sx={{
+                      "& .MuiDataGrid-root": {
+                          border: "none",
+                      },
+                      "& .MuiDataGrid-cell": {
+                          borderBottom: "none",
+                          // fontSize: "16px",  // Increase the font size of the data
+                      },
+                      "& .name-column--cell": {
+                          // color: colors.greenAccent[300],
+                      },
+                      "& .MuiDataGrid-columnHeaders": {
+                          // backgroundColor: colors.blueAccent[700],
+                          borderBottom: "none",
+                          // fontSize: "16px",  // Increase the font size of the header
+                      },
+                      "& .MuiDataGrid-virtualScroller": {
+                          // backgroundColor: colors.primary[400],
+                      },
+                      "& .MuiDataGrid-footerContainer": {
+                          borderTop: "none",
+                          // backgroundColor: colors.blueAccent[700],
+                      },
+                      "& .MuiCheckbox-root": {
+                          // color: `${colors.greenAccent[200]} !important`,
+                      },
+                      "& .MuiDataGrid-toolbarContainer .MuiButton-text": {
+                          // color: `${colors.grey[100]} !important`,
+                      },
+                      }}
+                  >
+                      <DataGrid
+                      rows={spare}
+                      columns={columns}
+                      components={{ Toolbar: GridToolbar }}
+                      getRowId={(row) => `${row.item_details}-${row.quantity}`}
+                      />
+                  </Box>
+              </Box>
+          </CardContent>
+        </Card>
         </Box>
-        <Box
-          gridColumn="span 4"
-          gridRow="span 4"
-          borderRadius='10px'
-          backgroundColor={colors.primary[400]}
-        >
-          <Typography
-            variant="h5"
-            fontWeight="600"
-            sx={{ padding: "30px 30px 0 30px" }}
-          >
-           Tyres
-          </Typography>
-          <Box height="250px" mt="-20px">
-          <Box m="20px">
-                <Box
-                    m="40px 0 0 0"
-                    height="55vh"
-                    sx={{
-                    "& .MuiDataGrid-root": {
-                        border: "none",
-                    },
-                    "& .MuiDataGrid-cell": {
-                        borderBottom: "none",
-                        // fontSize: "16px",  // Increase the font size of the data
-                    },
-                    "& .name-column--cell": {
-                        // color: colors.greenAccent[300],
-                    },
-                    "& .MuiDataGrid-columnHeaders": {
-                        // backgroundColor: colors.blueAccent[700],
-                        borderBottom: "none",
-                        // fontSize: "16px",  // Increase the font size of the header
-                    },
-                    "& .MuiDataGrid-virtualScroller": {
-                        // backgroundColor: colors.primary[400],
-                    },
-                    "& .MuiDataGrid-footerContainer": {
-                        borderTop: "none",
-                        // backgroundColor: colors.blueAccent[700],
-                    },
-                    "& .MuiCheckbox-root": {
-                        // color: `${colors.greenAccent[200]} !important`,
-                    },
-                    "& .MuiDataGrid-toolbarContainer .MuiButton-text": {
-                        // color: `${colors.grey[100]} !important`,
-                    },
-                    }}
-                >
-                    <DataGrid
-                    rows={tyres}
-                    columns={tyre}
-                    components={{ Toolbar: GridToolbar }}
-                    getRowId={(row) => `${row.item_details}-${row.quantity}`}
-                    />
-                </Box>
-            </Box>
-          </Box>
-        </Box>
-        <Box
-          gridColumn="span 4"
-          gridRow="span 4"
-          backgroundColor={colors.primary[400]}
-          padding="30px"
-        //   height='500px'
-        >
-          <Typography
-            variant="h5"
-            fontWeight="600"
-            sx={{ marginBottom: "15px" }}
-          >
-            Geography Based Traffic
-          </Typography>
-        </Box>
+
       </Box>
+
     </Box>
   );
 };

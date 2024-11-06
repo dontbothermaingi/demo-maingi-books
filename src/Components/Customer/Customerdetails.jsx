@@ -20,9 +20,17 @@ const CustomerDetails = () => {
   const [retreadTotal, setRetreadTotal] = useState([]);
   const [pumpTotal, setPumpTotal] = useState([]);
   const [error, setError] = useState(null);
+  const token = localStorage.getItem('access_token')
+
 
   useEffect(() => {
-    fetch(`https://db-demo-u07o.onrender.com/customers/${customerId}`)
+    fetch(`https://db-demo-u07o.onrender.com/customers/${customerId}`, {
+      method:'GET',
+      credentials:'include',
+      headers:{
+        'Authorization':`Bearer ${token}`
+      }
+    })
       .then((response) => response.json())
       .then((data) => {
         const invoiceItems = data.invoices.flatMap((invoice) =>
@@ -46,7 +54,7 @@ const CustomerDetails = () => {
         const invoiceTotal = calculateTotal(invoiceItems);
         const creditTotal = calculateTotal(creditnotes);
 
-        const overallTotal = new Intl.NumberFormat().format(
+        const overallTotal = new Intl.NumberFormat('en-KE', {style:'currency', currency:'KES'}).format(
           parseFloat(invoiceTotal)
         );
         const totalCredit = new Intl.NumberFormat().format(
@@ -65,11 +73,11 @@ const CustomerDetails = () => {
         setOveralTotal(overallTotal);
         setSpares(data);
         setTruckDetails(data);
-        setAmountOwed(new Intl.NumberFormat().format(data.total_amount_owed));
-        setAmountPaid(new Intl.NumberFormat().format(data.amount_paid));
+        setAmountOwed(new Intl.NumberFormat('en-KE', {style:'currency', currency:'KES'}).format(data.total_amount_owed));
+        setAmountPaid(new Intl.NumberFormat('en-KE', {style:'currency', currency:'KES'}).format(data.amount_paid));
       })
       .catch((error) => setError(error));
-  }, [customerId, dieselTotal,pumpTotal,receiptItems,retreadTotal,sparesTotal]);
+  }, [customerId, dieselTotal,pumpTotal,receiptItems,retreadTotal,sparesTotal,token]);
 
   if (error) return <div>Error fetching truck details: {error.message}</div>;
   if (!truckDetails) return <div>No truck data available</div>;

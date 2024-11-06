@@ -1,40 +1,28 @@
-import { Box} from "@mui/material";
+import { Box, Card, CardContent, Pagination, Typography, useMediaQuery} from "@mui/material";
 import { DataGrid, GridToolbar } from "@mui/x-data-grid";
 import { useEffect, useState } from "react";
-import Header from "./Header";
-import PieChart from "./PieChart";
 
 
 const Items = () => {
-  const [items, setItems] = useState([]);
-  const [diesel, setDiesel] = useState({ litres: 0, reading: 0 });
+  const [diesel, setDiesel] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1)
+  const itemsPerPage = 16;
+  const isMobile = useMediaQuery('(max-width: 768px)');
+  const token = localStorage.getItem('access_token')
 
   useEffect(() => {
-    fetch('https://db-demo-u07o.onrender.com/stockitems')
-      .then(response => {
-        if (!response.ok) {
-          throw new Error('Network response was not ok');
-        }
-        return response.json();
-      })
-      .then(data => {
-        console.log(data); // Check the data
-        const formattedData = data.map(item => ({
-          id: item.item_details,
-          value: item.quantity
-        }));
-        setItems(formattedData);
-      })
-      .catch(error => console.error('Error fetching data:', error));
-  }, []);
-
-  useEffect(() => {
-    fetch('https://db-demo-u07o.onrender.com/stockitems')
+    fetch('https://db-demo-u07o.onrender.com/stockitems',{
+            method:'GET',
+            headers:{
+                'Authorization':`Bearer ${token}`
+            },
+            credentials:'include'
+    })
       .then(response => response.json())
       .then((data) => {
           setDiesel(data); // Assuming you want the first item from the data array
       });
-  }, []);
+  }, [token]);
 
   const columns = [
     {
@@ -52,56 +40,86 @@ const Items = () => {
     },
   ];
 
+      const totalPages = Math.ceil(diesel.length / itemsPerPage)
+      const displayedItems = diesel.slice((currentPage-1) * itemsPerPage, currentPage * itemsPerPage)
+
+      const handlePageChange = (event, value) => {
+          setCurrentPage(value);
+      };
+
   return (
-    <Box m="20px">
-      <Header
-        title="STOCK ITEMS"
-        subtitle="List of all stock items"
-        // righttitle={`Litres: ${new Intl.NumberFormat().format(diesel.litres)}`}
-        // rightsubtitle={`Reading: ${new Intl.NumberFormat().format(diesel.initial_reading)}`}
-      />
-      <PieChart chartdata={items}/>
-      <Box
-        m="40px 0 0 0"
-        height="75vh"
-        sx={{
-          "& .MuiDataGrid-root": {
-            border: "none",
-          },
-          "& .MuiDataGrid-cell": {
-            borderBottom: "none",
-            // fontSize: "16px",  // Increase the font size of the data
-          },
-          "& .name-column--cell": {
-            // color: colors.greenAccent[300],
-          },
-          "& .MuiDataGrid-columnHeaders": {
-            // backgroundColor: colors.blueAccent[700],
-            borderBottom: "none",
-            // fontSize: "16px",  // Increase the font size of the header
-          },
-          "& .MuiDataGrid-virtualScroller": {
-            // backgroundColor: colors.primary[400],
-          },
-          "& .MuiDataGrid-footerContainer": {
-            borderTop: "none",
-            // backgroundColor: colors.blueAccent[700],
-          },
-          "& .MuiCheckbox-root": {
-            // color: `${colors.greenAccent[200]} !important`,
-          },
-          "& .MuiDataGrid-toolbarContainer .MuiButton-text": {
-            // color: `${colors.grey[100]} !important`,
-          },
-        }}
-      >
-        <DataGrid
-          rows={diesel}
-          columns={columns}
-          components={{ Toolbar: GridToolbar }}
-          getRowId={(row) => `${row.item_details}-${row.quantity}`}
-        />
-      </Box>
+    <Box margin={{xs:'10px', md:'40px'}}>
+      <Box>
+            {isMobile ? (
+                <Box>
+                    <Typography textAlign={'center'} fontSize={'30px'} fontWeight={'bold'}>STOCK ITEMS</Typography>
+                    <Box
+                        display={'grid'}
+                        gridTemplateColumns={{xs:'repeat(1,1fr)', sm:'repeat(2,1fr)'}}
+                        gap="10px"
+                        margin="0 10px"
+                    >
+
+                        {displayedItems.map((item) => (
+                            <Card
+                            key={item.id}
+                            sx={{
+                                borderRadius: '15px',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                height: 'auto', // Adjust height for better flexibility
+                                boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
+                                padding: '10px',
+                                backgroundColor: '#fff',
+                                transition: 'transform 0.3s ease-in-out',
+                                '&:hover': {
+                                    transform: 'scale(1.03)',
+                                    boxShadow: '0 8px 30px rgba(0,0,0,0.15)',
+                                },
+                            }}
+                            >
+
+                                <CardContent>
+                                  <Box display={'flex'} gap={'5px'}>
+                                    <Typography>Item Details:</Typography>
+                                    <Typography fontWeight={'bold'}>{item.item_details}</Typography>
+                                  </Box>
+
+                                  <Box display={'flex'} gap={'5px'}>
+                                    <Typography>Quantity:</Typography>
+                                    <Typography fontWeight={'bold'}>{item.quantity}</Typography>
+                                  </Box>
+                                  
+                                </CardContent>
+
+                            </Card>
+                        ))}
+
+                    </Box>
+
+                    <Box display="flex" justifyContent="center" mt="20px">
+                            <Pagination count={totalPages} page={currentPage} onChange={handlePageChange} color="primary" />
+                    </Box>
+                </Box>
+            ):(
+                 <Box m="20px" mt='50px'>
+                 <Typography fontWeight="bold" variant="h5" textAlign="center">
+                       STOCK ITEMS
+                 </Typography>
+                 <Box
+                   margin='auto'
+                   mt='20px'
+                   height="75vh"
+                 >
+                   <DataGrid
+                     rows={diesel}
+                     columns={columns}
+                     components={{ Toolbar: GridToolbar }}
+                   />
+                 </Box>
+               </Box> 
+            )}
+        </Box>
     </Box>
   );
 };

@@ -1,4 +1,4 @@
-import { Box,IconButton, Typography } from "@mui/material";
+import { Box,Button,Card,CardContent,FormControl,IconButton, MenuItem, Pagination, Select, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TextField, Typography, useMediaQuery } from "@mui/material";
 import { DataGrid, GridToolbar } from "@mui/x-data-grid";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -9,6 +9,10 @@ function VehicleRepair(){
     const [spareSubCategories, setSpareSubCategories] = useState([]);
     const [trucks, setTrucks] = useState([]);
     const [repairs, setRepairs] = useState([]);
+    const [currentPage, setCurrentPage] = useState(1)
+    const token = localStorage.getItem('access_token')
+    const itemsPerPage = 16;
+    const isMobile = useMediaQuery('(max-width: 768px)');
     const navigate = useNavigate()
     const [formData, setFormData] = useState({
             truck_number : "",
@@ -32,24 +36,42 @@ function VehicleRepair(){
 
 
     useEffect(()=>{
-        fetch('https://db-demo-u07o.onrender.com/trucks')
+        fetch('https://db-demo-u07o.onrender.com/trucks',{
+            method: 'GET',
+            credentials: 'include',
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        })
         .then(response => response.json())
         .then((data) => {
             setTrucks(data)
         })
-    },[])
+    },[token])
 
 
     useEffect(()=>{
-        fetch('https://db-demo-u07o.onrender.com/sparesubcategories')
+        fetch('https://db-demo-u07o.onrender.com/sparesubcategories', {
+            method: 'GET',
+            credentials: 'include',
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        })
         .then(response => response.json())
         .then((data) => {
             setSpareSubCategories(data)
         })
-    },[])
+    },[token])
 
     useEffect(() => {
-        fetch("https://db-demo-u07o.onrender.com/vehiclemantainances")
+        fetch("https://db-demo-u07o.onrender.com/vehiclemantainances", {
+            method: 'GET',
+            credentials: 'include',
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        })
           .then((response) => response.json())
           .then((data) => {
             const combined = data.flatMap((vehicle) =>
@@ -62,7 +84,7 @@ function VehicleRepair(){
     
             setRepairs(combined);
           });
-      }, []);
+      }, [token]);
 
     function handleDeleteItem(index) {
         setFormData(prevFormData => ({
@@ -159,8 +181,10 @@ function VehicleRepair(){
         fetch('https://db-demo-u07o.onrender.com/vehiclemantainances', {
             method:"POST",
             headers:{
-                'Content-Type':'application/json'
+                'Content-Type':'application/json',
+                'Authorization':`Bearer ${token}`,
             },
+            credentials:'include',
             body:JSON.stringify({
                 ...formData,
                 repair_number: repairNumber,
@@ -170,7 +194,13 @@ function VehicleRepair(){
         .then(response => response.json())
         .then((data) => {
 
-                fetch("https://db-demo-u07o.onrender.com/vehiclemantainances")
+                fetch("https://db-demo-u07o.onrender.com/vehiclemantainances", {
+                    method: 'GET',
+                    credentials: 'include',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                })
                   .then((response) => response.json())
                   .then((data) => {
                     const combined = data.flatMap((vehicle) =>
@@ -231,54 +261,6 @@ const columns = [
             headerName: "VEHICLE TYPE",
             headerAlign: "left",
             cellClassName: "name-column--cell",
-            flex: 0.27,
-            align: "left",
-            renderCell: (params) => (
-                <Box 
-                sx={{ 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  cursor: 'pointer', 
-                }}
-                onClick={() => handleRepairReport(params.row.repair_number)}
-              >
-                <Typography
-                    variant="h7"
-                >
-                  {params.value}
-                </Typography>
-              </Box>
-              ),
-        },
-        // {
-        //     field: "manufacturer",
-        //     headerName: "MANUFACTURER",
-        //     headerAlign: "left",
-        //     cellClassName: "name-column--cell",
-        //     flex: 0.2,
-        //     align: "left",
-        //     renderCell: (params) => (
-        //         <Box 
-        //         sx={{ 
-        //           display: 'flex', 
-        //           alignItems: 'center', 
-        //           cursor: 'pointer', 
-        //         }}
-        //         onClick={() => handleRepairReport(params.row.repair_number)}
-        //       >
-        //         <Typography
-        //             variant="h7"
-        //         >
-        //           {params.value}
-        //         </Typography>
-        //       </Box>
-        //       ),
-        // },
-        {
-            field: "job_description",
-            headerName: "JOB TYPE",
-            headerAlign: "left",
-            cellClassName: "name-column--cell",
             flex: 0.2,
             align: "left",
             renderCell: (params) => (
@@ -299,11 +281,11 @@ const columns = [
               ),
         },
         {
-            field: "spare_category_name",
-            headerName: "SPARE CATEGORY",
+            field: "job_description",
+            headerName: "JOB TYPE",
             headerAlign: "left",
             cellClassName: "name-column--cell",
-            flex: 0.25,
+            flex: 0.1,
             align: "left",
             renderCell: (params) => (
                 <Box 
@@ -414,244 +396,323 @@ const columns = [
         },
       ];
 
+      const totalPages = Math.ceil(repairs.length / itemsPerPage)
+      const displayedItems = repairs.slice((currentPage-1) * itemsPerPage, currentPage * itemsPerPage)
+
+      const handlePageChange = (event, value) => {
+          setCurrentPage(value);
+      };
+
     return ( 
 
-        <div>
-            <div className="bill-content">
-                <h2 className="h2">VEHICLE REPAIR OR SERVICE</h2>
-                <form className="bill-form" onSubmit={handleSubmit}>
-                    <div className="bill-input">
-                        <label>TRUCK NUMBER</label>
-                        <select 
+        <Box margin={{md:'40px', xs:'10px'}}>
+            <Box>
+                <Typography fontWeight={'bold'} fontSize={'27px'} textAlign={'center'}>VEHICLE REPAIR OR SERVICE</Typography>
+
+                <Box 
+                    sx={{
+                        borderRadius: '15px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        height: 'auto', // Adjust height for better flexibility
+                        boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
+                        padding: '10px',
+                        backgroundColor: '#fff',
+                        // Media queries for responsive design
+                        '@media (max-width: 600px)': {
+                        padding: '5px', // Adjust padding for smaller screens
+                        },
+                        '@media (min-width: 600px)': {
+                        padding: '10px', // Keep padding for medium screens and above
+                        },
+                    }}
+                >
+                
+                <form style={{display:'flex', flexDirection:'column', margin:'30px'}} onSubmit={handleSubmit}>
+                    <FormControl>
+                        <Typography fontWeight={'bold'}>TRUCK NUMBER</Typography>
+                        <Select 
                             type="text"
                             name="truck_number"
                             value={formData.truck_number}
                             placeholder="Vehicle Number"
                             className="bill-inputfield"
                             onChange={handleSelectTruck}
+                            sx={{mb:'20px'}}
                         >
-                          <option value="">Select Vehicle</option>
+                          <MenuItem value="">Select Vehicle</MenuItem>
                           {trucks.map((truck, index) => (
-                                <option key={index} value={truck.truck_number}>{truck.truck_number}</option>
+                                <MenuItem key={index} value={truck.truck_number}>{truck.truck_number}</MenuItem>
                             ))}
-                        </select>
-                    </div>
+                        </Select>
+                    </FormControl>
 
-                    <div className="bill-input">
-                        <label>VEHICLE TYPE</label>
-                        <input
+                        <TextField
                             type="text"
                             name="vehicle_type"
                             value={formData.vehicle_type}
-                            placeholder="Vehicle Type"
-                            className="bill-inputfield"
+                            label="Vehicle Type"
                             onChange={handleChange}
-                            readOnly
-                            
+                            inputProps={{readOnly:true}}
+                            variant="outlined"
+                            sx={{mb:'20px'}}
                         />
-                    </div>
-                    <div className="bill-input">
-                        <label>MANUFACTURER</label>
-                        <input
+
+
+                        <TextField
                             type="text"
                             name="manufacturer"
                             value={formData.manufacturer}
-                            placeholder="Manufacturer"
-                            className="bill-inputfield"
+                            label="Manufacturer"
                             onChange={handleChange}
-                            readOnly
+                            inputProps={{readOnly:true}}
+                            variant="outlined"
+                            sx={{mb:'20px'}}
                         />
-                    </div>
-                    <div className="bill-input">
-                        <label>REPAIR/MANTAINANCE DESCRIPTION</label>
-                        <select 
-                            type="text"
-                            name="job_description"
-                            value={formData.job_description}
-                            placeholder="Job Descrition"
-                            className="bill-inputfield"
-                            onChange={handleChange}
-                        >
-                          <option value="">Select Job</option>
-                          <option value="REPAIR">REPAIR</option>
-                          <option value="SERVICE">SERVICE</option>
 
-                        </select>
+                         <FormControl>
+                            <Typography fontWeight={'bold'}>JOB</Typography>
+                            <Select 
+                                type="text"
+                                name="job_description"
+                                value={formData.job_description}
+                                placeholder="Job Descrition"
+                                onChange={handleChange}
+                                sx={{mb:'20px'}}
+                            >
+                            <MenuItem value="">Select Job</MenuItem>
+                            <MenuItem value="REPAIR">REPAIR</MenuItem>
+                            <MenuItem value="SERVICE">SERVICE</MenuItem>
+
+                            </Select>
                         
-                    </div>
+                        </FormControl>
 
-                    <div className="bill-input">
-                        <label>DATE</label>
-                        <input
+                        <Typography fontWeight={'bold'}>DATE</Typography>
+                        <TextField
                             type="date"
                             name="date"
                             value={formData.date}
-                            placeholder="date"
-                            className="bill-inputfield"
                             onChange={handleChange}
+                            variant="outlined"
+                            sx={{mb:'20px'}}
                         />
-                    </div>
 
                     {newItem.spare_subcategory_name ? <h2 className="OWE">THIS SPARE HAS {new Intl.NumberFormat().format(selectedSpare.quantity)} {selectedSpare.measurement} LEFT.</h2> : ""}
 
 
-                    <div className="bill-input">
-                        <table className="invoice-table">
-                            <thead>
-                                <tr>
-                                    <th>Repair Description</th>
-                                    <th>Vehicle Axle(If Needed)</th>
-                                    <th>Spare Name</th>
-                                    <th>Quantity</th>
-                                    <th>Mechanic</th>
-                                    {/* <th>Delete</th> */}
-                                </tr>
-                            </thead>
-                            <tbody>
+                    <TableContainer>
+                        <Table>
+                            <TableHead>
+                                <TableRow>
+                                    <TableCell sx={{ minWidth: 430  }}><Typography fontWeight="bold">Repair Description</Typography></TableCell>
+                                    <TableCell sx={{ minWidth: 150 }}><Typography fontWeight="bold">Vehicle Axle(If Needed)</Typography></TableCell>
+                                    <TableCell sx={{ minWidth: 150 }}><Typography fontWeight="bold">Spare Name</Typography></TableCell>
+                                    <TableCell sx={{ minWidth: 150 }}><Typography fontWeight="bold">Quantity</Typography></TableCell>
+                                    <TableCell sx={{ minWidth: 150 }}><Typography fontWeight="bold">Mechanic</Typography></TableCell>
+                                </TableRow>
+                            </TableHead>
+                            <TableBody>
                                 {formData.items.map((item, index) => (
-                                    <tr key={index}>
-                                        <td>{item.job_name}</td>
-                                        <td>{item.position}</td>
-                                        <td>{item.spare_subcategory_name}</td>
-                                        <td>{item.quantity}</td>
-                                        <td>{item.mechanic}</td>
-                                        <td>
+                                    <TableRow key={index}>
+                                        <TableCell>{item.job_name}</TableCell>
+                                        <TableCell>{item.position}</TableCell>
+                                        <TableCell>{item.spare_subcategory_name}</TableCell>
+                                        <TableCell>{item.quantity}</TableCell>
+                                        <TableCell>{item.mechanic}</TableCell>
+                                        <TableCell>
                                             <IconButton 
                                                 color="error"
                                                 onClick={() => handleDeleteItem(index)}
                                             >
                                                 <CloseIcon />
                                             </IconButton>
-                                        </td>
-                                    </tr>
+                                        </TableCell>
+                                    </TableRow>
                                 ))}
-                                <tr>
+                                <TableRow>
 
                                     
-                                    <td>
-                                        <input
-                                            type="text"
+                                    <TableCell>
+                                        <TextField
                                             name="job_name"
+                                            placeholder="Description"
                                             value={newItem.job_name}
-                                            placeholder="Repair description"
-                                            className="bill-inputfield"
                                             onChange={handleNewItemChange}
+                                            variant="outlined"
+                                            size="small"
+                                            fullWidth
+                                            multiline
+                                            minRows={4}  // Initial number of rows
+                                            maxRows={20}   // Maximum number of rows
                                         />
-                                    </td>
+                                    </TableCell>
 
-                                    <td>
-                                        <select value={newItem.position} onChange={handleNewItemChange} name="position" className="bill-inputfield">
-                                            <option value=''>Select Axle</option>
+                                    <TableCell>
+                                        <Select value={newItem.position} onChange={handleNewItemChange} name="position" displayEmpty fullWidth>
+                                            <MenuItem value=''>Select Axle</MenuItem>
                                             {axel.map((axelOption, index) => (
-                                                <option key={index} value={axelOption.axels}>
+                                                <MenuItem key={index} value={axelOption.axels}>
                                                     {axelOption.axels}
-                                                </option>
+                                                </MenuItem>
                                             ))}
-                                        </select>
-                                    </td>
+                                        </Select>
+                                    </TableCell>
                                     
 
-                                    <td>
-                                        <select 
+                                    <TableCell>
+                                        <Select 
                                             type="text"
                                             name="spare_subcategory_name"
                                             value={newItem.spare_subcategory_name}
                                             placeholder="Spare"
                                             className="bill-inputfield"
                                             onChange={handleSelectSpare}
+                                            displayEmpty
+                                            fullWidth
                                         >
-                                            <option value="">Select Spare</option>
+                                            <MenuItem value="">Select Spare</MenuItem>
                                             {spareSubCategories.map((spare, index) => (
-                                                    <option key={index} value={spare.spare_subcategory_name}>{spare.spare_subcategory_name}</option>
+                                                    <MenuItem key={index} value={spare.spare_subcategory_name}>{spare.spare_subcategory_name}</MenuItem>
                                                 ))}
-                                        </select>
-                                    </td>
+                                        </Select>
+                                    </TableCell>
 
-                                    <td>
-                                        <input
+                                    <TableCell>
+                                        <TextField
                                             type="number"
                                             name="quantity"
                                             value={newItem.quantity}
                                             placeholder="quantity"
-                                            className="bill-inputfield"
                                             onChange={handleNewItemChange}
+                                            variant="outlined"
+                                            size="small"
+                                            fullWidth
                                         />
-                                    </td>
+                                    </TableCell>
 
-                                    <td>
-                                        <input
+                                    <TableCell>
+                                        <TextField
                                             type="text"
                                             name="mechanic"
                                             value={newItem.mechanic}
                                             placeholder="mechanic"
-                                            className="bill-inputfield"
                                             onChange={handleNewItemChange}
+                                            variant="outlined"
+                                            size="small"
+                                            fullWidth
                                         />
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                            <button type="button" className="button" onClick={addItem}>Add Repair/Service</button>
-                        </div>
+                                    </TableCell>
+                                </TableRow>
+                            </TableBody>
+                        </Table>
+                            <Button type="button" color="secondary" variant="contained" onClick={addItem} sx={{mt:'20px', mb:'20px'}}>Add Repair/Service</Button>
+                    </TableContainer>
 
-                    <button type="submit" className="button">REPAIR</button>
+                    <Button type="submit" color="secondary" variant="contained" >REPAIR</Button>
                     
                 </form>
-            </div>
+                </Box>
+            </Box>
 
-            <Box m="20px">
-                    <Typography
-                        textAlign='center'
-                        fontSize='30px'
-                        fontWeight='bold'
-                        >
-                            ALL REPAIRS
-                    </Typography>          
+            {isMobile ? (
+                                <Box>
+                                <Typography fontSize={'27px'} fontWeight={'bold'} textAlign={'center'} margin={'30px'}>ALL REPAIRS</Typography>
+                                <Box
+                                    display={'grid'}
+                                    gridTemplateColumns={{xs:'repeat(1,1fr)', sm:'repeat(2,1fr)'}}
+                                    gap="10px"
+                                    margin="0 10px"
+                                >
 
-                    <Box
-                    m="40px 0 0 0"
-                    width='auto'
-                    height="75vh"
-                    sx={{
-                        "& .MuiDataGrid-root": {
-                        border: "none",
-                        },
-                        "& .MuiDataGrid-cell": {
-                        borderBottom: "none",
-                        // fontSize: "16px", 
-                        },
-                        "& .name-column--cell": {
-                        // color: colors.greenAccent[300],
-                        },
-                        "& .MuiDataGrid-columnHeaders": {
-                        // backgroundColor: colors.blueAccent[700],
-                        borderBottom: "none",
-                        // fontSize: "16px", 
-                        },
-                        "& .MuiDataGrid-virtualScroller": {
-                        // backgroundColor: colors.primary[400],
-                        },
-                        "& .MuiDataGrid-footerContainer": {
-                        borderTop: "none",
-                        // backgroundColor: colors.blueAccent[700],
-                        },
-                        "& .MuiCheckbox-root": {
-                        // color: `${colors.greenAccent[200]} !important`,
-                        },
-                        "& .MuiDataGrid-toolbarContainer .MuiButton-text": {
-                        // color: `${colors.grey[100]} !important`,
-                        },
-                    }}
-                    >
-                    <DataGrid
-                        rows={repairs}
-                        columns={columns}
-                        components={{ Toolbar: GridToolbar }}
-                        getRowId={(row) => row.id}
-                    />
-                    </Box>
-          </Box>
-        </div>
+                                    {displayedItems.map((item) => (
+                                        <Card
+                                            key={item.id}
+                                            onClick={() => handleRepairReport(item.repair_number)}
+                                            sx={{
+                                                borderRadius: '15px',
+                                                display: 'flex',
+                                                flexDirection: 'column',
+                                                height: 'auto', // Adjust height for better flexibility
+                                                boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
+                                                padding: '10px',
+                                                backgroundColor: '#fff',
+                                                transition: 'transform 0.3s ease-in-out',
+                                                '&:hover': {
+                                                    transform: 'scale(1.03)',
+                                                    boxShadow: '0 8px 30px rgba(0,0,0,0.15)',
+                                                },
+                                            }}
+                                        >
+                                            <CardContent>
+                                                <Box display={'flex'} gap={'3px'}>
+                                                    <Typography>Vehicle:</Typography>
+                                                    <Typography fontWeight={'bold'}>{item.truck_number}</Typography>
+                                                </Box>
+
+                                                <Box display={'flex'} gap={'3px'}>
+                                                    <Typography>Manufacturer:</Typography>
+                                                    <Typography fontWeight={'bold'}>{item.manufacturer}</Typography>
+                                                </Box>
+                                                
+                                                <Box display={'flex'} gap={'3px'}>
+                                                    <Typography>Job Type:</Typography>
+                                                    <Typography fontWeight={'bold'}>{item.job_description}</Typography>
+                                                </Box>
+                                                
+                                                <Box display={'flex'} gap={'3px'}>
+                                                    <Typography>Spare:</Typography>
+                                                    <Typography fontWeight={'bold'}>{item.spare_subcategory_name}</Typography>
+                                                </Box>
+                                                    
+                                                
+                                                <Box display={'flex'} gap={'3px'}>
+                                                    <Typography>Mechanic:</Typography>
+                                                    <Typography fontWeight={'bold'}>{item.mechanic}</Typography>
+                                                </Box>
+                                                
+                                                <Box display={'flex'} gap={'3px'}>
+                                                    <Typography>Quantity:</Typography>
+                                                    <Typography fontWeight={'bold'}>{item.quantity}</Typography>
+                                                </Box>
+                                                
+
+                                                <Box display={'flex'} gap={'3px'}>
+                                                    <Typography>Job Description</Typography>
+                                                    <Typography fontWeight={'bold'}>{item.job_name}</Typography>
+                                                </Box>
+                                                    
+                                            </CardContent>
+                                        </Card>
+                                    ))}
+                                    <Box display="flex" justifyContent="center" mt="20px">
+                                            <Pagination count={totalPages} page={currentPage} onChange={handlePageChange} color="secondary" />
+                                    </Box>
+                                </Box>
+                                </Box>
+                
+                          ) : (
+                                    <Box m="20px">
+                                    <Typography 
+                                        fontSize='30px'
+                                        fontWeight='bold'
+                                        textAlign='center'
+                                    >
+                                        ALL REPAIRS
+                                    </Typography>
+                                    <Box
+                                        height="75vh"
+                                    >
+                                        <DataGrid
+                                        rows={repairs}
+                                        columns={columns}
+                                        components={{ Toolbar: GridToolbar }}
+                                        getRowId={(row) => row.id}
+                                        />
+                                    </Box>
+                                    </Box>
+                      )}
+        </Box>
      );
 }
  

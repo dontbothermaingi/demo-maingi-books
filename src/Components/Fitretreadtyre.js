@@ -1,14 +1,16 @@
 import { useEffect, useState } from "react";
-import { Box, Typography } from "@mui/material";
+import { Box, Button, Card, CardContent, FormControl, MenuItem, Pagination, Select, TextField, Typography, useMediaQuery } from "@mui/material";
 import { DataGrid, GridToolbar } from "@mui/x-data-grid";
-import "./Fitretreadtyre.css"
 import { useNavigate } from "react-router-dom";
-
 
 function RetreadTyre(){
     const [trucks,setTrucks] = useState([])
     const [retreadTyres, setRetreadTyres] = useState([]);
     const [availableRetreadTyres, setAvailableRetreadTyres] = useState([]);
+    const [currentPage, setCurrentPage] = useState(1)
+    const itemsPerPage = 16;
+    const isMobile = useMediaQuery('(max-width: 768px)');
+    const token = localStorage.getItem('access_token')
     const [formData,setFormData] = useState({
         name : "",
         size : "",
@@ -21,22 +23,34 @@ function RetreadTyre(){
     })
 
     useEffect(()=>{
-        fetch('https://db-demo-u07o.onrender.com/retreadtyres')
+        fetch('https://db-demo-u07o.onrender.com/retreadtyres', {
+            method:'GET',
+            headers:{
+                'Authorization':`Bearer ${token}`
+            },
+            credentials:'include'
+        })
         .then(response => response.json())
         .then((data) => {
             const filter = data.filter(item => item.status === 'AVAILABLE')
             setRetreadTyres(data)
             setAvailableRetreadTyres(filter)
         })
-    },[])
+    },[token])
 
     useEffect(()=>{
-        fetch('https://db-demo-u07o.onrender.com/trucks')
+        fetch('https://db-demo-u07o.onrender.com/trucks', {
+            method:'GET',
+            headers:{
+                'Authorization':`Bearer ${token}`
+            },
+            credentials:'include'
+        })
         .then(response => response.json())
         .then((data) => {
             setTrucks(data)
         })
-    },[])
+    },[token])
 
     function handleChange(event){
         const {name,value} = event.target
@@ -52,8 +66,10 @@ function RetreadTyre(){
         fetch('https://db-demo-u07o.onrender.com/retreadtyresremove', {
             method:"POST",
             headers:{
-                "Content-Type":"application/json"
+                "Content-Type":"application/json",
+                "Authorization":`Bearer ${token}`
             },
+            credentials:'include',
             body:JSON.stringify({
                 ...formData,
                 status: "FITTED",
@@ -62,7 +78,13 @@ function RetreadTyre(){
         .then(response => response.json())
         .then((data) => {
 
-            fetch('https://db-demo-u07o.onrender.com/retreadtyres')
+            fetch('https://db-demo-u07o.onrender.com/retreadtyres', {
+                method:'GET',
+                headers:{
+                    'Authorization':`Bearer ${token}`
+                },
+                credentials:'include'
+            })
             .then(response => response.json())
             .then((data) => {
                 const filter = data.filter(item => item.status === 'AVAILABLE')
@@ -160,178 +182,237 @@ function RetreadTyre(){
         },
       ];
 
+    const totalPages = Math.ceil(availableRetreadTyres.length / itemsPerPage)
+    const displayedItems = availableRetreadTyres.slice((currentPage - 1)*itemsPerPage, currentPage * itemsPerPage)
+    
+
+    const handlePageChange = (event, value) => {
+        setCurrentPage(value);
+    };
+
     return ( 
-        <div>
-            <button
+        <Box margin={{md:'40px', xs:'20px'}}>
+            <Button
                type="button"
-               className="button"
+               color="secondary"
+               variant="contained"
                onClick={()=> handleRetreadControl()}
+               sx={{margin:'20px'}}
             >
                 BACK
-            </button>
+            </Button>
                 
-                <div className="bill-content">
+                <Box>
 
-                    <div>
-                        <h2 className="h2">FIT RETREAD TYRE</h2>
-                        <form className="bill-form" onSubmit={handleSubmit}>
+                    <Box>
+                        <Typography fontSize={'27px'} fontWeight={'bold'} textAlign={'center'} mt={'20px'} mb={'20px'}>FIT RETREAD TYRE</Typography>
 
-                                <div className="bill-input">
-                                    <label>Serial Number</label>
-                                        <select
+                        <Box
+                                sx={{
+                                    borderRadius: '15px',
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    height: 'auto', // Adjust height for better flexibility
+                                    boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
+                                    padding: '10px',
+                                    backgroundColor: '#fff',
+                                    // Media queries for responsive design
+                                    '@media (max-width: 600px)': {
+                                    padding: '5px', // Adjust padding for smaller screens
+                                    },
+                                    '@media (min-width: 600px)': {
+                                    padding: '10px', // Keep padding for medium screens and above
+                                    },
+                                }}
+                        >
+                        <form style={{display:"flex", flexDirection:'column', margin:'30px'}} onSubmit={handleSubmit}>
+
+                                <FormControl>
+                                    <Typography fontWeight={'bold'}>Serial Number</Typography>
+                                        <Select
                                             type="text"
                                             name="serial_number"
                                             placeholder="Serial Number"
                                             className="bill-inputfield"
                                             value={formData.serial_number}
                                             onChange={handleSelectTyre}
+                                            sx={{mb:'20px'}}
                                         >
-                                            <option value="">Select Serial Number</option>
+                                            <MenuItem value="">Select Serial Number</MenuItem>
                                             {availableRetreadTyres.map((tyre,index)=>(
-                                                <option key={index} value={tyre.serial_number}>{tyre.serial_number}</option>
+                                                <MenuItem key={index} value={tyre.serial_number}>{tyre.serial_number}</MenuItem>
                                             ))}
-                                        </select>
-                                    </div>
+                                        </Select>
+                                </FormControl>
                                 
-                            <div className="bill-input">
-                                    <label>Tyre Brand</label>
-                                    <input
+                                    <TextField
                                         type="text"
                                         name="name"
-                                        placeholder="Name"
-                                        className="bill-inputfield"
+                                        label="Name"
                                         value={formData.name}
                                         onChange={handleChange}
-                                        readOnly
+                                        inputProps={{readOnly:true}}
+                                        variant="outlined"
+                                        sx={{mb:'20px'}}
                                     />
-                            </div>
 
-                            <div className="bill-input">
-                                    <label>Tyre Size</label>
-                                    <input
+                                    <TextField
                                         type="text"
                                         name="size"
-                                        placeholder="Tyre Size"
-                                        className="bill-inputfield"
+                                        label="Tyre Size"
                                         value={formData.size}
                                         onChange={handleChange}
-                                        readOnly
+                                        inputProps={{readOnly:true}}
+                                        variant="outlined"
+                                        sx={{mb:'20px'}}
                                     />
-                            </div>
 
-                            <div className="bill-input">
-                                    <label>Truck Number</label>
-                                        <select
+                            <FormControl>
+                                    <Typography fontWeight={'bold'}>Truck Number</Typography>
+                                        <Select
                                             type="text"
                                             name="truck_number"
                                             placeholder="Truck Number"
-                                            className="bill-inputfield"
                                             value={formData.truck_number}
                                             onChange={handleChange}
+                                            sx={{mb:'20px'}}
                                         >
-                                            <option value="">Select Truck Number</option>
+                                            <MenuItem value="">Select Truck Number</MenuItem>
                                             {trucks.map((truck,index)=>(
-                                                <option key={index} value={truck.truck_number}>{truck.truck_number}</option>
+                                                <MenuItem key={index} value={truck.truck_number}>{truck.truck_number}</MenuItem>
                                             ))}
-                                        </select>
-                            </div>
+                                        </Select>
+                            </FormControl>
 
-                            <div className="bill-input">
-                                    <label>Starting Mileage</label>
-                            <input
+                            <TextField
                                 type="number"
                                 name="starting_mileage"
-                                placeholder="Starting Mileage"
-                                className="bill-inputfield"
+                                label="Starting Mileage"
                                 value={formData.starting_mileage}
                                 onChange={handleChange}
                                 required
+                                variant="outlined"
+                                sx={{mb:'20px'}}
                             />
-                            </div>
 
-                            <div className="bill-input">
-                            <label>Position</label>
-                            <select value={formData.position} onChange={handleChange} name="position" className="bill-inputfield">
-                                <option value=''>Select Axle</option>
-                                {axel.map((axelOption, index) => (
-                                    <option key={index} value={axelOption.axels}>
-                                        {axelOption.axels}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
+                            <FormControl>
+                                <Typography fontWeight={'bold'}>Position</Typography>
+                                <Select value={formData.position} onChange={handleChange} name="position" sx={{mb:'20px'}}>
+                                    <MenuItem value=''>Select Axle</MenuItem>
+                                    {axel.map((axelOption, index) => (
+                                        <MenuItem key={index} value={axelOption.axels}>
+                                            {axelOption.axels}
+                                        </MenuItem>
+                                    ))}
+                                </Select>
+                            </FormControl>
 
-                            <div className="bill-input">
-                                    <label>Fitment Date</label>
-                                    <input
+                                    <Typography fontWeight={'bold'}>Date</Typography>
+                                    <TextField
                                         type="date"
                                         name="date"
-                                        placeholder="Date"
-                                        className="bill-inputfield"
                                         value={formData.date}
                                         onChange={handleChange}
                                         required
+                                        variant="outlined"
+                                        sx={{mb:'20px'}}
                                     />
-                            </div>
 
-                            <button type="submit" className="button">FIT</button>
+                            <Button type="submit" color="secondary" variant="contained">FIT</Button>
                         </form>
-                    </div>
+                        </Box>
+                    </Box>
 
-                        <Box m="20px">
-                            <Typography
-                            textAlign='center'
-                            fontSize='30px'
-                            fontWeight='bold'
+                    {isMobile ? (
+                        <Box>
+                        <Typography fontSize={'27px'} fontWeight={'bold'} textAlign={'center'}>RETREAD TYRES AVAILABLE</Typography>
+                        <Box
+                            display={'grid'}
+                            gridTemplateColumns={{xs:'repeat(1,1fr)', sm:'repeat(2,1fr)'}}
+                            gap="10px"
+                            margin="0 10px"
+                        >
+
+                            {displayedItems.map((item) => (
+                                <Card
+                                    key={item.id}
+                                    sx={{
+                                        borderRadius: '15px',
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        height: 'auto', // Adjust height for better flexibility
+                                        boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
+                                        padding: '10px',
+                                        backgroundColor: '#fff',
+                                        // Media queries for responsive design
+                                        '@media (max-width: 600px)': {
+                                        padding: '5px', // Adjust padding for smaller screens
+                                        },
+                                        '@media (min-width: 600px)': {
+                                        padding: '10px', // Keep padding for medium screens and above
+                                        },
+                                    }}
+                                >
+                                    <CardContent>
+                                            <Box display={'flex'} gap={'4px'}>
+                                                <Typography>Tyre Name:</Typography>
+                                                <Typography fontWeight={'bold'}>{item.name}</Typography>
+                                            </Box>
+
+                                            <Box display={'flex'} gap={'4px'}>
+                                                <Typography>Size:</Typography>
+                                                <Typography fontWeight={'bold'}>{item.size}</Typography>
+                                            </Box>
+
+                                            <Box display={'flex'} gap={'4px'}>
+                                                <Typography>Serial Number:</Typography>
+                                                <Typography fontWeight={'bold'}>{item.serial_number}</Typography>
+                                            </Box>
+
+                                            <Box display={'flex'} gap={'4px'}>
+                                                <Typography>Tyre Mileage:</Typography>
+                                                <Typography fontWeight={'bold'}>{item.tyre_mileage}</Typography>
+                                            </Box>
+
+                                            <Box display={'flex'} gap={'4px'}>
+                                                <Typography>Status:</Typography>
+                                                <Typography fontWeight={'bold'}>{item.status}</Typography>
+                                            </Box>
+
+                                    </CardContent>
+                                </Card>
+                            ))}
+                            <Box display="flex" justifyContent="center" mt="20px">
+                                    <Pagination count={totalPages} page={currentPage} onChange={handlePageChange} color="secondary" />
+                            </Box>
+                        </Box>
+                        </Box>
+        
+                        ) : (
+                            <Box m="20px">
+                            <Typography 
+                                fontSize='30px'
+                                fontWeight='bold'
+                                textAlign='center'
                             >
                                 AVAILABLE RETREAD TYRES
                             </Typography>
-                                <Box
-                                    m="40px 0 0 0"
-                                    height="75vh"
-                                    sx={{
-                                    "& .MuiDataGrid-root": {
-                                        border: "none",
-                                    },
-                                    "& .MuiDataGrid-cell": {
-                                        borderBottom: "none",
-                                        // fontSize: "16px",  // Increase the font size of the data
-                                    },
-                                    "& .name-column--cell": {
-                                        // color: colors.greenAccent[300],
-                                    },
-                                    "& .MuiDataGrid-columnHeaders": {
-                                        // backgroundColor: colors.blueAccent[700],
-                                        borderBottom: "none",
-                                        // fontSize: "16px",  // Increase the font size of the header
-                                    },
-                                    "& .MuiDataGrid-virtualScroller": {
-                                        // backgroundColor: colors.primary[400],
-                                    },
-                                    "& .MuiDataGrid-footerContainer": {
-                                        borderTop: "none",
-                                        // backgroundColor: colors.blueAccent[700],
-                                    },
-                                    "& .MuiCheckbox-root": {
-                                        // color: `${colors.greenAccent[200]} !important`,
-                                    },
-                                    "& .MuiDataGrid-toolbarContainer .MuiButton-text": {
-                                        // color: `${colors.grey[100]} !important`,
-                                    },
-                                    }}
-                                >
-                                    <DataGrid
-                                    rows={availableRetreadTyres}
-                                    columns={columns}
-                                    components={{ Toolbar: GridToolbar }}
-                                    getRowId={(row) => `${row.truck_number}-${row.size}-${row.item_details}-${row.position}-${row.date}-${row.serial_number}-${row.starting_mileage}`}
-                                    />
-                                </Box>
-                        </Box>
+                            <Box
+                                height="75vh"
+                            >
+                                <DataGrid
+                                rows={availableRetreadTyres}
+                                columns={columns}
+                                components={{ Toolbar: GridToolbar }}
+                                getRowId={(row) => row.id}
+                                />
+                            </Box>
+                            </Box>
+                        )}
 
-                    </div>
+                </Box>
 
-        </div>
+        </Box>
      );
 }
  

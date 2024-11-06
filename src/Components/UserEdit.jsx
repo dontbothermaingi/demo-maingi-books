@@ -1,65 +1,120 @@
-import { Typography, Box, CircularProgress, Avatar } from "@mui/material";
+import ArrowBack from "@mui/icons-material/ArrowBack";
+import { Box, Button, Divider, IconButton, TextField, Typography, useMediaQuery } from "@mui/material";
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
-import PersonIcon from '@mui/icons-material/Person';
+import { useNavigate } from "react-router-dom";
 
 function UserEdit() {
+
     const [formData, setFormData] = useState({
-        username: "",
-        email: "",
-        phone_number: "",
-        password: "",
+        username: '',
+        email: '',
+        phone_number: '',
     });
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState(null);
-    const { userId } = useParams();
+
+    // Media query for responsiveness
+    const isMobile = useMediaQuery('(max-width: 768px)');
+
+    const navigate = useNavigate();
+    const access_token = localStorage.getItem('access_token');
 
     useEffect(() => {
-        setLoading(true);
-        fetch(`https://db-demo-u07o.onrender.com/users/${userId}`)
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error("Failed to fetch user details");
-                }
-                return response.json();
-            })
-            .then(data => {
-                setFormData({
-                    username: data.username || "",
-                    email: data.email || "",
-                    phone_number: data.phone_number || "",
-                    password: "", // Do not display password
-                });
-                setLoading(false);
-            })
-            .catch(error => {
-                setError(error.message);
-                setLoading(false);
+        fetch('https://db-demo-u07o.onrender.com/userdetails', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${access_token}`,
+            },
+            credentials: 'include'
+        })
+        .then(response => response.json())
+        .then((data) => {
+            setFormData({
+                username: data.user.username,
+                email: data.user.email,
+                phone_number: data.user.phone_number,
             });
-    }, [userId]);
+        });
+    }, [access_token]);
+
+    function handleChange(event) {
+        const { name, value } = event.target;
+        setFormData(prevFormData => ({
+            ...prevFormData,
+            [name]: value,
+        }));
+    }
+
+    function handleSubmit(event) {
+        event.preventDefault();
+
+        fetch('https://db-demo-u07o.onrender.com/userdetails', {
+            method: "PATCH",
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${access_token}`
+            },
+            body: JSON.stringify(formData),
+            credentials: 'include'
+        })
+        .then(response => response.json())
+        .then(() => {
+            // Clear form after submission if needed
+            setFormData({
+                username: '',
+                email: '',
+                phone_number: '',
+            });
+        });
+    }
+
+    function handleBack() {
+        navigate('/user-accounts');
+    }
 
     return (
-        <Box p={2}>
-            <Typography fontSize='25px' fontWeight='bold' textAlign='center'>User Profile</Typography>
-            {loading && <CircularProgress />}
-            {error && <Typography color="error">{error}</Typography>}
-            {!loading && !error && (
-                <Box display="flex" flexDirection="column" alignItems="center">
-                    <Avatar sx={{ width: 100, height: 100, mb: 2 }}>
-                        <PersonIcon sx={{ fontSize: 60 }} />
-                    </Avatar>
-                    <Box mb={2} width="100%" maxWidth="600px">
-                        <Typography variant="h6"><strong>Username:</strong> {formData.username}</Typography>
-                    </Box>
-                    <Box mb={2} width="100%" maxWidth="600px">
-                        <Typography variant="h6"><strong>Email:</strong> {formData.email}</Typography>
-                    </Box>
-                    <Box mb={2} width="100%" maxWidth="600px">
-                        <Typography variant="h6"><strong>Phone Number:</strong> {formData.phone_number}</Typography>
-                    </Box>
-                    {/* Password is not displayed for security reasons */}
-                </Box>
-            )}
+        <Box padding={isMobile ? '20px' : '40px'}>
+            <Box display={{md:'hidden'}}>
+                <IconButton sx={{ color: 'black', mb: 2 }} onClick={handleBack}>
+                    <ArrowBack />
+                </IconButton>
+            </Box>
+
+            <Typography variant="h5" fontWeight="bold" mb={3}>Edit User</Typography>
+
+            <Divider sx={{ mb: 3 }} />
+
+            <form onSubmit={handleSubmit} style={{ maxWidth: isMobile ? '100%' : '400px', margin: '0 auto' }}>
+                <TextField
+                    type="text"
+                    name="username"
+                    label="Username"
+                    value={formData.username}
+                    onChange={handleChange}
+                    fullWidth
+                    sx={{ mb: '20px' }}
+                />
+                <TextField
+                    type="email"
+                    name="email"
+                    label="Email"
+                    value={formData.email}
+                    onChange={handleChange}
+                    fullWidth
+                    sx={{ mb: '20px' }}
+                />
+                <TextField
+                    type="tel"
+                    name="phone_number"
+                    label="Phone Number"
+                    value={formData.phone_number}
+                    onChange={handleChange}
+                    fullWidth
+                    sx={{ mb: '20px' }}
+                />
+                <Button type="submit" variant="contained" color="secondary" fullWidth>
+                    SAVE
+                </Button>
+            </form>
         </Box>
     );
 }

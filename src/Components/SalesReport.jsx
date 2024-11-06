@@ -1,4 +1,4 @@
-import { Box, TextField, Typography,  Select, MenuItem, FormControl, InputLabel } from "@mui/material";
+import { Box, TextField, Typography,  Select, MenuItem, FormControl, InputLabel, Card, Pagination, CardContent } from "@mui/material";
 import { DataGrid, GridToolbar } from "@mui/x-data-grid";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -7,6 +7,8 @@ import PointOfSale from "@mui/icons-material/PointOfSale";
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import { LocalizationProvider } from "@mui/x-date-pickers";
+import { useTheme } from '@mui/material/styles';
+import useMediaQuery from '@mui/material/useMediaQuery';
 
 function SalesReport (){
 
@@ -16,9 +18,13 @@ function SalesReport (){
   const [endDate, setEndDate] = useState(null)
   const [selectedCurrency, setSelectedCurrency] = useState("KES"); 
   const [filteredReceivables, setFilteredReceivables] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1)
   const [filteredTotals, setFilteredTotals] = useState([]);
   const navigate = useNavigate()
-
+  const itemsPerPage = 16;
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const token = localStorage.getItem('access_token')
 
   const currencyOptions = [
     { code: "AED", label: "United Arab Emirates Dirham" },
@@ -193,12 +199,19 @@ function SalesReport (){
   };
 
   useEffect(()=>{
-    fetch('https://db-demo-u07o.onrender.com/invoices')
+    fetch('https://db-demo-u07o.onrender.com/invoices',{
+            method:'GET',
+            headers:{
+                'Authorization':`Bearer ${token}`
+            },
+            credentials:'include'
+    })
     .then(response => response.json())
     .then(data => {
-      const datefilter = filterByDateRange(data,startDate,endDate)
+      const sort = data.sort((a,b) => b.id - a.id)
+      const datefilter = filterByDateRange(sort,startDate,endDate)
       const invoiceTotal = datefilter.map((invoice) => {
-        const totalAmount = new Intl.NumberFormat().format(invoice.items.reduce((total, item) => total + item.amount, 0));
+        const totalAmount = (invoice.items.reduce((total, item) => total + item.amount, 0));
         return { ...invoice, totalAmount };
       })
 
@@ -211,7 +224,7 @@ function SalesReport (){
       setAll(all)
       setSales(invoiceTotal)
     })
-  },[startDate,endDate])
+  },[startDate,endDate, token])
 
   useEffect(() => {
     // Filter data by selected currency
@@ -227,7 +240,6 @@ function SalesReport (){
 
   const total = filteredReceivables.reduce((total,item) => total + item.amount, 0)
 
-  const filter = new Intl.NumberFormat().format(total.toFixed(2))
 
   const handleViewDetails = (invoiceId) => {
     navigate(`/invoices/${invoiceId}`);
@@ -283,22 +295,28 @@ function SalesReport (){
         field: "totalAmount",
         headerName: "Amount",
         flex: 0.3,
-        renderCell: (params) => (
-          <Box 
-          sx={{ 
-            display: 'flex', 
-            alignItems: 'center', 
-            cursor: 'pointer', 
-          }}
-          onClick={() => handleViewDetails(params.row.invoice_number)}
-        >
-          <Typography
-            variant="h7"
-          >
-            {params.value}
-          </Typography>
-        </Box>
-        ),
+        renderCell: (params) => {
+          // Use Intl.NumberFormat for currency formatting
+          const formattedAmount = new Intl.NumberFormat(currencyLocaleMap[params.row.currency], {
+            style: 'currency',
+            currency: params.row.currency, // Replace with your desired currency
+          }).format(params.value);
+      
+          return (
+            <Box 
+              sx={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                cursor: 'pointer', 
+              }}
+              onClick={() => handleViewDetails(params.row.invoice_number)}
+            >
+              <Typography variant="h7">
+                {formattedAmount}  {/* Display formatted amount */}
+              </Typography>
+            </Box>
+          );
+        },
       },
       {
         field: "invoice_date",
@@ -365,8 +383,40 @@ function SalesReport (){
       },
   ]
 
+      const currencyLocaleMap = {
+        AED: "en-AE", // United Arab Emirates Dirham
+        AUD: "en-AU", // Australian Dollar
+        CAD: "en-CA", // Canadian Dollar
+        CHF: "de-CH", // Swiss Franc
+        CNY: "zh-CN", // Chinese Yuan
+        EUR: "de-DE", // Euro
+        GBP: "en-GB", // British Pound
+        HKD: "en-HK", // Hong Kong Dollar
+        IDR: "id-ID", // Indonesian Rupiah
+        ILS: "he-IL", // Israeli New Shekel
+        INR: "en-IN", // Indian Rupee
+        JPY: "ja-JP", // Japanese Yen
+        KES: "en-KE", // Kenyan Shilling
+        NZD: "en-NZ", // New Zealand Dollar
+        SGD: "en-SG", // Singapore Dollar
+        THB: "th-TH", // Thai Baht
+        TRY: "tr-TR", // Turkish Lira
+        USD: "en-US", // United States Dollar
+        ZAR: "en-ZA", // South African Rand
+        MXN: "es-MX", // Mexican Peso
+        BRL: "pt-BR", // Brazilian Real
+      };
+
+    const filter = new Intl.NumberFormat(currencyLocaleMap[selectedCurrency] || 'en-KE', {style:'currency', currency:selectedCurrency}).format(total)
+    const totalPages = Math.ceil(filteredTotals.length / itemsPerPage)
+    const displayedItems = filteredTotals.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
+
+    const handlePageChange = (event, value) => {
+        setCurrentPage(value);
+    };
+
   return ( 
-    <div>
+    <Box margin={{md:'40px', xs:'20px'}}>
 
 
             {/* Currency Selector */}
@@ -393,6 +443,7 @@ function SalesReport (){
                 >
                   FILTER BY DATE
                 </Typography>
+                  <Box display={'flex'} gap={'20px'}>
                     <DatePicker
                         label="Start Date"
                         value={startDate}
@@ -405,14 +456,14 @@ function SalesReport (){
                         onChange={(date) => setEndDate(date)}
                         renderInput={(params) => <TextField {...params} />}
                     />
+                  </Box>
                 </LocalizationProvider>
             </Box>
       <Box
         display="grid"
-        gridTemplateColumns="repeat(12, 1fr)"
-        marginRight='20px'
-        gridAutoRows="140px"
+        gridTemplateColumns={{ xs:"repeat(1, 1fr)", md:"repeat(12, 1fr)"}}
         gap="20px"
+        margin='0 10px'
       >
         {/* ROW 1 */}
         <Box
@@ -438,58 +489,103 @@ function SalesReport (){
         
         </Box>
 
-          <Box m="20px">
-                <Typography 
-                    fontSize='30px'
-                    fontWeight='bold'
-                    textAlign='center'
-                >
-                    SALES
-                </Typography>
+        {isMobile ? (
+                <Box>
+                <Typography fontSize={'27px'} fontWeight={'bold'} textAlign={'center'} mt={"25px"}>INVOICES</Typography>
                 <Box
-                    m="40px 0 0 0"
-                    height="75vh"
-                    sx={{
-                    "& .MuiDataGrid-root": {
-                        border: "none",
-                    },
-                    "& .MuiDataGrid-cell": {
-                        borderBottom: "none",
-                        // fontSize: "16px",
-                    },
-                    "& .name-column--cell": {
-                        // color: colors.greenAccent[300],
-                    },
-                    "& .MuiDataGrid-columnHeaders": {
-                        // backgroundColor: colors.blueAccent[700],
-                        borderBottom: "none",
-                        // fontSize: "16px",
-                    },
-                    "& .MuiDataGrid-virtualScroller": {
-                        // backgroundColor: colors.primary[400],
-                    },
-                    "& .MuiDataGrid-footerContainer": {
-                        borderTop: "none",
-                        // backgroundColor: colors.blueAccent[700],
-                    },
-                    "& .MuiCheckbox-root": {
-                        // color: `${colors.greenAccent[200]} !important`,
-                    },
-                    "& .MuiDataGrid-toolbarContainer .MuiButton-text": {
-                        // color: `${colors.grey[100]} !important`,
-                    },
-                    }}
+                    display={'grid'}
+                    gridTemplateColumns={{xs:'repeat(1,1fr)', sm:'repeat(2,1fr)'}}
+                    gap="10px"
+                    margin="0 10px"
                 >
-                    <DataGrid
-                    rows={filteredTotals}
-                    columns={columns}
-                    components={{ Toolbar: GridToolbar }}
-                    getRowId={(row) => row.id}
-                    />
+
+                    {displayedItems.map((item) => (
+                        <Card
+                            key={item.id}
+                            onClick={() => handleViewDetails(item.invoice_number)}
+                            sx={{
+                                borderRadius: '15px',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                height: 'auto', // Adjust height for better flexibility
+                                boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
+                                padding: '10px',
+                                backgroundColor: '#fff',
+                                transition: 'transform 0.3s ease-in-out',
+                                '&:hover': {
+                                    transform: 'scale(1.03)',
+                                    boxShadow: '0 8px 30px rgba(0,0,0,0.15)',
+                                },
+                            }}
+                        >
+                            <CardContent>
+                                        <Box display={'flex'} gap={'4px'}>
+                                            <Typography>Name:</Typography>
+                                            <Typography fontWeight={'bold'}>{item.customer_name}</Typography>
+                                        </Box>
+
+                                        <Box display={'flex'} gap={'4px'}>
+                                            <Typography>Invoice Number:</Typography>
+                                            <Typography  fontWeight={'bold'}>{item.invoice_number}</Typography>
+                                        </Box>
+
+                                        <Box display={'flex'} gap={'4px'}>
+                                            <Typography>Amount:</Typography>
+                                            <Typography fontWeight={'bold'}>{ new Intl.NumberFormat('en-KE', {style:'currency', currency:item.currency}).format(item.totalAmount)}</Typography>
+                                        </Box>
+
+                                        <Box display={'flex'} gap={'4px'}>
+                                            <Typography>Currency:</Typography>
+                                            <Typography fontWeight={'bold'}>{item.currency}</Typography>
+                                        </Box>
+
+                                        <Box display={'flex'} gap={'4px'}>
+                                            <Typography>Date:</Typography>
+                                            <Typography fontWeight={'bold'}>{item.invoice_date}</Typography>
+                                        </Box>
+
+                                        <Box display={'flex'} gap={'4px'}>
+                                            <Typography>Status:</Typography>
+                                            <Typography fontWeight={'bold'}>{item.status}</Typography>
+                                        </Box>
+
+                                        <Box display={'flex'} gap={'4px'}>
+                                            <Typography>Sales Person:</Typography>
+                                            <Typography fontWeight={'bold'}>{item.sales_person}</Typography>
+                                        </Box>
+                            </CardContent>
+                        </Card>
+                    ))}
+                    <Box display="flex" justifyContent="center" mt="20px">
+                            <Pagination count={totalPages} page={currentPage} onChange={handlePageChange} color="secondary" />
+                    </Box>
                 </Box>
             </Box>
+        
+              ) : (
+                <Box m="20px">
+                  <Typography 
+                      fontSize='30px'
+                      fontWeight='bold'
+                      textAlign='center'
+                  >
+                      INVOICES
+                  </Typography>
+                  <Box
+                      height="75vh"
+                  >
+                      <DataGrid
+                      rows={filteredTotals}
+                      columns={columns}
+                      components={{ Toolbar: GridToolbar }}
+                      getRowId={(row) => row.id}
+                      />
+                  </Box>
+                </Box>
+              )}
 
-    </div>
+
+    </Box>
    );
 }
  
