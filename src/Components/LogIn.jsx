@@ -83,7 +83,7 @@ function Login({ onLogin }) {
                        Welcome back!
                    </Typography>
                    <Typography fontSize="15px" mb="20px" textAlign="center">
-                       We're glad to see you again. Please enter your credentials to continue accessing your account.
+                       We're glad to see you again. Please enter your credentials to continue accessing your account.<br/>
                        Username: demo_user123 && Password: Demo@2024!
                    </Typography>
                    <form onSubmit={handleSubmit}>
@@ -166,7 +166,7 @@ function Login({ onLogin }) {
                             Welcome back!
                         </Typography>
                         <Typography fontSize="15px" mb="20px" textAlign="center">
-                            We're glad to see you again. Please enter your credentials to continue accessing your account.
+                            We're glad to see you again. Please enter your credentials to continue accessing your account.<br/>
                             Username: demo_user123 && Password: Demo@2024!
                         </Typography>
                         <form onSubmit={handleSubmit}>

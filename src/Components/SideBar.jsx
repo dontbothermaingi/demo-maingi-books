@@ -69,7 +69,7 @@ function SideBar({ onLogout }) {
 
                 <Box display={'flex'} flexDirection={'column'}>
                     <Box>
-                        <Typography fontSize={'27px'} fontWeight={'bold'} textAlign={'center'}>MAINGI BOOKS</Typography>
+                        <Typography fontSize={'27px'} fontWeight={'bold'} textAlign={'center'}>MENU ITEMS</Typography>
                     </Box>
 
                     <Divider orientation="horizontal" sx={{mt:'30px'}}/>

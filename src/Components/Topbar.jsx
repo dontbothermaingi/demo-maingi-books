@@ -132,7 +132,7 @@ function TopBar() {
             </Box>
 
             <Box>
-              <Typography fontWeight="bold" fontSize="30px">EKATI HAULIERS</Typography>
+              <Typography fontWeight="bold" fontSize="30px">MAINGI BOOKS</Typography>
             </Box>
 
             <Box display="flex" alignItems="center">
