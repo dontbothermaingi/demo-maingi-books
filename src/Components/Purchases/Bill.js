@@ -1,14 +1,14 @@
 import { useEffect, useState } from "react";
-import { Box,Typography } from "@mui/material";
+import { Box,ToggleButton,ToggleButtonGroup,Typography } from "@mui/material";
 import { DataGrid, GridToolbar } from "@mui/x-data-grid";
 import { useNavigate } from "react-router-dom";
 import BillControl from "./BiilControl";
-import { Button, useMediaQuery, CardContent, Pagination, Card } from "@mui/material";
+import {useMediaQuery, CardContent, Pagination, Card } from "@mui/material";
 
 
 function Bill() {
     const [bills, setBills] = useState([]);
-    const [isNewBill, setIsNewBill] = useState([])
+    const [isNewBill, setIsNewBill] = useState("All Bills")
     const [currentPage, setCurrentPage] = useState(1)
     const itemsPerPage = 16;
     const isMobile = useMediaQuery('(max-width: 768px)');
@@ -90,10 +90,6 @@ function Bill() {
         }));
     }
 
-    function handleNewBill() {
-        setIsNewBill(!isNewBill);
-    }
-    
     const handleViewDetails = (billId) => {
         navigate(`/newbills/${billId}`);
       };
@@ -112,7 +108,7 @@ function Bill() {
               alignItems: 'center', 
               cursor: 'pointer', 
             }}
-            onClick={() => handleViewDetails(params.row.bill_number)}
+            onClick={() => handleViewDetails(params.row.id)}
           >
             <Typography
                 variant="h7"
@@ -133,7 +129,7 @@ function Bill() {
               alignItems: 'center', 
               cursor: 'pointer', 
             }}
-            onClick={() => handleViewDetails(params.row.bill_number)}
+            onClick={() => handleViewDetails(params.row.id)}
           >
             <Typography
                 variant="h7"
@@ -154,7 +150,7 @@ function Bill() {
               alignItems: 'center', 
               cursor: 'pointer', 
             }}
-            onClick={() => handleViewDetails(params.row.bill_number)}
+            onClick={() => handleViewDetails(params.row.id)}
           >
             <Typography
                 variant="h7"
@@ -175,7 +171,7 @@ function Bill() {
               alignItems: 'center', 
               cursor: 'pointer', 
             }}
-            onClick={() => handleViewDetails(params.row.bill_number)}
+            onClick={() => handleViewDetails(params.row.id)}
           >
             <Typography
                 variant="h7"
@@ -196,7 +192,7 @@ function Bill() {
                   alignItems: 'center', 
                   cursor: 'pointer', 
                 }}
-                onClick={() => handleViewDetails(params.row.bill_number)}
+                onClick={() => handleViewDetails(params.row.id)}
               >
                 <Typography
                     variant="h7"
@@ -243,7 +239,7 @@ function Bill() {
                   alignItems: 'center', 
                   cursor: 'pointer', 
                 }}
-                onClick={() => handleViewDetails(params.row.bill_number)}
+                onClick={() => handleViewDetails(params.row.id)}
               >
                 <Typography
                     variant="h7"
@@ -291,17 +287,20 @@ function Bill() {
     return (
         <div>
 
-                        <Button
-                                type="button"
-                                variant="contained"
-                                color="secondary"
-                                sx={{margin:'30px'}}
-                                onClick={handleNewBill}
-                                >
-                                {isNewBill ? "New Bill" : "All Bills"}
-                        </Button>
+          <ToggleButtonGroup
+            value={isNewBill}
+            onChange={(e) => setIsNewBill(e.target.value)}
+            exclusive
+            color="secondary"
+            sx={{ml:'20px'}}
+          >
+            <ToggleButton value={"All Bills"}>All Bills</ToggleButton>
+            <ToggleButton value={"New Bills"}>New Bills</ToggleButton>
+          </ToggleButtonGroup>
 
-{!isNewBill ? <BillControl /> :
+          {isNewBill === 'New Bills' ? 
+            <BillControl /> 
+                  :
             <Box>
               {isMobile ? (
                 <Box>
@@ -316,7 +315,6 @@ function Bill() {
                     {displayedItems.map((item) => (
                         <Card
                             key={item.id}
-                            onClick={() => handleViewDetails(item.bill_number)}
                             sx={{
                                 borderRadius: '15px',
                                 display: 'flex',
@@ -325,6 +323,11 @@ function Bill() {
                                 boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
                                 padding: '10px',
                                 backgroundColor: '#fff',
+                                transition: 'transform 0.3s ease-in-out',
+                                '&:hover': {
+                                    transform: 'scale(1.03)',
+                                    boxShadow: '0 8px 30px rgba(0,0,0,0.15)',
+                                },
                             }}
                         >
                             <CardContent>

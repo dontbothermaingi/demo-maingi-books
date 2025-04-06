@@ -1,51 +1,33 @@
-import { useEffect, useState } from "react";
-import { Box, Typography, Button, Snackbar, FormControl, Select, MenuItem, TextField, useMediaQuery, Card, CardContent, Pagination } from "@mui/material";
+import { Alert, Box, Button, Card, CardContent, FormControl, MenuItem, Pagination, Select, Snackbar, TextField,Typography, useMediaQuery } from "@mui/material";
 import { DataGrid, GridToolbar } from "@mui/x-data-grid";
-import './Paymentsmade.css';
-import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router";
 
-function Paymentsmade() {
-    const [vendors, setVendors] = useState([]);
-    const [payments, setPayments] = useState([]);
-    const [funds,setFunds] = useState([]);
-    const [bankAccounts, setBankAccounts] = useState([]);
-    const itemsPerPage = 16;
+function PaymentsMade (){
+
+    const token = localStorage.getItem('access_token')
+    const [successMessage, setSuccessMessage] = useState('')
     const isMobile = useMediaQuery('(max-width: 768px)');
     const [currentPage, setCurrentPage] = useState(1)
-    const [errorMessage, setErrorMessage] = useState("");
-    const token = localStorage.getItem('access_token')
-    const [currencyErrorMessage, setCurrencyErrorMessage] = useState("");
+    const itemsPerPage = 16;
+    const [openSnackbar, setOpenSnackBar] = useState(false)
+    const navigate = useNavigate()
+    const [customers, setCustomers] = useState([])
+    const [payments, setPayments] = useState([])
     const [formData, setFormData] = useState({
-        vendor_name: "",
-        payment:"",
-        bank_name: "",
-        bank_details:"",
-        currency:"",
-        deposit_to: "",
-        payment_amount: "",
-        payment_date: "",
-        payment_mode: "",
-    });
+        vendor_name : "",
+        vendor_email : "",
+        vendor_phone : "",
+        vendor_pin : "",
+        currency : "",
+        payment_amount : "",
+        payment_date : "",
+        payment : "",
+        payment_mode : "",
+        bill_items:[]
+    })
 
-
-    useEffect(() => {
-        fetch('https://db-demo-u07o.onrender.com/paymentsmade', {
-            method:'GET',
-            headers:{
-                'Authorization':`Bearer ${token}`
-            },
-            credentials:'include'
-        })
-            .then(response => response.json())
-            .then((data) => {
-                const formattedPayment = data.map((payments) => ({
-                    ...payments,
-                    payment_amount: new Intl.NumberFormat().format(payments.payment_amount)
-                }))
-                setPayments(formattedPayment)})
-    }, [token]);
-
-    useEffect(() => {
+    useEffect(()=>{
         fetch('https://db-demo-u07o.onrender.com/vendors', {
             method:'GET',
             headers:{
@@ -53,187 +35,38 @@ function Paymentsmade() {
             },
             credentials:'include'
         })
-            .then(response => response.json())
-            .then((data) => setVendors(data))
-    }, [token]);
-
-    useEffect(() => {
-        fetch('https://db-demo-u07o.onrender.com/bankaccounts', {
-            method:'GET',
-            headers:{
-                'Authorization':`Bearer ${token}`
-            },
-            credentials:'include'
+        .then(response => response.json())
+        .then((data) => {
+            setCustomers(data)
         })
-            .then(response => response.json())
-            .then(data => {
-    
-                setBankAccounts(data);
-            })
-            .catch(error => console.error('Error fetching bills:', error));
-    }, [token]);
+    },[token])
 
-    useEffect(() => {
-        fetch('https://db-demo-u07o.onrender.com/funds', {
-            method:'GET',
-            headers:{
-                'Authorization':`Bearer ${token}`
-            },
-            credentials:'include'
-        })
-            .then(response => response.json())
-            .then((data) => setFunds(data))
-    }, [token]);
-
-    function handleChange(event) {
-        const { name, value } = event.target;
-        setFormData(prevFormData => ({
-            ...prevFormData,
-            [name]: value,
-        }));
-    }
-
-    function handleSubmit(event) {
-        event.preventDefault();
-
-        const selectedBank = bankAccounts.find(bank => bank.bank_details === formData.bank_details);
-        if (selectedBank && parseFloat(formData.payment_amount) > parseFloat(selectedBank.amount)) {
-            setErrorMessage("You have insufficient funds in your Bank Account.");
-            return;
-        }
-
-        console.log(formData.currency)
-
-        if (selectedBank && formData.currency !== selectedBank.currency) {
-            setCurrencyErrorMessage("You are using the wrong currency to pay your Bill.");
-            return;
-        }
-        
-    
-        const paymentNumber = payments.length + 1;
-    
+    useEffect(()=>{
         fetch('https://db-demo-u07o.onrender.com/paymentsmade', {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization":`Bearer ${token}`
+            method:'GET',
+            headers:{
+                'Authorization':`Bearer ${token}`
             },
-            credentials:'include',
-            body: JSON.stringify({
-                ...formData,
-                payment: paymentNumber
-            })
+            credentials:'include'
         })
-        .then((response) => response.json())
-        .then((newPayment) => {
-
-                fetch('https://db-demo-u07o.onrender.com/paymentsmade', {
-                    method:'GET',
-                    headers:{
-                        'Authorization':`Bearer ${token}`
-                    },
-                    credentials:'include'
-                })
-                .then(response => response.json())
-                .then((data) => {
-                const formattedPayment = data.map((payments) => ({
-                    ...payments,
-                    payment_amount: new Intl.NumberFormat().format(payments.payment_amount)
-                }))
-                setPayments(formattedPayment)})
-
-                
-            let remainingAmount = parseFloat(formData.payment_amount);
-    
-            const updateInvoices = (bills) => {
-                if (bills.length > 0 && remainingAmount > 0) {
-                    const bill = bills.shift(); // Select and remove the first unpaid or partially paid invoice
-                    const paymentMade = parseFloat(bill.payment_made) || 0;
-                    const totalAmount = bill.items.reduce((sum, item) => sum + parseFloat(item.amount), 0);
-                    const remainingBalance = totalAmount - paymentMade;
-                    const paymentToApply = Math.min(remainingAmount, remainingBalance);
-    
-                    const updatedPaymentMade = paymentMade + paymentToApply;
-                    const amountOwed = totalAmount - updatedPaymentMade
-                    const updatedStatus = updatedPaymentMade >= totalAmount ? "PAID" : "PARTIALLY PAID";
-    
-                    fetch(`https://db-demo-u07o.onrender.com/newbills/${bill.id}`, {
-                        method: 'PATCH',
-                        headers: {
-                            "Content-Type": "application/json",
-                            "Authorization": `Bearer ${token}`
-                        },
-                        credentials:'include',
-                        body: JSON.stringify({
-                            amount_owed: amountOwed,
-                            status: updatedStatus,
-                            amount_paid: updatedPaymentMade
-                        })
-                    })
-                    .then(response => response.json())
-                    .then(updatedInvoice => {
-                        remainingAmount -= paymentToApply;
-                        updateInvoices(bills);
-                    })
-                    .catch(error => console.error('Error updating invoice:', error));
-                } else {
-                    // Clear form data once all invoices are updated
-                    setFormData({
-                        vendor_name: "",
-                        amount_received: "",
-                        currency:"",
-                        bank_details:"",
-                        bank_charges: "",
-                        payment_date: "",
-                        sales_person: "",
-                        payment: "",
-                        payment_mode: "",
-                        deposit_to: "",
-                    });
-                }
-            };
-    
-            // Fetch the unpaid or partially paid invoices associated with the customer
-            fetch(`https://db-demo-u07o.onrender.com/newbills?vendor_name=${formData.vendor_name}&status=UNPAID,PARTIALLY PAID`,{
-                method:'GET',
-                headers:{
-                    'Authorization':`Bearer ${token}`
-                },
-                credentials:'include'
-            })
-            .then(response => response.json())
-            .then(bills => {
-                updateInvoices(bills);
-            })
-            .catch(error => console.error('Error fetching invoices:', error));
-
-            if (formData.deposit_to === 'Bank') {
-                // Update bank information
-                const selectedBank = bankAccounts.find(bank => bank.bank_details === formData.bank_details);
-                if (selectedBank) {
-                    fetch(`https://db-demo-u07o.onrender.com/bankaccounts/${selectedBank.id}`, {
-                        method: "PATCH",
-                        headers: {
-                            "Content-Type": "application/json",
-                            "Authorization": `Bearer ${token}`
-                        },
-                        credentials:'include',
-                        body: JSON.stringify({
-                            amount: selectedBank.amount - parseFloat(formData.payment_amount)
-                        })
-                    })
-                    .then(response => response.json())
-                    .then(updatedBank => {
-                        console.log('Bank updated successfully:', updatedBank);
-                    })
-                    .catch(error => console.error('Error updating bank:', error));
-                }
-            }
+        .then(response => response.json())
+        .then((data) => {
+            setPayments(data)
         })
-        .catch(error => console.error('Error creating payment:', error));
+    },[token])
+
+    function handleChange(event){
+        const {name,value} = event.target
+
+        setFormData(prev => ({
+            ...prev,
+            [name]:value,
+        }))
     }
 
-    function handleSelectVendor(event) {
+    const paymentNumber = payments.length + 1
+
+    function handleCustomer(event){
         const selectedValue = event.target.value;
         
         if (selectedValue === "new_vendor") {
@@ -241,108 +74,25 @@ function Paymentsmade() {
             return;
         }
         
-        const selectedVendor = vendors.find(vendor => vendor.vendor_name === selectedValue);
-        
-        if (selectedVendor) {
-            setFormData(prevFormData => ({
-                ...prevFormData,
-                vendor_name: selectedVendor.vendor_name,
-                vendor_phone: selectedVendor.vendor_phone,
-                vendor_email: selectedVendor.vendor_email,
-                vendor_pin: selectedVendor.kra_pin,
-                currency: selectedVendor.currency,
-                total_amount_owed: selectedVendor.total_amount_owed
-            }));
-        }
-    }
-
-    const navigate = useNavigate()
-
-    const paymentNumber = payments.length + 1;
-
-    function handleSelectBank(event) {
-        const selectedValue = event.target.value;
-        
-        const selectedCustomer = bankAccounts.find(customer => customer.bank_details === selectedValue);
+        const selectedCustomer = customers.find(customer => customer.vendor_name === selectedValue);
         
         if (selectedCustomer) {
-            setFormData(prevFormDepositData => ({
-                ...prevFormDepositData,
-                bank_name: selectedCustomer.bank_name,
-                bank_details: selectedCustomer.bank_details,
+            setFormData(prevFormData => ({
+                ...prevFormData,
+                vendor_name: selectedCustomer.vendor_name,
+                vendor_phone: selectedCustomer.vendor_phone,
+                vendor_email: selectedCustomer.vendor_email,
+                vendor_pin: selectedCustomer.kra_pin,
                 currency: selectedCustomer.currency,
+                total_amount_owed: selectedCustomer.total_amount_owed
             }));
         }
     }
 
-    
-
-    const columns = [
-        { field: "id", headerName: "ID", flex: 0.05 },
-        {
-          field: "vendor_name",
-          headerName: "Vendor Name",
-          flex: 0.2,
-          cellClassName: "name-column--cell",
-        },
-        {
-            field: "vendor_email",
-            headerName: "Vendor Email",
-            flex: 0.3,
-        },
-        {
-            field: "vendor_phone",
-            headerName: "Vendor Phone",
-            flex: 0.3,
-        },
-        {
-            field: "currency",
-            headerName: "Currency",
-            flex: 0.15,
-        },
-        {
-            field: "bank_name",
-            headerName: "Bank Name",
-            flex: 0.3,
-        },
-        {
-          field: "payment_amount",
-          headerName: "Amount Paid",
-          flex: 0.2,
-          renderCell: (params) => {
-            // Use Intl.NumberFormat for currency formatting
-            const formattedAmount = new Intl.NumberFormat(currencyLocaleMap[params.row.currency] || 'en-KE', {
-              style: 'currency',
-              currency: params.row.currency, // Replace with your desired currency
-            }).format(params.value);
-        
-            return (
-              <Box 
-                sx={{ 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  cursor: 'pointer', 
-                }}
-              >
-                <Typography variant="h7">
-                  {formattedAmount}  {/* Display formatted amount */}
-                </Typography>
-              </Box>
-            );
-          },
-        },
-        {
-          field: "payment_date",
-          headerName: "Payment Date",
-          flex: 0.2,
-        },
-        {
-            field: "payment_mode",
-            headerName: "Payment Mode",
-            flex: 0.2,
-        },
-        
-    ]
+    function handleCloseSnackBar(event,reason){
+        if (reason === 'clickaway')return ;
+        setOpenSnackBar(false)
+    }
 
     const currencyLocaleMap = {
         AED: "en-AE", // United Arab Emirates Dirham
@@ -376,195 +126,353 @@ function Paymentsmade() {
         setCurrentPage(value);
     };
 
-    return (
-        <Box>
-            <Box>
-                <Box
-                    sx={{
-                        borderRadius: '15px',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        height: 'auto', // Adjust height for better flexibility
-                        boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
-                        padding: '10px',
-                        margin: '30px',
-                        backgroundColor: '#fff',
-                        // Media queries for responsive design
-                        '@media (max-width: 600px)': {
-                          margin: '15px', // Adjust margin for smaller screens
-                          padding: '5px', // Adjust padding for smaller screens
-                        },
-                        '@media (min-width: 600px)': {
-                          margin: '30px', // Keep margin for medium screens and above
-                          padding: '10px', // Keep padding for medium screens and above
-                        },
-                      }}
-                >
-                    <Typography fontSize={'27px'} fontWeight={'bold'} textAlign={'center'}>NEW PAYMENT</Typography>
-                    <form style={{ display: 'flex', flexDirection: 'column', margin: '30px' }} onSubmit={handleSubmit}>
+    async function updateInvoices(invoices) {
+        let remainingAmount = parseFloat(formData.payment_amount);
+        const updatedInvoiceIds = [];
+    
+        for (const invoice of invoices) {
+            if (remainingAmount <= 0) break;
+    
+            const paymentMade = parseFloat(invoice.amount_paid) || 0;
+            const totalAmount = invoice.items.reduce((sum, item) => sum + parseFloat(item.amount), 0);
+            const remainingBalance = totalAmount - paymentMade;
+            const paymentToApply = Math.min(remainingAmount, remainingBalance);
+    
+            const updatedPaymentMade = paymentMade + paymentToApply;
+            const amountOwed = totalAmount - updatedPaymentMade;
+            const updatedStatus = updatedPaymentMade >= totalAmount ? "PAID" : "PARTIALLY PAID";
+    
+            try {
+                const response = await fetch(`https://db-demo-u07o.onrender.com/newbillspayment/${invoice.id}`, {
+                    method: 'PATCH',
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${token}`
+                    },
+                    credentials: 'include',
+                    body: JSON.stringify({
+                        status: updatedStatus,
+                        amount_paid: updatedPaymentMade,
+                        amount_owed: amountOwed
+                    })
+                });
+    
+                if (!response.ok) {
+                    throw new Error(`Failed to update invoice ID: ${invoice.id}`);
+                }
+    
+                updatedInvoiceIds.push({ bill_id: invoice.id });
+                remainingAmount -= paymentToApply;
+            } catch (error) {
+                console.error(`Error updating invoice ID ${invoice.id}:`, error);
+            }
+        }
+    
+        return updatedInvoiceIds;
+    }
+    
+    
+    function handleSubmit(event) {
+        event.preventDefault();
+    
+        // Fetch unpaid or partially paid invoices
+        fetch(`https://db-demo-u07o.onrender.com/newbillstatus?vendor_name=${formData.vendor_name}`, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            credentials: 'include'
+        })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`Failed to fetch invoices. Status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(async (invoices) => {
+                 // Debugging: Log the actual response
+                console.log("Fetched invoices:", invoices);
 
-                        <FormControl>
-                            <Typography fontWeight={'bold'}>Vendor Name</Typography>
-                            <Select name="vendor_name" className="bill-inputfield" value={formData.vendor_name} onChange={handleSelectVendor} sx={{mb:'20px'}}>
-                                <MenuItem value="">Select Vendor</MenuItem>
-                                {vendors.map((vendor, index) => (
-                                 <MenuItem key={index} >{vendor.vendor_name}</MenuItem>
-                                ))}
-                            </Select>
-                        </FormControl>
+                if (!Array.isArray(invoices)) {
+                    throw new Error("Invalid response format: Expected an array");
+                }
+    
+                // Process invoices and get updated invoice IDs
+                const updatedInvoiceIds = await updateInvoices(invoices);
+    
+                // Submit the payment
+                fetch('https://maingi-server-3.onrender.com/paymentsmade', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        ...formData,
+                        payment: paymentNumber,
+                        payment_amount: formData.payment_amount,
+                        bill_items: updatedInvoiceIds,
+                    })
+                })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Failed to post payments');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        console.log(data);
+                        setOpenSnackBar(true);
 
-                        <TextField
-                            type="text"
-                            name="vendor_phone"
-                            label="Vendor Phone"
-                            value={formData.vendor_phone}
-                            onChange={handleChange}
-                            InputProps={{ readOnly: true }}
-                            variant="outlined"
-                            sx={{mb:'20px'}}
-                        />
-
-                        <TextField
-                            type="text"
-                            name="vendor_email"
-                            label="Vendor Email"
-                            value={formData.vendor_email}
-                            onChange={handleChange}
-                            InputProps={{ readOnly: true }}
-                            variant="outlined"
-                            sx={{mb:'20px'}}
-                        />
-
-                        <TextField
-                            type="text"
-                            name="vendor_pin"
-                            label="Vendor Pin"
-                            value={formData.vendor_pin}
-                            onChange={handleChange}
-                            variant="outlined"
-                            sx={{mb:'20px'}}
-                            InputProps={{ readOnly: true }}
-                        />
-
-                            <TextField
-                                type="text"
-                                name="currency"
-                                label="Currency"
-                                value={formData.currency}
-                                onChange={handleChange}
-                                variant="outlined"
-                                sx={{mb:'20px'}}
-                                InputProps={{ readOnly: true }}
-                            />
-
-                        {formData.vendor_name ? <h2 className="OWE">YOU OWE {formData.vendor_name} {formData.currency} {formData.total_amount_owed}</h2> : ""}
-
-
-                            <TextField
-                                type="number"
-                                name="payment"
-                                label="Payment Number"
-                                value={paymentNumber}
-                                variant="outlined"
-                                sx={{mb:'20px'}}
-                                InputProps={{ readOnly: true }}
-                            />
-
-                            <TextField
-                                type="number"
-                                name="payment_amount"
-                                label="Payment Amount"
-                                value={formData.payment_amount}
-                                onChange={handleChange}
-                                required
-                                variant="outlined"
-                                sx={{mb:'20px'}}
-                            />
-
-                            <FormControl>
-                                <Typography fontWeight={'bold'}>Pay With</Typography>
-                                <Select name="deposit_to" className="bill-inputfield" value={formData.deposit_to} onChange={handleChange} sx={{mb:'20px'}}>
-                                    <MenuItem value="">Select</MenuItem>
-                                    {funds.map((fund, index) => (
-                                        <MenuItem key={index} value={fund.fund_name}>{fund.fund_name}</MenuItem>
-                                    ))}
-                                </Select>
-                            </FormControl>
+                        fetch('https://db-demo-u07o.onrender.com/paymentsmade', {
+                            method:'GET',
+                            headers:{
+                                'Authorization':`Bearer ${token}`
+                            },
+                            credentials:'include' 
+                        })
+                        .then(response => response.json())
+                        .then((data) => {
+                            setPayments(data)
+                        })
 
                         
+                        setSuccessMessage('Payment recorded successfully');
+                        setFormData({
+                            vendor_name: "",
+                            vendor_email: "",
+                            vendor_phone: "",
+                            vendor_pin: "",
+                            currency: "",
+                            payment_amount: "",
+                            payment_date: "",
+                            payment: "",
+                            payment_mode: "",
+                            bill_items: []
+                        });
+                    })
+                    .catch(error => {
+                        console.error('Failed to post payment:', error);
+                        setOpenSnackBar(true);
+                        setSuccessMessage('Failed to record payment');
+                    });
+            })
+            .catch(error => console.error('Error fetching invoices:', error));
+    }
+    
+    const columns = [
+        { field: "id", headerName: "ID", flex: 0.05 },
+        {
+          field: "vendor_name",
+          headerName: "VENDOR NAME",
+          headerAlign: "left",
+          cellClassName: "name-column--cell",
+          flex: 0.3,
+          align: "left",
+        },
+        {
+            field: "vendor_email",
+            headerName: "VENDOR EMAIL",
+            flex: 0.3,
+        },
+        {
+            field: "vendor_phone",
+            headerName: "VENDOR PHONE",
+            flex: 0.2,
+        },
+        {
+            field: "currency",
+            headerName: "CURRENCY",
+            flex: 0.15,
+        },
+        {
+          field: "payment_amount",
+          headerName: "AMOUNT RECEIVED",
+          flex: 0.2,
+          renderCell: (params) => {
+            // Use Intl.NumberFormat for currency formatting
+            const formattedAmount = new Intl.NumberFormat(currencyLocaleMap[params.row.currency] || 'en-KE', {
+              style: 'currency',
+              currency: params.row.currency, // Replace with your desired currency
+            }).format(params.value);
+        
+            return (
+              <Box 
+                sx={{ 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  cursor: 'pointer', 
+                }}
+              >
+                <Typography variant="h7">
+                  {formattedAmount}  {/* Display formatted amount */}
+                </Typography>
+              </Box>
+            );
+          },
+        },
+        {
+          field: "payment_date",
+          headerName: "PAYMENT DATE",
+          flex: 0.15,
+        },
+        {
+          field: "payment_mode",
+          headerName: "PAYMENT MODE",
+          flex: 0.2,
+        },
+      ];
 
-                        {formData.deposit_to === 'Bank' ? 
-                            <Box className="bill-input">
-                                <FormControl>
-                                    <Typography fontWeight={'bold'}>BANK ACCOUNT</Typography>
-                                    <Select name="bank_details" value={formData.bank_details} onChange={handleSelectBank} sx={{mb:"20px"}}>
-                                    <MenuItem value="">Select Bank Account</MenuItem>
-                                    {bankAccounts.map((bank,index) => (
-                                    <MenuItem key={index} value={bank.bank_details}>{bank.bank_details}</MenuItem>
-                                    ))}
-                                    </Select>
-                                </FormControl>
-                            </Box> : ""
-                        }
-
-                        {formData.deposit_to === 'Bank' ? 
-                                <TextField
-                                    type="text"
-                                    name="bank_name"
-                                    label="Bank Name"
-                                    value={formData.bank_name}
-                                    onChange={handleChange}
-                                    variant="outlined"
-                                    sx={{mb:'20px'}}
-                                    InputProps={{ readOnly: true }}
-                                />
-                        : "" }
-
-                        <Typography fontWeight={'bold'}>Date</Typography>
-                            <TextField
-                                type="date"
-                                name="payment_date"
-                                value={formData.payment_date}
-                                onChange={handleChange}
-                                required
-                                variant="outlined"
-                                sx={{mb:'20px'}}
-                            />
-
-                            <FormControl>
-                            <Typography fontWeight={'bold'}>Payment Mode</Typography>
-                            <Select value={formData.payment_mode} className="bill-inputfield" name="payment_mode" onChange={handleChange} sx={{mb:'20px'}}>
-                                <MenuItem value="">Select Payment Mode</MenuItem>
-                                <MenuItem value="Cash">Cash</MenuItem>
-                                <MenuItem value="Bank Transfer">Bank Transfer</MenuItem>
-                                <MenuItem value="Bank Remittance">Bank Remittance</MenuItem>
-                                <MenuItem value="Cheque">Cheque</MenuItem>
-                                <MenuItem value="Credit Card">Credit Card</MenuItem>
+    return ( 
+        <Box>
+            <Snackbar
+                open={openSnackbar}
+                autoHideDuration={6000}
+                onClose={handleCloseSnackBar}
+                anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+            >
+                <Alert
+                  onClose={handleCloseSnackBar} 
+                  severity={successMessage.startsWith('Failed') ? "error" : "success"} 
+                  sx={{ width: '100%' }}
+                >
+                    {successMessage}
+                </Alert>
+            </Snackbar>
+            <Typography fontWeight={'bold'} fontSize={'27px'} textAlign={'center'}>NEW PAYMENT MADE</Typography>
+            <Box
+               sx={{
+                      borderRadius: '15px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      height: 'auto', // Adjust height for better flexibility
+                      boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
+                      padding: '10px',
+                      margin: '30px',
+                      backgroundColor: '#fff',
+                      // Media queries for responsive design
+                      '@media (max-width: 600px)': {
+                        margin: '15px', // Adjust margin for smaller screens
+                        padding: '5px', // Adjust padding for smaller screens
+                      },
+                      '@media (min-width: 600px)': {
+                        margin: '30px', // Keep margin for medium screens and above
+                        padding: '10px', // Keep padding for medium screens and above
+                      },
+               }}
+            >
+                <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', margin: '30px' }}>
+                    <FormControl>
+                        <Typography fontWeight={'bold'}>Vendor Name</Typography>
+                            <Select name="vendor_name" value={formData.vendor_name} onChange={handleCustomer} sx={{mb:'20px'}}>
+                                <MenuItem value="">Select Vendor</MenuItem>
+                                {customers.map((customer, index) => (
+                                    <MenuItem key={index} value={customer.vendor_name}>{customer.vendor_name}</MenuItem>
+                                ))}
                             </Select>
-                            </FormControl>
+                    </FormControl>
 
-                        <Button type="submit" variant="contained" color="secondary">Save Payment</Button>
-                    </form>
-                    {errorMessage && <Snackbar
-                        open={Boolean(errorMessage)}
-                        autoHideDuration={6000}
-                        onClose={() => setErrorMessage('')}
-                        message={errorMessage}
-                        action={
-                            <Button color="inherit" onClick={() => setErrorMessage('')}>Close</Button>
-                        }
-                    />}
+                    <TextField 
+                        type="text"
+                        name="vendor_phone"
+                        label="Vendor Phone"
+                        value={formData.vendor_phone}
+                        onChange={handleChange}
+                        readOnly
+                        variant="outlined"
+                        sx={{mb:'20px'}}
+                    />
 
-                    {currencyErrorMessage && <Snackbar
-                        open={Boolean(currencyErrorMessage)}
-                        autoHideDuration={6000}
-                        onClose={() => setCurrencyErrorMessage('')}
-                        message={currencyErrorMessage}
-                        action={
-                            <Button color="inherit" onClick={() => setCurrencyErrorMessage('')}>Close</Button>
-                        }
-                    />}
-                </Box>
+                    <TextField 
+                        type="text"
+                        name="vendor_email"
+                        label="Vendor Email"
+                        value={formData.vendor_email}
+                        onChange={handleChange}
+                        readOnly
+                        variant="outlined"
+                        sx={{mb:'20px'}}
+                    />
+
+                    <TextField
+                        type="text"
+                        name="vendor_pin"
+                        label="Vendor Pin"
+                        value={formData.vendor_pin}
+                        onChange={handleChange}
+                        readOnly
+                        variant="outlined"
+                        sx={{mb:'20px'}}
+                    />
+
+                    <TextField
+                        type="text"
+                        name="currency"
+                        label="Currency"
+                        value={formData.currency}
+                        onChange={handleChange}
+                        readOnly
+                        variant="outlined"
+                        sx={{mb:'20px'}}
+                    />
+
+                    {formData.vendor_name ? <h2 className="OWE">YOU OWE {formData.vendor_name} {formData.currency} {formData.total_amount_owed}</h2> : ""}
+
+                    <TextField 
+                        type="number"
+                        name="payment_amount"
+                        label="PAYMENT AMOUNT"
+                        value={formData.payment_amount}
+                        onChange={handleChange}
+                        required
+                        variant="outlined"
+                        sx={{mb:'20px'}}
+                    />
+
+                    <FormControl>
+                        <Typography fontWeight={'bold'}>PAYMENT MODE</Typography>
+                        <Select
+                            type="text"
+                            name="payment_mode"
+                            value={formData.payment_mode}
+                            onChange={handleChange}
+                            sx={{mb:'20px'}}
+                        >
+                            <MenuItem value="">Select Payment Mode</MenuItem>
+                            <MenuItem value="Cash">Cash</MenuItem>
+                            <MenuItem value="Bank Transfer">Bank Transfer</MenuItem>
+                            <MenuItem value="Cheque">Cheque</MenuItem>
+                            <MenuItem value="Credit Card">Credit Card</MenuItem>
+                        </Select>
+                    </FormControl>
+
+                    <Typography fontWeight={'bold'}>PAYMENT DATE</Typography>
+                    <TextField
+                        type="date"
+                        name="payment_date"
+                        value={formData.payment_date}
+                        onChange={handleChange}
+                        required
+                        variant="outlined"
+                        sx={{mb:'20px'}}
+                    />
+
+                    <TextField
+                        type="number"
+                        name="payment"
+                        label= 'Payment Number'
+                        className="bill-inputfield"
+                        value={`${paymentNumber}`}
+                        onChange={handleChange}
+                        InputProps={{ readOnly: true }}
+                        variant="outlined"
+                        sx={{mb:'20px',}}
+                    />
+
+                    <Button type="submit" color="secondary" variant="contained">SAVE PAYMENT</Button>
+
+                </form>
             </Box>
 
             {isMobile ? (
@@ -587,7 +495,6 @@ function Paymentsmade() {
                                 height: 'auto', // Adjust height for better flexibility
                                 boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
                                 padding: '10px',
-                                margin: '30px',
                                 backgroundColor: '#fff',
                                 transition: 'transform 0.3s ease-in-out',
                                 '&:hover': {
@@ -597,12 +504,35 @@ function Paymentsmade() {
                             }}
                         >
                             <CardContent>
-                                    <Typography>Vendor Name: {item.vendor_name}</Typography>
-                                    <Typography>Vendor Phone: {item.vendor_name}</Typography>
-                                    <Typography>Vendor Email: {item.vendor_email}</Typography>
-                                    <Typography>Amount: {new Intl.NumberFormat(currencyLocaleMap[item.currency] || 'en-KE', {style:'currency', currency:item.currency}).format(item.payment_amount)}</Typography>
-                                    <Typography>Payment Date: {item.payment_date}</Typography>
-                                    <Typography>Payment Mode: {item.payment_mode}</Typography>
+                                    <Box display={'flex'} gap={'5px'}>
+                                        <Typography>Vendor Name:</Typography>
+                                        <Typography fontWeight={'bold'}>{item.vendor_name}</Typography>
+                                    </Box>
+
+                                    <Box display={'flex'} gap={'5px'}>
+                                        <Typography>Vendor Phone:</Typography>
+                                        <Typography fontWeight={'bold'}>{item.vendor_phone}</Typography>
+                                    </Box>
+
+                                    <Box display={'flex'} gap={'5px'}>
+                                        <Typography>Vendor Email:</Typography>
+                                        <Typography fontWeight={'bold'}>{item.vendor_email}</Typography>
+                                    </Box>
+
+                                    <Box display={'flex'} gap={'5px'}>
+                                        <Typography>Amount:</Typography>
+                                        <Typography fontWeight={'bold'}>{new Intl.NumberFormat(currencyLocaleMap[item.currency] || 'en-KE', {style:'currency', currency:item.currency}).format(item.payment_amount)}</Typography>
+                                    </Box>
+
+                                    <Box display={'flex'} gap={'5px'}>
+                                        <Typography>Payment Date:</Typography>
+                                        <Typography fontWeight={'bold'}>{item.payment_date}</Typography>
+                                    </Box>
+
+                                    <Box display={'flex'} gap={'5px'}>
+                                        <Typography>Payment Mode:</Typography>
+                                        <Typography fontWeight={'bold'}>{item.payment_mode}</Typography>
+                                    </Box>
                             </CardContent>
                         </Card>
                     ))}
@@ -610,30 +540,31 @@ function Paymentsmade() {
                             <Pagination count={totalPages} page={currentPage} onChange={handlePageChange} color="secondary" />
                     </Box>
                 </Box>
-            </Box>
+                </Box>
               ) : (
                 <Box m="20px">
-                  <Typography 
+                  <Typography
                       fontSize='30px'
                       fontWeight='bold'
                       textAlign='center'
                   >
-                      PAYMENTS
+                      PAYMENTS MADE
                   </Typography>
                   <Box
                       height="75vh"
                   >
                       <DataGrid
-                      rows={payments}
-                      columns={columns}
-                      components={{ Toolbar: GridToolbar }}
-                      getRowId={(row) => row.id}
+                        rows={payments}
+                        columns={columns}
+                        components={{ Toolbar: GridToolbar }}
+                        getRowId={(row) => row.id}
                       />
                   </Box>
                 </Box>
               )}
-        </Box>
-    );
-}
 
-export default Paymentsmade;
+        </Box>
+     );
+}
+ 
+export default PaymentsMade;

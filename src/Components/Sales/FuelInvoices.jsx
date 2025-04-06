@@ -1,22 +1,27 @@
 import { useEffect, useState } from "react";
-import { Box, Typography, Button, IconButton, FormControl, Select, MenuItem, TextField, RadioGroup, FormControlLabel, TableContainer, Paper, Table, TableHead, TableRow, TableCell, ListSubheader, Divider, TableBody, Card, CardContent, Pagination } from "@mui/material";
+import { Box, Typography, Button, IconButton, FormControl, Select, MenuItem, TextField, RadioGroup, FormControlLabel, TableContainer, Paper, Table, TableHead, TableRow, TableCell, ListSubheader, Divider, Card, CardContent, Pagination } from "@mui/material";
 import { DataGrid, GridToolbar } from "@mui/x-data-grid";
 import { useNavigate } from "react-router-dom";
-import CloseIcon from '@mui/icons-material/Close';
 import { Dialog, DialogActions, DialogContent, DialogTitle } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import { Radio } from "@mui/material";
+import { Snackbar, Alert } from '@mui/material';
+import { AddOutlined, DeleteForever } from "@mui/icons-material";
 
 function FuelInvoice() {
     const [invoices, setInvoices] = useState([]);
     const [isVatInclusive, setIsVatInclusive] = useState(true); // true for inclusive, false for exclusive
     const [openDialog, setOpenDialog] = useState(false);
+    const [vatAmount, setVatAmount] = useState(0)
+    const [totalAmount, setTotalAmount] = useState(0)
+    const [subTotalAmount, setSubTotalAmount] = useState(0)
     const [trucks, setTrucks] = useState([]);
-    const [pumps, setPumps] = useState([]);
     const [customers, setCustomers] = useState([]);
+    const [errorMessage, setErrorMessage] = useState('')
+    const [openSnackbar, setOpenSnackbar] = useState(false)
+    const [lastInvoiceNumber, setLastInvoiceNumber] = useState("")
     const [currentPage, setCurrentPage] = useState(1)
-    const [fuel, setFuel] = useState([]);
     const token = localStorage.getItem('access_token')
     const itemsPerPage = 16;
     const theme = useTheme();
@@ -41,38 +46,46 @@ function FuelInvoice() {
         items: [],
     });
 
-    const [newItem, setNewItem] = useState({
-        item_details: "",
-        description: "",
-        quantity: 0,
-        vat: 0,
-        sub_total:"",
-        rate_vat: 0,
-        rate: 0,
-        amount: 0,
-    });
+    const [newItem, setNewItem] = useState([
+        {
+            item_details: "PUMP A",
+            description: "",
+            quantity: 0,
+            vat: 0,
+            sub_total:0,
+            rate_vat: 0,
+            rate: 0,
+            amount: 0,
+        }
+    ]);
 
     const navigate = useNavigate();    
 
     useEffect(() => {
         fetch('https://db-demo-u07o.onrender.com/invoices', {
-            method:'GET',
-            headers:{
-                'Authorization':`Bearer ${token}`
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${token}`
             },
-            credentials:'include'
+            credentials: 'include'
         })
-            .then(response => response.json())
-            .then((data) => {
-                const invoiceTotal = data.map((invoice) => {
-                    const totalAmount = (invoice.items.reduce((total, item) => total + item.amount, 0));
-                    return { ...invoice, totalAmount };
-
-                })
-                setInvoices(invoiceTotal);
+        .then(response => response.json())
+        .then((data) => {
+            const invoiceTotal = data.map((invoice) => {
+                const totalAmount = invoice.items.reduce((total, item) => total + item.amount, 0);
+                return { ...invoice, totalAmount };
             });
+    
+            // Sort invoices by invoice_number to get the last one
+            const sortedInvoices = invoiceTotal.sort((a, b) => b.id - a.id);
+            const lastInvoiceNumber = sortedInvoices.length > 0 ? sortedInvoices[0].invoice_number : null;
+    
+            console.log("Last Invoice Number:", lastInvoiceNumber);
+            setLastInvoiceNumber(lastInvoiceNumber)
+            setInvoices(invoiceTotal);
+        });
     }, [token]);
-
+    
     useEffect(() => {
         fetch('https://db-demo-u07o.onrender.com/trucks',{
             method:'GET',
@@ -97,55 +110,46 @@ function FuelInvoice() {
             .then((data) => setCustomers(data));
     }, [token]);
 
-    useEffect(() => {
-        fetch('https://db-demo-u07o.onrender.com/pumpnames', {
-            method:'GET',
-            headers:{
-                'Authorization':`Bearer ${token}`
-            },
-            credentials:'include'
-        })
-            .then(response => response.json())
-            .then((data) => setPumps(data));
-    }, [token]);
+    // useEffect(() => {
 
-    useEffect(() => {
+    //     if (newItem.length > 0){
+    //         const firstItem = newItem[0]
 
-        if (newItem.length > 0){
-            const firstItem = newItem[0]
+    //     fetch('https://db-demo-u07o.onrender.com/pumpnames', {
+    //         method:'GET',
+    //         headers:{
+    //             'Authorization':`Bearer ${token}`
+    //         },
+    //         credentials:'include'
+    //     })
+    //       .then(response => response.json())
+    //       .then(data => {
 
-        fetch('https://db-demo-u07o.onrender.com/pumpnames', {
-            method:'GET',
-            headers:{
-                'Authorization':`Bearer ${token}`
-            },
-            credentials:'include'
-        })
-          .then(response => response.json())
-          .then(data => {
+    //         const pumpname = firstItem.item_details
 
-            const pumpname = firstItem.item_details
-
-            const pump = pumpname ? data.filter(pump => pump.pump_name === pumpname) : [];
+    //         const pump = pumpname ? data.filter(pump => pump.pump_name === pumpname) : [];
             
-            const fuelPump = pump[0]
+    //         const fuelPump = pump[0]
             
-            console.log(fuelPump)
+    //         console.log(fuelPump)
 
-            const total = parseInt(fuelPump.litres, 10)
+    //         const total = parseInt(fuelPump.litres, 10)
 
-            setFuel(total);
-          })
-          .catch(error => console.error('Error fetching data:', error));
-        }
+    //         setFuel(total);
+    //       })
+    //       .catch(error => console.error('Error fetching data:', error));
+    //     }
+
+    //     console.log("Fuel in litres",fuel)
           
-      }, [newItem,token]);
+    //   }, [newItem,token]);
 
     useEffect(() => {
         if (formData.invoice_terms && formData.invoice_date) {
             calculateDueDate(formData.invoice_terms, formData.invoice_date);
         }
     }, [formData.invoice_terms, formData.invoice_date]);
+
 
     function handleChange(event) {
         const { name, value } = event.target;
@@ -161,44 +165,113 @@ function FuelInvoice() {
         }
     }
 
-    function handleNewItemChange(event) {
+    function handleToggleVat() {
+        setIsVatInclusive(!isVatInclusive);
+        
+        setFormData(prevFormData => ({
+            ...prevFormData,
+            type_vat: isVatInclusive ? "Exclusive VAT" : "Inclusive VAT"
+        }));
+    }
+
+    function handleNewItemChange(event, index) {
         const { name, value } = event.target;
         const uppercasedValue = name === 'item_details' || name === 'description' ? value.toUpperCase() : value;
+        const values = [...newItem]
+
+        // Update values based on their names
+        values[index] = {...values[index], [name]:uppercasedValue}
         
-        setNewItem(prevNewItem => {
-            const updatedItem = { ...prevNewItem, [name]: uppercasedValue };
-    
-            if (name === 'quantity' || name === 'rate' || name === 'vat') {
-                if (isVatInclusive) {
-                    // Inclusive VAT calculation
-                    updatedItem.amount = updatedItem.quantity * updatedItem.rate;
-                    updatedItem.rate_vat = ((updatedItem.vat / 100) * updatedItem.amount);
-                    updatedItem.sub_total = (updatedItem.quantity * updatedItem.rate) - updatedItem.rate_vat;
-                } else {
-                    // Exclusive VAT calculation
-                    updatedItem.rate_vat = ((updatedItem.vat / 100) * updatedItem.amount);
-                    updatedItem.sub_total = (updatedItem.quantity * updatedItem.rate);
-                    updatedItem.amount = (updatedItem.sub_total) + updatedItem.rate_vat;
-                }
+        if (name === 'quantity' || name === 'rate' || name === 'vat'){
+            if(isVatInclusive){
+                values[index].amount = values[index].quantity * values[index].rate;
+                values[index].rate_vat = ((values[index].vat / 100) * values[index].amount)
+                values[index].sub_total = (values[index].amount - values[index].rate_vat)
+            }else{
+                values[index].sub_total = values[index].quantity * values[index].rate;
+                values[index].rate_vat = (values[index].vat / 100) * values[index].sub_total;
+                values[index].amount = values[index].sub_total + values[index].rate_vat;
             }
-            return updatedItem;
-        });
+            
+        }
+
+        setNewItem(values);
+
+        setVatAmount(values.reduce((total, item) => total + item.rate_vat, 0))
+        setTotalAmount(values.reduce((total, item) => total + item.amount, 0))
+        setSubTotalAmount(values.reduce((total, item) => total + item.sub_total, 0))
+
+        setFormData(prevformData => ({
+            ...prevformData,
+            items: values,
+        }))
     }
+
+    useEffect(() => {
+        setNewItem(prevItems => {
+            return prevItems.map(item => {
+                let newAmount;
+                let newRateVat;
+                let newSubTotal;
     
-
-    function addItem() {
+                if (isVatInclusive) {
+                    newAmount = item.quantity * item.rate;
+                    newRateVat = ((item.vat / 100) * newAmount).toFixed(2);
+                    newSubTotal = (newAmount - newRateVat).toFixed(2);
+                } else {
+                    newAmount = (item.quantity * item.rate) + item.rate_vat;
+                    newRateVat = ((item.vat / 100) * (item.quantity * item.rate)).toFixed(2);
+                    newSubTotal = (item.quantity * item.rate).toFixed(2);
+                }
+    
+                // Convert strings back to numbers to avoid issues in calculations
+                newAmount = parseFloat(newAmount);
+                newRateVat = parseFloat(newRateVat);
+                newSubTotal = parseFloat(newSubTotal);
+    
+                // Only update if values have changed
+                if (item.amount !== newAmount || item.rate_vat !== newRateVat || item.sub_total !== newSubTotal) {
+                    return {
+                        ...item,
+                        amount: newAmount,
+                        rate_vat: newRateVat,
+                        sub_total: newSubTotal
+                    };
+                }
+    
+                return item;
+            });
+        });
+    }, [isVatInclusive]);
+    
+        
+    useEffect(() => {
+    
+        setVatAmount(newItem.reduce((total, item) => total + item.rate_vat, 0))
+        setTotalAmount(newItem.reduce((total, item) => total + item.amount, 0))
+        setSubTotalAmount(newItem.reduce((total, item) => total + item.sub_total, 0))
+    
+        // Ensure formData.items updates when VAT type is toggled 
         setFormData(prevFormData => ({
             ...prevFormData,
-            items: [...prevFormData.items, newItem]
+            items: newItem
         }));
-        setNewItem({ item_details: "", description: "", weight: "", quantity: 0, rate: 0, vat: 0, rate_vat: 0,sub_total:0, amount: 0 });
+        
+    }, [newItem]);
+
+    function handleNewInputField() {
+        setNewItem([...newItem, { item_details: "PUMP A", description: "", weight: "", quantity: 0, rate: 0, vat: 0, rate_vat: 0,sub_total:0, amount: 0 }]);
     }
 
-    function handleDeleteItem(index) {
+    function handleDeleteInputField(index) {
+        const updatedItems = newItem.filter((_,i) => i !== index)
+
+        setNewItem(updatedItems);
+        
         setFormData(prevFormData => ({
             ...prevFormData,
-            items: prevFormData.items.filter((_, i) => i !== index)
-        }));
+            items: updatedItems
+        }))
     }
 
     function handleSelectCustomer(event) {
@@ -224,7 +297,7 @@ function FuelInvoice() {
         }
     }
     
-    const invoiceNumber = invoices.length + 1
+    const invoiceNumber = parseInt(lastInvoiceNumber) + 1
 
     function handleSubmit(event) {
         event.preventDefault();
@@ -240,7 +313,7 @@ function FuelInvoice() {
             amount_owed: 0,
             status: 'PAID',
             invoice_total: calculateInvoiceTotal(),
-            fuel: fuel,
+            fuel: 1,
             invoice_number: invoiceNumber,
         };
     
@@ -255,9 +328,12 @@ function FuelInvoice() {
         })
         .then(response => {
             if (!response.ok) {
-                throw new Error('Network response was not ok');
+                throw new Error('Network response was not ok')
+            }else{
+                setOpenDialog(false); // Open the dialog
+                return response.json();
             }
-            return response.json();
+           
         })
         .then((data) => {
 
@@ -298,15 +374,20 @@ function FuelInvoice() {
                 items: [],
                 terms_conditions: "",
             });
-            setOpenDialog(true); // Open the dialog
+            setOpenSnackbar(true)
+            setErrorMessage('Invoice was submitted successfully');
 
         })
         .catch((error) => {
             console.error('There was a problem with the fetch operation:', error);
+            setErrorMessage('Failed to submit Invoice.');
         });
     }
-    
-    
+
+    const handleCloseSnackbar = (event, reason) => {
+        if (reason === 'clickaway') return;
+        setOpenSnackbar(false);
+    };
     
 
     function calculateDueDate(terms, invoiceDate) {
@@ -333,19 +414,6 @@ function FuelInvoice() {
         setFormData(prevFormData => ({
             ...prevFormData,
             due_date: date.toISOString().split('T')[0]
-        }));
-    }
-
-    const vatAmount = formData.items.reduce((total, item) => total + item.rate_vat, 0);
-    const totalAmount = isVatInclusive ? formData.items.reduce((total, item) => total + item.amount, 0) : (formData.items.reduce((total, item) => total + item.sub_total, 0) + vatAmount)
-    const subTotalAmount = isVatInclusive ? formData.items.reduce((total, item) => total + item.sub_total, 0): formData.items.reduce((total, item) => total + item.sub_total, 0);
-
-
-    function handleToggleVat() {
-        setIsVatInclusive(!isVatInclusive);
-        setFormData(prevFormData => ({
-            ...prevFormData,
-            type_vat: isVatInclusive ? "Exclusive VAT" : "Inclusive VAT"
         }));
     }
 
@@ -381,7 +449,7 @@ function FuelInvoice() {
               alignItems: 'center', 
               cursor: 'pointer', 
             }}
-            onClick={() => handleViewDetails(params.row.id)}
+            onClick={() => handleViewDetails(params.row.invoice_number)}
           >
             <Typography
                 variant="h7"
@@ -402,7 +470,7 @@ function FuelInvoice() {
               alignItems: 'center', 
               cursor: 'pointer', 
             }}
-            onClick={() => handleViewDetails(params.row.id)}
+            onClick={() => handleViewDetails(params.row.invoice_number)}
           >
             <Typography
               variant="h7"
@@ -430,7 +498,7 @@ function FuelInvoice() {
                     alignItems: 'center', 
                     cursor: 'pointer', 
                   }}
-                  onClick={() => handleViewDetails(params.row.id)}
+                  onClick={() => handleViewDetails(params.row.invoice_number)}
                 >
                   <Typography variant="h7">
                     {formattedAmount}  {/* Display formatted amount */}
@@ -450,7 +518,7 @@ function FuelInvoice() {
               alignItems: 'center', 
               cursor: 'pointer', 
             }}
-            onClick={() => handleViewDetails(params.row.id)}
+            onClick={() => handleViewDetails(params.row.invoice_number)}
           >
             <Typography
               variant="h7"
@@ -471,7 +539,7 @@ function FuelInvoice() {
               alignItems: 'center', 
               cursor: 'pointer', 
             }}
-            onClick={() => handleViewDetails(params.row.id)}
+            onClick={() => handleViewDetails(params.row.invoice_number)}
           >
             <Typography
               variant="h7"
@@ -492,7 +560,7 @@ function FuelInvoice() {
               alignItems: 'center', 
               cursor: 'pointer', 
             }}
-            onClick={() => handleViewDetails(params.row.id)}
+            onClick={() => handleViewDetails(params.row.invoice_number)}
           >
             <Typography
               variant="h7"
@@ -513,7 +581,7 @@ function FuelInvoice() {
               alignItems: 'center', 
               cursor: 'pointer', 
             }}
-            onClick={() => handleViewDetails(params.row.id)}
+            onClick={() => handleViewDetails(params.row.invoice_number)}
           >
             <Typography
               variant="h7"
@@ -670,7 +738,6 @@ function FuelInvoice() {
                                 className="bill-inputfield"
                                 value={invoiceNumber}
                                 onChange={handleChange}
-                                readOnly
                                 variant="outlined"
                                 sx={{mb:'20px'}}
                             />
@@ -725,7 +792,6 @@ function FuelInvoice() {
                                         <MenuItem value='Bank Fees Charges'>Bank Fees Charges</MenuItem>
                                         <MenuItem value='Consultant Expense'>Consultant Expense</MenuItem>
                                         <MenuItem value='Depreciation Expense'>Depreciation Expense</MenuItem>
-                                        <MenuItem value='Diesel Expense'>Diesel Expense</MenuItem>
                                         <MenuItem value='IT and Internet Expense'>IT and Internet Expense</MenuItem>
                                         <MenuItem value='Janitorial Expense'>Janitorial Expense</MenuItem>
                                         <MenuItem value='Lodging'>Lodging</MenuItem>
@@ -818,24 +884,24 @@ function FuelInvoice() {
                                     label="Exclusive VAT"
                                     checked={!isVatInclusive}
                                 />
-                            </RadioGroup>
+                            </RadioGroup> 
 
                             <Typography fontSize={'25px'} fontWeight={'bold'}>Items</Typography>
                             <TableContainer component={Paper} sx={{ overflowX: 'auto', width: '100%', marginTop: 2 }}>
                                 <Table aria-label="Invoice Table" sx={{ minWidth: isMobile ? 900 : 'auto' }}>
                                     <TableHead>
                                         <TableRow>
-                                            <TableCell sx={{ minWidth: 150 }}><Typography fontWeight="bold">Pump</Typography></TableCell>
-                                            <TableCell sx={{ minWidth: 150 }}><Typography fontWeight="bold">Truck</Typography></TableCell>
-                                            <TableCell sx={{ minWidth: 150 }}><Typography fontWeight="bold">Litres</Typography></TableCell>
-                                            <TableCell sx={{ minWidth: 150 }}><Typography fontWeight="bold">Rate</Typography></TableCell>
-                                            <TableCell sx={{ minWidth: 150 }}><Typography fontWeight="bold">Sub Total</Typography></TableCell>
-                                            <TableCell sx={{ minWidth: 150 }}><Typography fontWeight="bold">VAT</Typography></TableCell>
-                                            <TableCell sx={{ minWidth: 150 }}><Typography fontWeight="bold">VAT Amount</Typography></TableCell>
-                                            <TableCell sx={{ minWidth: 150 }}><Typography fontWeight="bold">Total Amount</Typography></TableCell>
+                                            <TableCell sx={{ minWidth: 50 }}><Typography fontWeight="bold">Pump</Typography></TableCell>
+                                            <TableCell sx={{ minWidth: 90 }}><Typography fontWeight="bold">Truck</Typography></TableCell>
+                                            <TableCell sx={{ minWidth: 70 }}><Typography fontWeight="bold">Litres</Typography></TableCell>
+                                            <TableCell sx={{ minWidth: 90 }}><Typography fontWeight="bold">Rate</Typography></TableCell>
+                                            <TableCell sx={{ minWidth: 90 }}><Typography fontWeight="bold">Sub Total</Typography></TableCell>
+                                            <TableCell sx={{ minWidth: 50 }}><Typography fontWeight="bold">VAT</Typography></TableCell>
+                                            <TableCell sx={{ minWidth: 50 }}><Typography fontWeight="bold">VAT Amount</Typography></TableCell>
+                                            <TableCell sx={{ minWidth: 50 }}><Typography fontWeight="bold">Total Amount</Typography></TableCell>
                                         </TableRow>
                                     </TableHead>
-                                    <TableBody>
+                                    {/* <TableBody>
                                         {formData.items.map((item, index) => (
                                             <TableRow key={index}>
                                                 <TableCell>{item.item_details}</TableCell>
@@ -959,34 +1025,135 @@ function FuelInvoice() {
                                                 />
                                             </TableCell>
                                         </TableRow>
-                                    </TableBody>
+                                    </TableBody> */}
                                 </Table>
                             </TableContainer>
-                            
-                            <Button variant="contained" color="secondary" onClick={addItem} sx={{margin:'30px'}}><Typography fontWeight={'bold'}>ADD ITEM</Typography></Button>
+                            {/* <Button variant="contained" color="secondary" onClick={addItem} sx={{margin:'30px'}}><Typography fontWeight={'bold'}>ADD ITEM</Typography></Button> */}
+
+                            <Box mt={'20px'}>
+                                {newItem.map((item, index) => (
+                                    <Box key={index} display={'flex'} gap={'20px'} alignItems={'center'}>
+
+                                            <Select 
+                                                name="item_details" 
+                                                value={item.item_details} 
+                                                className="bill-inputfield" 
+                                                onChange={(e) => handleNewItemChange(e, index)} 
+                                            >
+                                                <MenuItem value="" >Select Pump</MenuItem>
+                                                <MenuItem value="PUMP A" >PUMP A</MenuItem>
+                                                <MenuItem value="PUMP B" >PUMP B</MenuItem>
+
+                                            </Select> 
+
+                                        <Select name="description" value={item.description} onChange={(e) => handleNewItemChange(e, index)} fullWidth displayEmpty>
+                                            <MenuItem value="">Select Item</MenuItem>
+                                                {trucks.map((truck, index) => (
+                                                    <MenuItem key={index} value={truck.truck_number}>{truck.truck_number}</MenuItem>
+                                                ))}
+                                        </Select>
+
+                                        <TextField
+                                            type="number"
+                                            name="quantity"
+                                            placeholder="Litres"
+                                            className="bill-inputfield"
+                                            value={item.quantity}
+                                            onChange={(e) => handleNewItemChange(e, index)}
+                                            variant="outlined"
+                                            size="small"
+                                            fullWidth
+                                        />
+
+                                        <TextField
+                                            type="number"
+                                            name="rate"
+                                            placeholder="Rate"
+                                            className="bill-inputfield"
+                                            value={item.rate}
+                                            onChange={(e) => handleNewItemChange(e, index)}
+                                            variant="outlined"
+                                            size="small"
+                                            fullWidth
+                                        />
+
+                                        <TextField
+                                            placeholder="Sub Total"
+                                            variant="outlined"
+                                            size="small"
+                                            fullWidth
+                                            value={item.sub_total}
+                                            InputProps={{ readOnly: true }}
+                                        />
+
+                                        <Select
+                                            value={item.vat}
+                                            name="vat"
+                                            fullWidth
+                                            onChange={(e) => handleNewItemChange(e, index)}
+                                            displayEmpty
+                                        >
+                                            <MenuItem value=""><em>Select VAT</em></MenuItem>
+                                            <MenuItem value={16}>16%</MenuItem>
+                                            <MenuItem value={0}>0%</MenuItem>
+                                        </Select>
+
+                                        <TextField
+                                            placeholder="VAT Amount"
+                                            variant="outlined"
+                                            size="small"
+                                            fullWidth
+                                            value={item.rate_vat}
+                                            InputProps={{ readOnly: true }}
+                                        />
+
+                                        <TextField
+                                            placeholder="Total Amount"
+                                            variant="outlined"
+                                            size="small"
+                                            fullWidth
+                                            value={item.amount}
+                                            InputProps={{ readOnly: true }}
+                                        />
+
+                                        <IconButton onClick={() => handleDeleteInputField(index)}>
+                                            <DeleteForever sx={{fontSize:'30px', color:'black', border:'2px solid red', padding:'10px', borderRadius:"8px", ":hover":{backgroundColor:'red', color:'white'}}}/>
+                                        </IconButton>
+
+                                    </Box>
+                                    
+                                ))}
+
+                                <Button onClick={handleNewInputField} variant="contained" style={{backgroundColor:'grey', color:'white', marginTop:'20px', display:'flex', justifyContent:'center', alignItems:'center', marginBottom:'20px'}}>
+                                        <AddOutlined sx={{color:'white', fontSize:'19px'}}/>
+                                        <Typography fontWeight={'bold'} fontSize={'12px'}>Add new row</Typography>
+                                </Button>
+
+                            </Box>
+
                             <Box display={'flex'} flexDirection={'column'} gap={'15px'} m={'10px'} textAlign={'right'} fontWeight={'bold'}>
-                                <Typography fontWeight={'bold'}>
-                                        Sub Total Amount:{" "}
+                                <Typography fontFamily={"GT Regular"} fontSize={'20px'} fontWeight={'bold'}>
+                                        Sub Total:{" "}
                                         {formData.currency ? (
                                             new Intl.NumberFormat(userLocale, { style: 'currency', currency: formData.currency }).format(subTotalAmount)
                                         ) : (
-                                            subTotalAmount
+                                            new Intl.NumberFormat().format(subTotalAmount)
                                         )}
                                 </Typography>
 
-                                <Typography fontWeight={'bold'}>VAT Amount: {" "}
+                                <Typography fontSize={'20px'} fontFamily={"GT Regular"} fontWeight={'bold'}>VAT Amount: {" "}
                                         {formData.currency ? (
                                             new Intl.NumberFormat(userLocale, { style: 'currency', currency: formData.currency }).format(vatAmount)
                                         ) : (
-                                            vatAmount
+                                            new Intl.NumberFormat().format(vatAmount)
                                         )}
                                 </Typography>
 
-                                <Typography fontWeight={'bold'}>Total Amount: {" "}
+                                <Typography fontSize={'20px'} fontFamily={"GT Regular"} fontWeight={'bold'}>Total: {" "}
                                     { formData.currency ? (
                                         new Intl.NumberFormat(userLocale, {currency:formData.currency, style:'currency'}).format(totalAmount)
                                     ):(
-                                        totalAmount
+                                        new Intl.NumberFormat().format(totalAmount)
                                     )}
                                 </Typography>
                             </Box>
@@ -995,6 +1162,15 @@ function FuelInvoice() {
 
                         </form>
                     </Box>
+
+                    <Snackbar
+                         open={openSnackbar} 
+                         autoHideDuration={6000} 
+                         onClose={handleCloseSnackbar} 
+                         anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+                    >
+                        <Alert onClose={handleCloseSnackbar} severity={errorMessage.includes('Failed') ? "error" : "success"} sx={{ width: '100%' }}>{errorMessage}</Alert>
+                    </Snackbar>
                 </Box>
             </Box>
             
@@ -1011,7 +1187,7 @@ function FuelInvoice() {
                     {displayedItems.map((item) => (
                         <Card
                             key={item.id}
-                            onClick={() => handleViewDetails(item.id)}
+                            onClick={() => handleViewDetails(item.invoice_number)}
                             sx={{
                                 borderRadius: '15px',
                                 display: 'flex',

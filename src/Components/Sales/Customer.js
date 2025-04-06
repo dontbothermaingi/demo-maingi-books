@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
-import { Box, Button, Card, CardContent, FormControl, MenuItem, Pagination, Select, TextField, Typography, useMediaQuery } from "@mui/material";
+import { Box, Button, Card, CardContent, FormControl, MenuItem, Pagination, Select, TextField, ToggleButton, ToggleButtonGroup, Typography, useMediaQuery } from "@mui/material";
 import { DataGrid, GridToolbar } from "@mui/x-data-grid";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router";
 
 function Customer() {
     const [customers, setCustomers] = useState([]);
-    const [isVatInclusive, setIsVatInclusive] = useState([])
+    const [isNewCustomer, setIsNewCustomer] = useState("All Customers")
     const token = localStorage.getItem('access_token')
     const navigate = useNavigate()
     const [formData, setFormData] = useState({
@@ -254,12 +254,6 @@ function Customer() {
         { code: "ZWL", label: "Zimbabwean Dollar" }
     ];
     
-    
-
-    function handleToggleVat() {
-        setIsVatInclusive(!isVatInclusive);
-    }
-
     const handleViewDetails = (customerId) => {
         navigate(`/customers/${customerId}`);
     };
@@ -277,7 +271,7 @@ function Customer() {
                 alignItems: 'center', 
                 cursor: 'pointer', 
               }}
-              onClick={() => handleViewDetails(params.row.customer_name)}
+              onClick={() => handleViewDetails(params.row.id)}
             >
               <Typography
                   variant="h7"
@@ -299,7 +293,8 @@ function Customer() {
                   alignItems: 'center', 
                   cursor: 'pointer', 
                 }}
-                onClick={() => handleViewDetails(params.row.customer_name)}
+              onClick={() => handleViewDetails(params.row.id)}
+
               >
                 <Typography
                     variant="h7"
@@ -320,7 +315,6 @@ function Customer() {
               alignItems: 'center', 
               cursor: 'pointer', 
             }}
-            onClick={() => handleViewDetails(params.row.customer_name)}
           >
             <Typography
                 variant="h7"
@@ -341,7 +335,6 @@ function Customer() {
               alignItems: 'center', 
               cursor: 'pointer', 
             }}
-            onClick={() => handleViewDetails(params.row.customer_name)}
           >
             <Typography
                 variant="h7"
@@ -362,7 +355,6 @@ function Customer() {
               alignItems: 'center', 
               cursor: 'pointer', 
             }}
-            onClick={() => handleViewDetails(params.row.customer_name)}
           >
             <Typography
                 variant="h7"
@@ -383,7 +375,6 @@ function Customer() {
                   alignItems: 'center', 
                   cursor: 'pointer', 
                 }}
-                onClick={() => handleViewDetails(params.row.customer_name)}
               >
                 <Typography
                     variant="h7"
@@ -404,7 +395,6 @@ function Customer() {
                   alignItems: 'center', 
                   cursor: 'pointer', 
                 }}
-                onClick={() => handleViewDetails(params.row.customer_name)}
               >
                 <Typography
                     variant="h7"
@@ -428,17 +418,20 @@ function Customer() {
     return (
         <Box>
             <Box>
-                        <Button
-                                type="button"
-                                variant="contained"
-                                color="secondary"
-                                onClick={handleToggleVat}
-                                sx={{ml:'40px', mt:'20px', mb:'20px'}}
-                                >
-                                {isVatInclusive ? "New Customer" : "All Customers"}
-                        </Button>
 
-        {isVatInclusive ? "" : 
+                <ToggleButtonGroup
+                    value={isNewCustomer}
+                    onChange={(e) => setIsNewCustomer(e.target.value)}
+                    exclusive
+                    color="secondary"
+                    sx={{ml:'20px'}}
+                >
+                    <ToggleButton value={"All Customers"}>All Customers</ToggleButton>
+                    <ToggleButton value={"New Customers"}>New Customers</ToggleButton>
+
+                </ToggleButtonGroup>
+
+        {isNewCustomer === "All Customers" ? "" : 
         
             <Box 
                 sx={{borderRadius: '15px',
@@ -577,7 +570,6 @@ function Customer() {
                         {displayedItems.map((item) => (
                             <Card
                                 key={item.id}
-                                onClick={() => handleViewDetails(item.customer_name)}
                                 sx={{
                                     borderRadius: '15px',
                                     display: 'flex',
@@ -595,27 +587,27 @@ function Customer() {
                                 }}
                             >
                                 <CardContent>
-                                        <Box display={'flex'} gap={'3px'}>
-                                            <Typography>Name:</Typography>
+                                        <Box display={'flex'} gap={'7px'}>
+                                            <Typography>Customer Name:</Typography>
                                             <Typography fontWeight={'bold'}>{item.customer_name}</Typography>
                                         </Box>
 
-                                        <Box display={'flex'} gap={'3px'}>
+                                        <Box display={'flex'} gap={'7px'}>
                                             <Typography>Phone Number:</Typography>
                                             <Typography  fontWeight={'bold'}>{item.customer_phone}</Typography>
                                         </Box>
 
-                                        <Box display={'flex'} gap={'3px'}>
+                                        <Box display={'flex'} gap={'7px'}>
                                             <Typography>Email:</Typography>
                                             <Typography fontWeight={'bold'}>{item.customer_email}</Typography>
                                         </Box>
 
-                                        <Box display={'flex'} gap={'3px'}>
+                                        <Box display={'flex'} gap={'7px'}>
                                             <Typography>KRA Pin:</Typography>
-                                            <Typography fontWeight={'bold'}>{item.kra_pin}</Typography>
+                                            <Typography fontWeight={'bold'}>{item.vendor_pin}</Typography>
                                         </Box>
 
-                                        <Box display={'flex'} gap={'3px'}>
+                                        <Box display={'flex'} gap={'7px'}>
                                             <Typography>Currency:</Typography>
                                             <Typography fontWeight={'bold'}>{item.currency}</Typography>
                                         </Box>

@@ -1,5 +1,4 @@
 import { Box,Card,CardContent,Typography,} from "@mui/material";
-import Header from "./Header";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { DataGrid, GridToolbar } from "@mui/x-data-grid";
@@ -189,12 +188,17 @@ const Dashboard = () => {
           headerName: "SPARE NAME",
           headerAlign: "left",
           cellClassName: "name-column--cell",
-          flex: 0.4,
+          flex: 0.3,
           align: "left",
         },
         {
           field: "quantity",
-          headerName: "QUANTITY",
+          headerName: "QUANTITY", 
+          flex: 0.2,
+        },
+        {
+          field: "measurement",
+          headerName: "Measurement",
           flex: 0.2,
         },
     ];
@@ -218,13 +222,16 @@ const Dashboard = () => {
           headerName: "QUANTITY",
           flex: 0.1,
         },
+        
     ];
   
   return (
     <Box height={'100vh'} overflow={'auto'} marginLeft={{md:'30px'}}>
       {/* HEADER */}
-      <Box display="flex" justifyContent="space-between" alignItems="center">
-        <Header title="DASHBOARD" subtitle="Welcome to your dashboard" />
+      <Box display="flex" flexDirection="column" >
+        {/* <Header title="DASHBOARD" subtitle="Welcome to your dashboard" /> */}
+        <Typography fontFamily={"GT Ultrabold"} fontSize={{xs:'30px', md:'40px'}} ml={'20px'} textAlign={{xs:'center', md:'left'}}>DASHBOARD</Typography>
+        <Typography fontFamily={"GT Medium"} fontSize={{xs:'20px', md:'25px'}} ml={'20px'} mb={{xs:'10px', md:'20px'}} textAlign={{xs:'center', md:'left'}}>Welcome to your dashboard</Typography>
       </Box>
 
       <Box display={'flex'} flexDirection={'column'} gap={'30px'}>
@@ -246,7 +253,7 @@ const Dashboard = () => {
             justifyContent: 'center',
             boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
             padding: '10px',
-            backgroundColor: 'orange',
+            backgroundColor: 'black',
             transition: 'transform 0.3s ease-in-out',
             '&:hover': {
               transform: 'scale(1.03)',
@@ -258,10 +265,10 @@ const Dashboard = () => {
           }}
         >
           <CardContent sx={{ textAlign: 'center' }}>
-            <Typography fontSize={'27px'} fontWeight="bold" gutterBottom>
+            <Typography fontSize={'27px'} fontFamily={"GT Medium"} color={'white'} fontWeight="bold">
               DIESEL
             </Typography>
-            <Typography fontSize={'20px'} color={'grey'}>
+            <Typography fontSize={'20px'} color={'grey'} fontFamily={"GT Regular"}>
               {totalDiesel} Litres
             </Typography>
           </CardContent>
@@ -278,7 +285,7 @@ const Dashboard = () => {
             justifyContent: 'center',
             boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
             padding: '10px',
-            backgroundColor: 'orange',
+            backgroundColor: 'purple',
             transition: 'transform 0.3s ease-in-out',
             '&:hover': {
               transform: 'scale(1.03)',
@@ -290,10 +297,10 @@ const Dashboard = () => {
           }}
         >
           <CardContent sx={{ textAlign: 'center' }}>
-            <Typography fontSize={'27px'} fontWeight="bold" gutterBottom>
+            <Typography fontSize={'27px'} color={'white'} fontFamily={"GT Medium"} fontWeight="bold">
               CUSTOMERS
             </Typography>
-            <Typography fontSize={'20px'} color={'grey'}>
+            <Typography fontSize={'20px'} fontFamily={"GT Regular"} color={'grey'}>
               {customer}
             </Typography>
           </CardContent>
@@ -310,7 +317,7 @@ const Dashboard = () => {
             justifyContent: 'center',
             boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
             padding: '10px',
-            backgroundColor: 'orange',
+            backgroundColor: 'black',
             transition: 'transform 0.3s ease-in-out',
             '&:hover': {
               transform: 'scale(1.03)',
@@ -321,11 +328,11 @@ const Dashboard = () => {
             },
           }}
         >
-            <CardContent sx={{ textAlign: 'center', }}>
-            <Typography fontSize={'27px'} fontWeight="bold" gutterBottom>
+            <CardContent sx={{ textAlign: 'center'}}>
+            <Typography fontSize={'27px'} fontFamily={"GT Medium"} color={'white'} fontWeight="bold">
               INVOICES
             </Typography>
-            <Typography fontSize={'20px'} color={'grey'}>
+            <Typography fontSize={'20px'} fontFamily={"GT Regular"} color={'grey'}>
               {invoicesNumber}
             </Typography>
           </CardContent>
@@ -342,7 +349,7 @@ const Dashboard = () => {
             justifyContent: 'center',
             boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
             padding: '10px',
-            backgroundColor: 'orange',
+            backgroundColor: 'black',
             transition: 'transform 0.3s ease-in-out',
             '&:hover': {
               transform: 'scale(1.03)',
@@ -355,10 +362,10 @@ const Dashboard = () => {
           }}
         >
           <CardContent sx={{ textAlign: 'center' }}>
-            <Typography fontSize={'27px'} fontWeight="bold" gutterBottom>
+            <Typography fontSize={'27px'} color={'white'} fontFamily={"GT Medium"} fontWeight="bold">
               VENDORS
             </Typography>
-            <Typography fontSize={'20px'} color={'grey'}>
+            <Typography fontSize={'20px'} fontFamily={"GT Regular"} color={'grey'}>
               {vendor}
             </Typography>
           </CardContent>
@@ -399,11 +406,11 @@ const Dashboard = () => {
           }}
         >
           <CardContent sx={{ textAlign: 'center' }}>
-            <Typography fontSize={'27px'} fontWeight="bold" gutterBottom>
+            <Typography fontSize={'27px'} fontWeight="bold" color={'white'} fontFamily={"GT Medium"}>
               REVENUE
             </Typography>
 
-            <Typography fontSize={'20px'} paragraph>
+            <Typography fontSize={'20px'} fontFamily={"GT Regular"} color={'white'} paragraph>
               {TotalRevenue}
             </Typography>
           </CardContent>
@@ -421,7 +428,7 @@ const Dashboard = () => {
             justifyContent: 'center',
             boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
             padding: '10px',
-            backgroundColor: 'orange',
+            backgroundColor: 'purple',
             transition: 'transform 0.3s ease-in-out',
             '&:hover': {
               transform: 'scale(1.03)',
@@ -433,10 +440,10 @@ const Dashboard = () => {
           }}
         >
           <CardContent sx={{ textAlign: 'center' }}>
-            <Typography fontSize={'27px'} fontWeight="bold" gutterBottom>
+            <Typography fontSize={'27px'} color={'white'} fontFamily={"GT Medium"} fontWeight="bold" gutterBottom>
               EXPENSES
             </Typography>
-            <Typography fontSize={'20px'} paragraph>
+            <Typography fontSize={'20px'} color={'white'} fontFamily={"GT Regular"} paragraph>
               {TotalExpenses}
             </Typography>
           </CardContent>
@@ -452,22 +459,21 @@ const Dashboard = () => {
         >
         {/* Tyres Card */}
         <Card
-          onClick={handleViewCustomers}
           sx={{
             borderRadius: '15px',
             display: 'flex',
             flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
             boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
             padding: '10px',
+            overflow:'auto',
+            height:'800px',
             backgroundColor: '#fff',
             '@media (max-width:1600px)': {
-              height: '550px',
+              // height: '550px',
             },
           }}
         >
-          <CardContent sx={{ textAlign: 'center', width:'100%' }}>
+          <CardContent>
             <Typography variant="h6" fontWeight="bold" gutterBottom>
               TYRES
             </Typography>
@@ -505,10 +511,18 @@ const Dashboard = () => {
                       }}
                   >
                       <DataGrid
-                      rows={tyres}
-                      columns={tyre}
-                      components={{ Toolbar: GridToolbar }}
-                      getRowId={(row) => `${row.item_details}-${row.quantity}`}
+                        rows={tyres}
+                        columns={tyre}
+                        components={{ Toolbar: GridToolbar }}
+                        getRowId={(row) => row.id}
+                        initialState={{
+                          pagination: {
+                            paginationModel: {
+                              pageSize: 30,
+                            },
+                          },
+                        }}
+                        pageSizeOptions={[30]}
                       />
                   </Box>
           </CardContent>
@@ -517,22 +531,21 @@ const Dashboard = () => {
 
         {/* Spare Card */}
         <Card
-          onClick={handleViewCustomers}
           sx={{
             borderRadius: '15px',
+            overflow: 'auto',
             display: 'flex',
             flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
             boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
             padding: '10px',
+            height:'800px',
             backgroundColor: '#fff',
             '@media (max-width:600px)': {
-              height: '550px',
+              // height: '550px',
             },
           }}
         >
-          <CardContent sx={{ textAlign: 'center',width:'100%' }}>
+          <CardContent>
             <Typography variant="h6" fontWeight="bold" gutterBottom>
               SPARES
             </Typography>
@@ -571,10 +584,18 @@ const Dashboard = () => {
                       }}
                   >
                       <DataGrid
-                      rows={spare}
-                      columns={columns}
-                      components={{ Toolbar: GridToolbar }}
-                      getRowId={(row) => `${row.item_details}-${row.quantity}`}
+                        rows={spare}
+                        columns={columns}
+                        components={{ Toolbar: GridToolbar }}
+                        getRowId={(row) => row.id}
+                        initialState={{
+                          pagination: {
+                            paginationModel: {
+                              pageSize: 30,
+                            },
+                          },
+                        }}
+                        pageSizeOptions={[30]}
                       />
                   </Box>
               </Box>

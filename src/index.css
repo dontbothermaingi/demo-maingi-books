@@ -6,3 +6,33 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
+
+@font-face {
+  font-family: "GT Ultrabold";
+  src: local("GT Ultrabold"),
+       url("./Components/fonts/GTWalsheimPro-UltraBold.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "GT Bold";
+  src: local("GT Bold"),
+  url("./Components/fonts/GTWalsheimPro-Bold.ttf") format('truetype');
+}
+
+@font-face {
+  font-family: "GT Medium";
+  src: local("GT Medium"),
+  url("./Components/fonts/GTWalsheimPro-Medium.ttf") format('truetype');
+}
+
+@font-face {
+  font-family: "GT Regular";
+  src: local("GT Regular"),
+  url("./Components/fonts/GTWalsheimPro-Regular.ttf") format('truetype');
+}
+
+@font-face {
+  font-family: "GT Light";
+  src: local("GT Light"),
+  url("./Components/fonts/GTWalsheimPro-Light.ttf") format('truetype');
+}

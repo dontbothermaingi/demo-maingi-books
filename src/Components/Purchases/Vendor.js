@@ -1,13 +1,15 @@
 import { useEffect, useState } from "react";
-import { Box, Button, Card, CardContent, FormControl, MenuItem, Pagination, Select, TextField, Typography, useMediaQuery} from "@mui/material";
+import { Box, Button, Card, CardContent, FormControl, MenuItem, Pagination, Select, TextField, ToggleButton, ToggleButtonGroup, Typography, useMediaQuery} from "@mui/material";
 import { DataGrid, GridToolbar } from "@mui/x-data-grid";
+import { useNavigate } from "react-router";
 
 function Vendor() {
     const [vendors, setVendors] = useState([]);
-    const [isVatInclusive, setIsVatInclusive] = useState([])
+    const [isNewVendor, setIsNewVendor] = useState("All Vendors")
     const [currentPage, setCurrentPage] = useState(1)
     const itemsPerPage = 16;
     const isMobile = useMediaQuery('(max-width: 768px)');
+    const navigate = useNavigate()
     const token = localStorage.getItem('access_token')
     const [formData, setFormData] = useState({
         vendor_name: "",
@@ -260,8 +262,8 @@ function Vendor() {
             .catch(error => console.error('Error:', error));
     }
 
-    function handleToggleVat() {
-        setIsVatInclusive(!isVatInclusive);
+    function handleVendor(vendorId) {
+        navigate(`/vendors/${vendorId}`);
     }
 
     const columns = [
@@ -280,6 +282,7 @@ function Vendor() {
               cursor: 'pointer', 
               margin: '15px'
             }}
+            onClick={() => handleVendor(params.row.id)}
           >
             <Typography>
               {params.value}
@@ -302,7 +305,6 @@ function Vendor() {
           headerName: "KRA PIN",
           flex: 0.2,
         },
-        
       ];
 
       const totalPages = Math.ceil(vendors.length / itemsPerPage)
@@ -316,17 +318,21 @@ function Vendor() {
     return (
         <Box height={'100vh'} overflow={'auto'}>
 
-            <Button
-               type="button"
-               onClick={handleToggleVat}
-               color="secondary"
-               variant="contained"
-               sx={{margin:'30px'}}
+            <ToggleButtonGroup
+                onChange={(e) => setIsNewVendor(e.target.value)}
+                value={isNewVendor}
+                exclusive
+                color="secondary"
+                sx={{ml:'20px', mt:'10px'}}
             >
-                {isVatInclusive ? 'New Vendor' : 'All Vendors'}
-            </Button>
+                <ToggleButton value={'All Vendors'}>All Vendors</ToggleButton>
+                <ToggleButton value={'New Vendors'}>New Vendor</ToggleButton>
 
-            {isVatInclusive ? "" : <div className="bill-content">
+            </ToggleButtonGroup>
+
+            {isNewVendor === "All Vendors" ? "" : 
+            
+            <div>
                 <Box>
                     <Typography fontSize={'27px'} fontWeight={'bold'} textAlign={'center'}>NEW VENDOR</Typography>
                     <Box>

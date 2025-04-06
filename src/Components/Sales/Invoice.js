@@ -1,12 +1,12 @@
 import { useEffect, useState } from "react";
-import { Box, Button, Card, CardContent, Pagination, Typography, useMediaQuery} from "@mui/material";
+import { Box, Card, CardContent, Pagination, ToggleButton, ToggleButtonGroup, Typography, useMediaQuery} from "@mui/material";
 import { DataGrid, GridToolbar } from "@mui/x-data-grid";
 import { useNavigate } from "react-router-dom";
 import InvoiceControl from "./InvoiceControl";
 
 function Invoice() {
     const [invoices, setInvoices] = useState([]);
-    const [isNewCustomer, setIsNewCustomer] = useState(null)
+    const [newInvoice, setNewInvoice] = useState('All Invoices')
     const [currentPage, setCurrentPage] = useState(1)
     const itemsPerPage = 16;
     const token = localStorage.getItem('access_token')
@@ -33,37 +33,32 @@ function Invoice() {
             });
     }, [token]);
 
-
-    function handleToggleInvoice() {
-        setIsNewCustomer(!isNewCustomer);
-    }
+    const currencyLocaleMap = {
+      AED: "en-AE", // United Arab Emirates Dirham
+      AUD: "en-AU", // Australian Dollar
+      CAD: "en-CA", // Canadian Dollar
+      CHF: "de-CH", // Swiss Franc
+      CNY: "zh-CN", // Chinese Yuan
+      EUR: "de-DE", // Euro
+      GBP: "en-GB", // British Pound
+      HKD: "en-HK", // Hong Kong Dollar
+      IDR: "id-ID", // Indonesian Rupiah
+      ILS: "he-IL", // Israeli New Shekel
+      INR: "en-IN", // Indian Rupee
+      JPY: "ja-JP", // Japanese Yen
+      KES: "en-KE", // Kenyan Shilling
+      NZD: "en-NZ", // New Zealand Dollar
+      SGD: "en-SG", // Singapore Dollar
+      THB: "th-TH", // Thai Baht
+      TRY: "tr-TR", // Turkish Lira
+      USD: "en-US", // United States Dollar
+      ZAR: "en-ZA", // South African Rand
+      MXN: "es-MX", // Mexican Peso
+      BRL: "pt-BR", // Brazilian Real
+    };
 
     const handleViewDetails = (invoiceId) => {
         navigate(`/invoices/${invoiceId}`);
-      };
-    
-      const currencyLocaleMap = {
-        AED: "en-AE", // United Arab Emirates Dirham
-        AUD: "en-AU", // Australian Dollar
-        CAD: "en-CA", // Canadian Dollar
-        CHF: "de-CH", // Swiss Franc
-        CNY: "zh-CN", // Chinese Yuan
-        EUR: "de-DE", // Euro
-        GBP: "en-GB", // British Pound
-        HKD: "en-HK", // Hong Kong Dollar
-        IDR: "id-ID", // Indonesian Rupiah
-        ILS: "he-IL", // Israeli New Shekel
-        INR: "en-IN", // Indian Rupee
-        JPY: "ja-JP", // Japanese Yen
-        KES: "en-KE", // Kenyan Shilling
-        NZD: "en-NZ", // New Zealand Dollar
-        SGD: "en-SG", // Singapore Dollar
-        THB: "th-TH", // Thai Baht
-        TRY: "tr-TR", // Turkish Lira
-        USD: "en-US", // United States Dollar
-        ZAR: "en-ZA", // South African Rand
-        MXN: "es-MX", // Mexican Peso
-        BRL: "pt-BR", // Brazilian Real
       };
     
     const columns = [
@@ -238,17 +233,19 @@ function Invoice() {
     return (
         <Box>
 
-          <Button
-                                type="button"
-                                variant="contained"
-                                color="secondary"
-                                onClick={handleToggleInvoice}
-                                sx={{m:'30px'}}
-                                >
-                                {!isNewCustomer ? "New Invoice" : "All Invoices"}
-          </Button>
+          <ToggleButtonGroup
+            value={newInvoice}
+            onChange={(e) => setNewInvoice(e.target.value)}
+            exclusive
+            color="secondary"
+            sx={{ml:'20px', color:'purple'}}
+            style={{color:'purple'}}
+          >
+            <ToggleButton value={'All Invoices'}>All Invoices</ToggleButton>
+            <ToggleButton value={'New Invoices'}>New Invoices</ToggleButton>
+          </ToggleButtonGroup>
 
-        {isNewCustomer ?  
+        {newInvoice === 'New Invoices' ?  
            (<InvoiceControl/>):
            (
 
@@ -267,7 +264,7 @@ function Invoice() {
                     {displayedItems.map((item) => (
                         <Card
                             key={item.id}
-                            onClick={() => handleViewDetails(item.invoice_number)}
+                            onClick={() => handleViewDetails(item.id)}
                             sx={{
                                 borderRadius: '15px',
                                 display: 'flex',

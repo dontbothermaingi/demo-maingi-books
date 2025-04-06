@@ -12,9 +12,11 @@ import UserAccount from './Components/Useraccount';
 import EditInvoice from './Components/InvoiceEdit';
 import BillEdit from './Components/BillEdit';
 import FuelInvoice from './Components/Sales/FuelInvoices';
-import FitUsedTyre from './Components/FitUsedTyre';
-import UnfitUsedTyres from './Components/UnfitUsedTyres';
-
+import EditStock from './Components/EditStock';
+import TradingEdit from './Components/TradingProfitAndLossAccountEdit';
+import VendorEdit from './Components/VendorEdit';
+import EditSpare from './Components/SpareEdit';
+import VehicleReport from './Components/VehicleReport';
 
 const Customer = lazy(() => import('./Components/Sales/Customer'));
 const Invoice = lazy(() => import('./Components/Sales/Invoice'));
@@ -111,6 +113,9 @@ const InvoiceTransport = lazy(() => import('./Components/Sales/InvoiceTransport'
 const DeliveryNote = lazy(() => import('./Components/Sales/DeliveryNote'));
 const DeliveryNoteDetails = lazy(() => import('./Components/DeliveryNote/DeliveryNoteDetails'));
 const PumpCorrections = lazy(() => import('./Components/PumpCorrection'));
+const TruckInvoiceEdit = lazy(() => import('./Components/TruckInvoiceEdit'));
+const CustomerEdit = lazy(() => import('./Components/CustomerEdit'));
+
 
 
 function App() {
@@ -119,7 +124,7 @@ function App() {
 
 
         useEffect(()=>{
-          fetch('https://maingi-server-3.onrender.com/check_session', {
+          fetch('https://db-demo-u07o.onrender.com/check_session', {
               method:'GET',
               credentials:'include',
               headers:{
@@ -254,6 +259,7 @@ function App() {
                             <Route path="/truck/:truckId" element={<TruckReportPage />} />
                             <Route path="/customers/:customerId" element={<CustomerDetails />} />
                             <Route path="/vendors/:vendorId" element={<VendorDetails />} />
+                            <Route path="/edit-stock/:stockId" element={<EditStock />} />
                             <Route path="/bar-chart" element={<BarChart />} />
                             <Route path="/tyre-and" element={<AllUsedTyre />} />
                             <Route path="/" element={<Dashboard />} />
@@ -280,18 +286,23 @@ function App() {
                             <Route path="/fuel-invoice" element={<FuelInvoice />} />
                             <Route path="/delivery-notes" element={<DeliveryNote />} />
                             <Route path="/invoice-transport" element={<InvoiceTransport />} />
+                            <Route path="/trading-edit" element={<TradingEdit />} />
                             <Route path="/quote-details/:quoteId" element={<QuoteDetails />} />
-                            <Route path="/payment-details/:madeId" element={<PaymentsDetails />} />
+                            <Route path="/payment-report/:madeId" element={<PaymentsDetails />} />
                             <Route path="/invoice-edit/:invoiceId" element={<EditInvoice />} />
                             <Route path="/bill-edit/:billId" element={<BillEdit />} />
                             <Route path="/pump-corrections/:pumpId" element={<PumpCorrections />} />
                             <Route path="/delivery-note/:deliveryId" element={<DeliveryNoteDetails />} />
+                            <Route path="/truck_invoice_edit/:invoiceId" element={<TruckInvoiceEdit />} />
                             <Route path="/user-accounts" element={<UserAccount onLogout={handleLogOut} />} />
-                            <Route path="/fit-used-tyre" element={<FitUsedTyre />} />
-                            <Route path="/unfit-used-tyre" element={<UnfitUsedTyres />} />
+                            <Route path="/customer-edit/:customerId" element={<CustomerEdit />} />
+                            <Route path="/vendor-edit/:vendorId" element={<VendorEdit />} />
+                            <Route path="/edit-spare/:spareId" element={<EditSpare />} />
+                            <Route path="/truck-invoices" element={<VehicleReport />} />
                         </Route>
                     </Routes>
                     </Box>
+
             </Box>
           </Suspense>
   );

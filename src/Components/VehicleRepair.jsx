@@ -1,13 +1,16 @@
-import { Box,Button,Card,CardContent,FormControl,IconButton, MenuItem, Pagination, Select, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TextField, Typography, useMediaQuery } from "@mui/material";
+import { Box,Button,Card,CardContent,Divider,FormControl,IconButton, List, ListItem, ListItemText, MenuItem, Pagination, Select, Table, TableCell, TableContainer, TableHead, TableRow, TextField, Typography, useMediaQuery } from "@mui/material";
 import { DataGrid, GridToolbar } from "@mui/x-data-grid";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import CloseIcon from '@mui/icons-material/Close'; 
+import { AddOutlined, DeleteForever } from "@mui/icons-material";
 
 function VehicleRepair(){
 
     const [spareSubCategories, setSpareSubCategories] = useState([]);
+    const [activeSpareIndex, setActiveSpareIndex] = useState(null);
+    const [spareOptions, setSpareOptions] = useState([]);
     const [trucks, setTrucks] = useState([]);
+    const [selectedSpare, setSelecetedSpare] = useState("");
     const [repairs, setRepairs] = useState([]);
     const [currentPage, setCurrentPage] = useState(1)
     const token = localStorage.getItem('access_token')
@@ -24,15 +27,17 @@ function VehicleRepair(){
             items:[]
     })
 
-    const [newItem, setNewItem] = useState({
-        spare_subcategory_name : "", 
-        spare_category_name : "",
-        price: "",
-        job_name : "",
-        position : "",
-        quantity : "",
-        mechanic : "",
-    })
+    const [newItem, setNewItem] = useState([
+        {
+            spare_subcategory_name : "", 
+            spare_category_name : "",
+            price: "",
+            job_name : "",
+            position : "",
+            quantity : "",
+            mechanic : "",
+        }
+    ])
 
 
     useEffect(()=>{
@@ -86,13 +91,6 @@ function VehicleRepair(){
           });
       }, [token]);
 
-    function handleDeleteItem(index) {
-        setFormData(prevFormData => ({
-            ...prevFormData,
-            items: prevFormData.items.filter((_, i) => i !== index)
-        }));
-    }
-
     function handleSelectTruck(event) {
         const selectedValue = event.target.value;
 
@@ -113,21 +111,6 @@ function VehicleRepair(){
         }
     }
 
-    function handleSelectSpare(event){
-        const selectedValue = event.target.value
-
-        const selectedSpare = spareSubCategories.find(item => item.spare_subcategory_name === selectedValue)
-
-        if (selectedSpare) {
-            setNewItem(prevNewItem => ({
-                ...prevNewItem,
-                spare_subcategory_name: selectedSpare.spare_subcategory_name,
-                price: selectedSpare.price
-            }));
-        }
-
-    }
-
     const axel = [
         { axels: "Steering Axle Left" },
         { axels: "Steering Axle Right" },
@@ -146,22 +129,69 @@ function VehicleRepair(){
         { axels: "Trailer Axle Triple Left" },
         { axels: "Trailer Axle Triple Right" },
     ];
-    const selectedSpare = spareSubCategories.find(item => item.spare_subcategory_name === newItem.spare_subcategory_name)
 
-    function addItem() {
-        setFormData(prevFormData => ({
-            ...prevFormData,
-            items: [...prevFormData.items, newItem]
-        }));
-        setNewItem({ job_name: "",position:"", spare_subcategory_name : "", spare_category_name : "", quantity : "", mechanic:"", });
+
+    function handleNewItemChange(event, index){
+        const {name,value} = event.target
+        const values = [...newItem]
+
+        // Update the array based on index
+        values[index] = {...values[index], [name]:value}
+
+        // Assigning price a value
+        if (name === "spare_subcategory_name"){
+            const spareOptions = spareSubCategories.filter(spare => spare.spare_subcategory_name.toLowerCase().includes(value.toLowerCase()))
+            setSpareOptions(spareOptions)
+        }
+
+
+        setNewItem(values);
+
+        setFormData(prevformData => ({
+            ...prevformData,
+            items: values,
+        }))
     }
 
-    function handleNewItemChange(event){
-        const {name,value} = event.target
+    function handleSelectSpare(spare, index){
+        const updatedItems = [...newItem]
+        updatedItems[index].spare_subcategory_name = spare.spare_subcategory_name;
+        updatedItems[index].price = spare.price;
+        setNewItem(updatedItems)
+        setSelecetedSpare(spare)
 
-        setNewItem(prevNewItem => ({
-            ...prevNewItem,
-            [name]:value,
+        setFormData(prevFormData => ({
+            ...prevFormData,
+            items: updatedItems
+        }))
+
+        setSpareOptions([])
+        setActiveSpareIndex(null);
+    }
+
+    function handleNewInputField(){
+        setNewItem([...newItem, {
+            spare_subcategory_name : "", 
+            spare_category_name : "",
+            price: "",
+            job_name : "",
+            position : "",
+            quantity : "",
+            mechanic : "",
+        }])
+
+        setSelecetedSpare("")
+        setSpareOptions([])
+    }
+
+    function handleDelete(index){
+        const updatedItems = newItem.filter((_,i) => i !== index)
+
+        setNewItem(updatedItems);
+
+        setFormData(prevFormData => ({
+            ...prevFormData,
+            items: updatedItems
         }))
     }
 
@@ -188,7 +218,6 @@ function VehicleRepair(){
             body:JSON.stringify({
                 ...formData,
                 repair_number: repairNumber,
-                price: newItem.price
             })
         })
         .then(response => response.json())
@@ -231,7 +260,7 @@ function VehicleRepair(){
         navigate(`/repair/${repairId}`);
       };
 
-const columns = [
+    const columns = [
         {
             field: "truck_number",
             headerName: "VEHICLE NUMBER",
@@ -257,32 +286,8 @@ const columns = [
               ),
         },
         {
-            field: "vehicle_type",
-            headerName: "VEHICLE TYPE",
-            headerAlign: "left",
-            cellClassName: "name-column--cell",
-            flex: 0.2,
-            align: "left",
-            renderCell: (params) => (
-                <Box 
-                sx={{ 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  cursor: 'pointer', 
-                }}
-                onClick={() => handleRepairReport(params.row.repair_number)}
-              >
-                <Typography
-                    variant="h7"
-                >
-                  {params.value}
-                </Typography>
-              </Box>
-              ),
-        },
-        {
             field: "job_description",
-            headerName: "JOB TYPE",
+            headerName: "JOB TYPE", 
             headerAlign: "left",
             cellClassName: "name-column--cell",
             flex: 0.1,
@@ -309,7 +314,7 @@ const columns = [
           headerName: "SPARE NAME",
           headerAlign: "left",
           cellClassName: "name-column--cell",
-          flex: 0.2,
+          flex: 0.3,
           align: "left",
           renderCell: (params) => (
             <Box 
@@ -371,8 +376,8 @@ const columns = [
           ),
         },
         {
-            field: "job_name",
-            headerName: "JOB DESCRIPTION",
+            field: "date",
+            headerName: "DATE",
             headerAlign: "left",
             cellClassName: "name-column--cell",
             flex: 0.4,
@@ -394,7 +399,7 @@ const columns = [
               </Box>
               ),
         },
-      ];
+    ];
 
       const totalPages = Math.ceil(repairs.length / itemsPerPage)
       const displayedItems = repairs.slice((currentPage-1) * itemsPerPage, currentPage * itemsPerPage)
@@ -407,7 +412,7 @@ const columns = [
 
         <Box margin={{md:'40px', xs:'10px'}}>
             <Box>
-                <Typography fontWeight={'bold'} fontSize={'27px'} textAlign={'center'}>VEHICLE REPAIR OR SERVICE</Typography>
+                <Typography fontWeight={'bold'} fontSize={{xs:'20px', md:'30px'}} mb={'20px'} fontFamily={"GT Ultrabold"} textAlign={'center'}>VEHICLE REPAIR OR SERVICE</Typography>
 
                 <Box 
                     sx={{
@@ -498,118 +503,271 @@ const columns = [
                             sx={{mb:'20px'}}
                         />
 
-                    {newItem.spare_subcategory_name ? <h2 className="OWE">THIS SPARE HAS {new Intl.NumberFormat().format(selectedSpare.quantity)} {selectedSpare.measurement} LEFT.</h2> : ""}
+                    {selectedSpare ? <h2 className="OWE">THIS SPARE({selectedSpare.spare_subcategory_name}) HAS {new Intl.NumberFormat().format(selectedSpare.quantity)} {selectedSpare.measurement} LEFT.</h2> : ""}
 
 
-                    <TableContainer>
-                        <Table>
-                            <TableHead>
-                                <TableRow>
-                                    <TableCell sx={{ minWidth: 430  }}><Typography fontWeight="bold">Repair Description</Typography></TableCell>
-                                    <TableCell sx={{ minWidth: 150 }}><Typography fontWeight="bold">Vehicle Axle(If Needed)</Typography></TableCell>
-                                    <TableCell sx={{ minWidth: 150 }}><Typography fontWeight="bold">Spare Name</Typography></TableCell>
-                                    <TableCell sx={{ minWidth: 150 }}><Typography fontWeight="bold">Quantity</Typography></TableCell>
-                                    <TableCell sx={{ minWidth: 150 }}><Typography fontWeight="bold">Mechanic</Typography></TableCell>
-                                </TableRow>
-                            </TableHead>
-                            <TableBody>
-                                {formData.items.map((item, index) => (
-                                    <TableRow key={index}>
-                                        <TableCell>{item.job_name}</TableCell>
-                                        <TableCell>{item.position}</TableCell>
-                                        <TableCell>{item.spare_subcategory_name}</TableCell>
-                                        <TableCell>{item.quantity}</TableCell>
-                                        <TableCell>{item.mechanic}</TableCell>
-                                        <TableCell>
-                                            <IconButton 
-                                                color="error"
-                                                onClick={() => handleDeleteItem(index)}
-                                            >
-                                                <CloseIcon />
-                                            </IconButton>
-                                        </TableCell>
-                                    </TableRow>
-                                ))}
-                                <TableRow>
+                    {isMobile ? (
+                        
+                        <Box>
+                             <Typography fontFamily={"GT Bold"} fontSize={'25px'} mt={'20px'}>SPECIFICS</Typography>
+                             <Divider orientation="horizontal"/> 
+                            <Box mt={'20px'}>
+                                {newItem.map((item, index) => (
+                                    <Box key={index} display={'flex'} flexDirection={'column'} gap={'20px'} mb={'30px'}>
 
-                                    
-                                    <TableCell>
-                                        <TextField
-                                            name="job_name"
-                                            placeholder="Description"
-                                            value={newItem.job_name}
-                                            onChange={handleNewItemChange}
-                                            variant="outlined"
-                                            size="small"
-                                            fullWidth
-                                            multiline
-                                            minRows={4}  // Initial number of rows
-                                            maxRows={20}   // Maximum number of rows
-                                        />
-                                    </TableCell>
+                                        <Box>
+                                            <Typography fontFamily={"GT Medium"}>JOB DESCRIPTION</Typography>
+                                            <TextField
+                                                name="job_name"
+                                                placeholder="Description"
+                                                value={item.job_name}
+                                                onChange={(e) => handleNewItemChange(e,index)}
+                                                variant="outlined"
+                                                sx={{minWidth:'300px'}}
+                                                multiline
+                                                minRows={4}  // Initial number of rows
+                                                maxRows={20}   // Maximum number of rows
+                                            />
+                                        </Box>
 
-                                    <TableCell>
-                                        <Select value={newItem.position} onChange={handleNewItemChange} name="position" displayEmpty fullWidth>
-                                            <MenuItem value=''>Select Axle</MenuItem>
-                                            {axel.map((axelOption, index) => (
-                                                <MenuItem key={index} value={axelOption.axels}>
-                                                    {axelOption.axels}
-                                                </MenuItem>
-                                            ))}
-                                        </Select>
-                                    </TableCell>
-                                    
-
-                                    <TableCell>
-                                        <Select 
-                                            type="text"
-                                            name="spare_subcategory_name"
-                                            value={newItem.spare_subcategory_name}
-                                            placeholder="Spare"
-                                            className="bill-inputfield"
-                                            onChange={handleSelectSpare}
-                                            displayEmpty
-                                            fullWidth
-                                        >
-                                            <MenuItem value="">Select Spare</MenuItem>
-                                            {spareSubCategories.map((spare, index) => (
-                                                    <MenuItem key={index} value={spare.spare_subcategory_name}>{spare.spare_subcategory_name}</MenuItem>
+                                        <Box>
+                                                <Typography fontFamily={"GT Medium"}>SELECT AXLE(If Needed)</Typography>
+                                                <Select value={item.position} onChange={(e) => handleNewItemChange(e,index)} name="position" sx={{minWidth:'280px'}} displayEmpty fullWidth>
+                                                <MenuItem value=''>Select Axle</MenuItem>
+                                                {axel.map((axelOption, index) => (
+                                                    <MenuItem key={index} value={axelOption.axels}>
+                                                        {axelOption.axels}
+                                                    </MenuItem>
                                                 ))}
-                                        </Select>
-                                    </TableCell>
+                                            </Select>
+                                        </Box>
 
-                                    <TableCell>
-                                        <TextField
-                                            type="number"
-                                            name="quantity"
-                                            value={newItem.quantity}
-                                            placeholder="quantity"
-                                            onChange={handleNewItemChange}
-                                            variant="outlined"
-                                            size="small"
-                                            fullWidth
-                                        />
-                                    </TableCell>
 
-                                    <TableCell>
-                                        <TextField
-                                            type="text"
-                                            name="mechanic"
-                                            value={newItem.mechanic}
-                                            placeholder="mechanic"
-                                            onChange={handleNewItemChange}
-                                            variant="outlined"
-                                            size="small"
-                                            fullWidth
-                                        />
-                                    </TableCell>
-                                </TableRow>
-                            </TableBody>
-                        </Table>
-                            <Button type="button" color="secondary" variant="contained" onClick={addItem} sx={{mt:'20px', mb:'20px'}}>Add Repair/Service</Button>
-                    </TableContainer>
+                                        <Box>
+                                            <Typography fontFamily={"GT Medium"}>SPARE NAME</Typography>
+                                            <Box sx={{position:'relative'}}>
+                                                <TextField 
+                                                    type="text"
+                                                    name="spare_subcategory_name"
+                                                    value={item.spare_subcategory_name}
+                                                    sx={{minWidth:'250px'}}
+                                                    placeholder="Spare"
+                                                    className="bill-inputfield"
+                                                    onChange={(e) => handleNewItemChange(e,index)}
+                                                    onFocus={() => setActiveSpareIndex(index)}
+                                                    displayEmpty
+                                                    fullWidth
+                                                />
+                                                
+                                                {activeSpareIndex === index && spareOptions.length > 0 && (
+                                                    <List
+                                                        sx={{
+                                                            // position:'absolute',
+                                                            height:'100px',
+                                                            overflow:'auto',
+                                                        }}
+                                                    >
+                                                        {spareOptions.map((spare, spareIndex) => (
+                                                            <ListItem
+                                                                key={spareIndex}
+                                                                button
+                                                                onClick={() => handleSelectSpare(spare, index)}
+                                                            >
+                                                                <ListItemText primary={spare.spare_subcategory_name}/>
+                                                            </ListItem>
+                                                        ))}
+                                                    
+                                                    </List>
+                                                )}
+                                                
+                                            </Box>
+                                        </Box>
 
-                    <Button type="submit" color="secondary" variant="contained" >REPAIR</Button>
+                                        <Box>
+                                            <Typography fontFamily={"GT Medium"}>QUANTITY</Typography>
+                                            <TextField
+                                                type="number"
+                                                name="quantity"
+                                                value={item.quantity}
+                                                placeholder="quantity"
+                                                onChange={(e) => handleNewItemChange(e,index)}
+                                                variant="outlined"
+                                                sx={{minWidth:'150px'}}
+                                                inputProps={{
+                                                    sx:{height: '35px'}
+                                                }}
+                                                size="small"
+                                                fullWidth
+                                            />
+                                        </Box>
+
+                                        <Box>
+                                            <Typography fontFamily={"GT Medium"}>MECHANIC</Typography>
+                                            <TextField
+                                                type="text"
+                                                name="mechanic"
+                                                value={item.mechanic}
+                                                placeholder="mechanic"
+                                                onChange={(e) => handleNewItemChange(e,index)}
+                                                variant="outlined"
+                                                inputProps={{
+                                                    sx:{height: '35px'}
+                                                }}
+                                                sx={{minWidth:'150px'}}
+                                                size="small"
+                                                fullWidth
+                                            />
+                                        </Box>
+
+                                        <IconButton onClick={() => handleDelete(index)}>
+                                            <DeleteForever sx={{fontSize:'30px', color:'black', border:'2px solid red', padding:'10px', borderRadius:"8px", ":hover":{backgroundColor:'red', color:'white'}}}/>
+                                        </IconButton>
+
+                                    </Box>
+
+                                ))}
+
+                                <Button onClick={handleNewInputField} variant="contained" style={{backgroundColor:'grey', color:'white', marginTop:'20px', display:'flex', justifyContent:'center', alignItems:'center', marginBottom:'20px'}}>
+                                    <AddOutlined sx={{color:'white', fontSize:'19px'}}/>
+                                    <Typography fontWeight={'bold'} fontSize={'12px'}>Add new row</Typography>
+                                </Button>
+                            </Box>
+                        </Box>
+                    ): (
+                        <Box>
+                            <TableContainer>
+                                <Table>
+                                    <TableHead>
+                                        <TableRow>
+                                            <TableCell sx={{ minWidth: 350 }}><Typography fontWeight="bold">Repair Description</Typography></TableCell>
+                                            <TableCell sx={{ minWidth: 150 }}><Typography fontWeight="bold">Vehicle Axle(If Needed)</Typography></TableCell>
+                                            <TableCell sx={{ minWidth: 150 }}><Typography fontWeight="bold">Spare Name</Typography></TableCell>
+                                            <TableCell sx={{ minWidth: 150 }}><Typography fontWeight="bold">Quantity</Typography></TableCell>
+                                            <TableCell sx={{ minWidth: 150 }}><Typography fontWeight="bold">Mechanic</Typography></TableCell>
+                                        </TableRow>
+                                    </TableHead>
+                                </Table>
+                            </TableContainer>
+
+                            <Box mt={'20px'}>
+                                {newItem.map((item, index) => (
+                                    <Box key={index} display={'flex'} alignItems={'center'} gap={'20px'} mb={'50px'}>
+
+                                        <Box>
+                                            <TextField
+                                                name="job_name"
+                                                placeholder="Description"
+                                                value={item.job_name}
+                                                onChange={(e) => handleNewItemChange(e,index)}
+                                                variant="outlined"
+                                                sx={{minWidth:'430px'}}
+                                                multiline
+                                                minRows={4}  // Initial number of rows
+                                                maxRows={20}   // Maximum number of rows
+                                            />
+                                        </Box>
+
+                                        <Box>
+                                                <Select value={item.position} onChange={(e) => handleNewItemChange(e,index)} name="position" sx={{minWidth:'280px'}} displayEmpty fullWidth>
+                                                <MenuItem value=''>Select Axle</MenuItem>
+                                                {axel.map((axelOption, index) => (
+                                                    <MenuItem key={index} value={axelOption.axels}>
+                                                        {axelOption.axels}
+                                                    </MenuItem>
+                                                ))}
+                                            </Select>
+                                        </Box>
+
+
+                                            <Box sx={{ position: 'relative', minWidth: '250px' }}>
+                                                <TextField 
+                                                    type="text"
+                                                    name="spare_subcategory_name"
+                                                    value={item.spare_subcategory_name}
+                                                    sx={{minWidth:'250px'}}
+                                                    placeholder="Spare"
+                                                    className="bill-inputfield"
+                                                    onChange={(e) => handleNewItemChange(e,index)}
+                                                    onFocus={() => setActiveSpareIndex(index)}
+                                                    displayEmpty
+                                                    fullWidth
+                                                />
+                                                    {activeSpareIndex === index && spareOptions.length > 0 && (
+                                                        <List sx={{
+                                                            position:'absolute',
+                                                            height:'100px',
+                                                            overflow:'auto'
+                                                        }}>
+                                                            {spareOptions.map((spare, spareIndex) => (
+                                                                <ListItem
+                                                                    key={spareIndex}
+                                                                    button
+                                                                    onClick={() => handleSelectSpare(spare, index)}
+                                                                    sx={{ 
+                                                                        "&:hover": { backgroundColor: "rgba(0, 0, 0, 0.08)" } // Hover effect
+                                                                    }}
+                                                                    value={spare.spare_subcategory_name}
+                                                                >
+                                                                    <ListItemText primary={spare.spare_subcategory_name} />
+                                                                </ListItem>
+                                                            ))}
+                                                        </List>
+                                                    )}
+                                                    
+                                                
+                                            </Box>
+
+                                        <Box>
+                                            <TextField
+                                                type="number"
+                                                name="quantity"
+                                                value={item.quantity}
+                                                placeholder="quantity"
+                                                onChange={(e) => handleNewItemChange(e,index)}
+                                                variant="outlined"
+                                                sx={{minWidth:'150px'}}
+                                                inputProps={{
+                                                    sx:{height: '35px'}
+                                                }}
+                                                size="small"
+                                                fullWidth
+                                            />
+                                        </Box>
+
+                                        <Box>
+                                            <TextField
+                                                type="text"
+                                                name="mechanic"
+                                                value={item.mechanic}
+                                                placeholder="mechanic"
+                                                onChange={(e) => handleNewItemChange(e,index)}
+                                                variant="outlined"
+                                                sx={{minWidth:'150px'}}
+                                                inputProps={{
+                                                    sx:{height: '35px'}
+                                                }}
+                                                size="small"
+                                                fullWidth
+                                            />
+                                        </Box>
+
+                                        <IconButton onClick={() => handleDelete(index)}>
+                                            <DeleteForever sx={{fontSize:'30px', color:'black', border:'2px solid red', padding:'10px', borderRadius:"8px", ":hover":{backgroundColor:'red', color:'white'}}}/>
+                                        </IconButton>
+
+                                    </Box>
+
+                                ))}
+
+                                <Button onClick={handleNewInputField} variant="contained" style={{backgroundColor:'grey', color:'white', marginTop:'20px', display:'flex', justifyContent:'center', alignItems:'center', marginBottom:'20px'}}>
+                                    <AddOutlined sx={{color:'white', fontSize:'19px'}}/>
+                                    <Typography fontWeight={'bold'} fontSize={'12px'}>Add new row</Typography>
+                                </Button>
+                            </Box>
+                        </Box>
+                    )}
+
+                    <Button type="submit" color="secondary" variant="contained" sx={{width:'200px', fontFamily:'GT Bold', mt:'40px'}}>REPAIR</Button>
                     
                 </form>
                 </Box>

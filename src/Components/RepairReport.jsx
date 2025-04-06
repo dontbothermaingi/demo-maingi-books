@@ -11,15 +11,14 @@ function RepairReport() {
     const [repairs, setRepairs] = useState([]);
     const [tableItems, setTableItems] = useState([]);
     const token = localStorage.getItem('access_token')
-    
 
     useEffect(() => {
-        fetch(`https://db-demo-u07o.onrender.com/vehiclemantainances/${repairId}`,{
-            method:'GET',
-            headers:{
-                'Authorization':`Bearer ${token}`
-            },
-            credentials:'include'
+        fetch(`https://db-demo-u07o.onrender.com/vehiclemantainances/${repairId}`, {
+            method: 'GET',
+            credentials: 'include',
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
         })
             .then(response => response.json())
             .then(data => {
@@ -46,72 +45,78 @@ function RepairReport() {
         <Box>
             <Button
                 type="button"
-                variant="contained"
                 color="secondary"
+                variant="contained"
                 onClick={() => handleCustomBill()}
+                sx={{ml:'50px', mt:'10px'}}
             >
                 BACK
             </Button>
 
-            <Box ref={componentRef} className="a4-print" padding='20px'>
+            <Box ref={componentRef} padding='20px'>
                 <Box display='flex' justifyContent='space-between' gap='10px' margin='20px'>
                     <Box>
-                        <Typography fontSize='40px' fontWeight='bold' textAlign="left">
+                        <Typography fontFamily={'GT Medium'} fontSize='30px' fontWeight='bold' textAlign="left">
                             {repairs.job_description}
                         </Typography>
-                        <Typography fontSize='25px' textAlign="left">
+                        <Typography fontFamily={'GT Light'} fontSize='20px' textAlign="left">
                             {repairs.vehicle_type}
                         </Typography>
-                        <Typography fontSize='25px' textAlign="left">
+                        <Typography fontFamily={'GT Light'} fontSize='20px' textAlign="left">
                             {repairs.manufacturer}
                         </Typography>
-                        <Typography fontSize='25px' textAlign="left">
+                        <Typography fontFamily={'GT Light'} fontSize='20px' textAlign="left">
                             {repairs.truck_number}
                         </Typography>
                     </Box>
                     <Box>
-                        <Typography fontSize='40px' fontWeight='bold' textAlign="left">
+                        <Typography fontFamily={'GT Medium'} fontSize='30px' fontWeight='bold' textAlign="left">
                             DATE
                         </Typography>
-                        <Typography fontSize='25px' textAlign="left">
-                            {repairs.date}
+                        <Typography fontFamily={"GT Light"} fontSize='20px' textAlign="left">
+                            {new Date(repairs.date).toLocaleDateString("en-Ke", {
+                                year:'numeric',
+                                month:'long',
+                                day:'2-digit',
+                                weekday:'long',
+                            })}
                         </Typography>
-                        <Typography fontSize='25px' textAlign="left">
+                        <Typography fontFamily={"GT Light"} fontSize='20px' textAlign="left">
                             Repair #{repairs.repair_number}
                         </Typography>
-                        <Typography fontSize='25px' textAlign="left">
-                            Cost: {cost}
+                        <Typography fontFamily={"GT Light"} fontSize='20px' textAlign="left">
+                            Cost: {new Intl.NumberFormat("en-KE", {style:'currency', currency:'KES'}).format(cost)}
                         </Typography>
                     </Box>
                 </Box>
                 
                 <Box mt='20px'>
-                    <Typography fontSize='30px' fontWeight='bold' margin='20px'>
+                    <Typography fontFamily={"GT Bold"} fontSize='30px' fontWeight='bold' margin='20px'>
                         Repair Details
                     </Typography>
                     {tableItems.map((repair, index) => (
                         <Box key={index} marginTop='10px' padding='10px' border='1px solid #ccc' borderRadius='4px' margin='20px'>
-                            <Typography fontSize='20px' fontWeight='bold'>
+                            <Typography fontFamily={"GT Medium"} fontSize='20px' fontWeight='bold'>
                                 Spare Category: {repair.spare_category_name}
                             </Typography>
-                            <Typography fontSize='18px'>
-                                Spare Name: {repair.spare_subcategory_name}
+                            <Typography fontFamily={"GT Light"} fontSize='18px'>
+                                <span style={{fontFamily:'GT Medium'}}>Spare:</span> {repair.spare_subcategory_name}
                             </Typography>
-                            <Typography fontSize='18px'>
-                                Mechanic: {repair.mechanic}
+                            <Typography fontFamily={"GT Light"} fontSize='18px'>
+                                <span style={{fontFamily:'GT Medium'}}>Mechanic:</span> {repair.mechanic}
                             </Typography>
-                            <Typography fontSize='18px'>
-                                Quantity: {repair.quantity}
+                            <Typography fontFamily={'GT Light'} fontSize='18px'>
+                                <span style={{fontFamily:'GT Medium'}}>Quantity:</span> {repair.quantity}
                             </Typography>
-                            <Typography fontSize='18px'>
-                                Job Description: {repair.job_name}
+                            <Typography fontFamily={"GT Light"} fontSize='18px'>
+                                <span style={{fontFamily:'GT Medium'}}>Job Description:</span> {repair.job_name}
                             </Typography>
                         </Box>
                     ))}
                 </Box>
             </Box>
 
-            <Box display="flex" justifyContent="center" mt="20px">
+            <Box display="flex" justifyContent="center" padding={'20px'}>
                 <ReactToPrint
                     trigger={() => (
                         <Button

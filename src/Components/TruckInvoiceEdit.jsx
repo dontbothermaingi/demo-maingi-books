@@ -5,14 +5,15 @@ import useMediaQuery from '@mui/material/useMediaQuery';
 import { Radio } from "@mui/material";
 import { AddOutlined, DeleteForever } from "@mui/icons-material";
 
-function EditInvoice() {
+function TruckInvoiceEdit() {
     const [isVatInclusive, setIsVatInclusive] = useState(true); // true for inclusive, false for exclusive
     const [customers, setCustomers] = useState([]);
-    const [invoice, setInvoice] = useState([]);
+    const [invoice, setInvoice] = useState([])
     const [vatAmount, setVatAmount] = useState(0);
     const [totalAmount, setTotalAmount] = useState(0);
     const [subTotalAmount, setSubTotalAmount] = useState(0);
-    const {invoiceId} = useParams();
+    const [trucks, setTrucks] = useState([])
+    const {invoiceId} = useParams()
     const [originalInvoiceAmount, setOriginalInvoiceAmount] = useState(0);
     const token = localStorage.getItem('access_token')
     const isMobile = useMediaQuery('(max-width: 768px)');
@@ -56,31 +57,32 @@ function EditInvoice() {
             rate_vat: 0,
             rate: 0,
             amount: 0,
+            truck_id: "",
         }
     ]);
 
     const navigate = useNavigate();
 
+
     useEffect(() => {
-        fetch(`https://db-demo-u07o.onrender.com/invoices/${invoiceId}`, {
-            method:'GET',
-            headers:{
-                'Authorization':`Bearer ${token}`
-            },
-            credentials:'include'
-        })
-            .then(response => response.json())
-            .then((data) => {
-
-                setTimeout(() => {
-                    setNewItem(data.items);
-                }, 500); // Delay by 500ms
-
-                console.log("Form Data items", data.items)
+        const fetchInvoice = async () => {
+            try {
+                const response = await fetch(`https://db-demo-u07o.onrender.com/invoices/${invoiceId}`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    },
+                    credentials: 'include'
+                });
+    
+                if (!response.ok) {
+                    throw new Error("Failed to fetch invoice");
+                }
+    
+                const data = await response.json();
                 
-                setInvoice(data)
+                setInvoice(data);
                 setOriginalInvoiceAmount(data.items ? data.items.reduce((total, item) => total + item.amount, 0) : 0);
-
                 setFormData({
                     customer_name: data.customer_name,
                     customer_phone: data.customer_phone,
@@ -99,14 +101,23 @@ function EditInvoice() {
                     payment_made: data.payment_made,
                     status: data.status,
                     currency: data.currency,
-                    category_id:data.category_id,
-                    customer_id:data.customer_id,
-                    invoice_id:data.id,
-                })
+                    category_id: data.category_id,
+                    customer_id: data.customer_id,
+                    invoice_id: data.id,
+                });
+    
+                setIsVatInclusive(data.type_vat !== "Exclusive VAT");
 
-                setIsVatInclusive(data.type_vat !== 'Exclusive VAT'); 
-            });
+                setNewItem(data.items);
+    
+            } catch (error) {
+                console.error("Error fetching invoice:", error);
+            }
+        };
+    
+        fetchInvoice();
     }, [invoiceId, token]);
+    
 
     useEffect(() => {
         fetch('https://db-demo-u07o.onrender.com/customers',{
@@ -118,6 +129,18 @@ function EditInvoice() {
         })
             .then(response => response.json())
             .then((data) => setCustomers(data));
+    }, [token]);
+
+    useEffect(() => {
+        fetch('https://db-demo-u07o.onrender.com/trucks',{
+            method:'GET',
+            headers:{
+                'Authorization':`Bearer ${token}`
+            },
+            credentials:'include'
+        })
+            .then(response => response.json())
+            .then((data) => setTrucks(data));
     }, [token]);
 
     useEffect(() => {
@@ -152,11 +175,11 @@ function EditInvoice() {
     function handleNewItemChange(event, index) {
         const { name, value } = event.target;
         const uppercasedValue = name === 'item_details' || name === 'description' ? value.toUpperCase() : value;
-        const values = [...newItem];
+        const values = [...newItem]
 
-        // Update based on the name of the field
+        // Update values based on their name
         values[index] = {...values[index], [name]:uppercasedValue}
-
+        
         if (name === 'quantity' || name === 'rate' || name === 'vat'){
             if(isVatInclusive){
                 values[index].amount = values[index].quantity * values[index].rate;
@@ -167,6 +190,12 @@ function EditInvoice() {
                 values[index].rate_vat = (values[index].vat / 100) * values[index].sub_total;
                 values[index].amount = values[index].sub_total + values[index].rate_vat;
             }
+        }
+        
+        // Update truck id's
+        if(name === 'item_details'){
+            const matchingTruck = trucks.find(item => item.truck_number === value);
+            values[index].truck_id = matchingTruck ? matchingTruck.id : "";
         }
 
         setNewItem(values)
@@ -216,25 +245,26 @@ function EditInvoice() {
                 return item;
             });
         });
-    }, [isVatInclusive]);
-        
-    useEffect(() => {
+    }, [isVatInclusive]);    
     
+    
+    useEffect(() => {
+
         setVatAmount(newItem.reduce((total, item) => total + item.rate_vat, 0))
         setTotalAmount(newItem.reduce((total, item) => total + item.amount, 0))
         setSubTotalAmount(newItem.reduce((total, item) => total + item.sub_total, 0))
-    
+
         // Ensure formData.items updates when VAT type is toggled
         setFormData(prevFormData => ({
             ...prevFormData,
             items: newItem
         }));
-        
-    }, [newItem]);
     
+    }, [newItem]);
+        
 
-    function hanldleNewInputField() {
-        setNewItem([ ...newItem, { item_details: "", description: "", quantity: 0, rate: 0, vat: 0, rate_vat: 0,sub_total:0, amount: 0 }]);
+    function handleNewInputField() {
+        setNewItem([ ...newItem, { item_details: "", description: "", quantity: 0, rate: 0, vat: 0, rate_vat: 0,sub_total:0, amount: 0 } ]);
     }
 
     function handleDeleteInputField(index) {
@@ -392,6 +422,7 @@ function EditInvoice() {
         MXN: "es-MX", // Mexican Peso
         BRL: "pt-BR", // Brazilian Real
       };
+    
 
     return (
         <Box>
@@ -650,158 +681,36 @@ function EditInvoice() {
                                 <Table aria-label="Invoice Table" sx={{ minWidth: isMobile ? 900 : 'auto' }}>
                                     <TableHead>
                                         <TableRow>
-                                            <TableCell sx={{ minWidth: 70 }}><Typography fontWeight="bold">Item</Typography></TableCell>
-                                            <TableCell sx={{ minWidth: 90 }}><Typography fontWeight="bold">Description</Typography></TableCell>
-                                            <TableCell sx={{ minWidth: 70 }}><Typography fontWeight="bold">Quantity</Typography></TableCell>
-                                            <TableCell sx={{ minWidth: 70 }}><Typography fontWeight="bold">Rate</Typography></TableCell>
+                                            <TableCell sx={{ minWidth: 150 }}><Typography fontWeight="bold">Item</Typography></TableCell>
+                                            <TableCell sx={{ minWidth: 200 }}><Typography fontWeight="bold">Description</Typography></TableCell>
+                                            <TableCell sx={{ minWidth: 50 }}><Typography fontWeight="bold">Quantity</Typography></TableCell>
+                                            <TableCell sx={{ minWidth: 50 }}><Typography fontWeight="bold">Rate</Typography></TableCell>
                                             <TableCell sx={{ minWidth: 50 }}><Typography fontWeight="bold">Sub Total</Typography></TableCell>
                                             <TableCell sx={{ minWidth: 50 }}><Typography fontWeight="bold">VAT</Typography></TableCell>
                                             <TableCell sx={{ minWidth: 50 }}><Typography fontWeight="bold">VAT Amount</Typography></TableCell>
                                             <TableCell sx={{ minWidth: 50 }}><Typography fontWeight="bold">Total Amount</Typography></TableCell>
+                                            {/* <TableCell sx={{ minWidth: 50 }}><Typography fontWeight="bold">Truck Id</Typography></TableCell> */}
                                         </TableRow>
                                     </TableHead>
-                                    {/* <TableBody>
-                                        {formData.items.map((item, index) => (
-                                            <TableRow key={index}>
-                                                <TableCell>{item.item_details}</TableCell>
-                                                <TableCell>{item.description}</TableCell>
-                                                <TableCell>{item.quantity}</TableCell>
-                                                <TableCell>{item.rate}</TableCell>
-                                                <TableCell>{item.sub_total}</TableCell>
-                                                <TableCell>{item.vat}</TableCell>
-                                                <TableCell>{item.rate_vat}</TableCell>
-                                                <TableCell>{item.amount.toLocaleString()}</TableCell>
-                                                <TableCell>
-                                                    <IconButton color="primary" onClick={() => handleEditItem(index)}>
-                                                        <EditIcon />
-                                                    </IconButton>
-                                                    <IconButton color="error" onClick={() => handleDeleteItem(index)}>
-                                                        <CloseIcon />
-                                                    </IconButton>
-                                                </TableCell>
-                                            </TableRow>
-                                        ))}
-                                        <TableRow>
-                                            <TableCell>
-                                            <TextField
-                                                    name="item_details"
-                                                    placeholder="Item Details"
-                                                    value={newItem.item_details}
-                                                    onChange={handleNewItemChange}
-                                                    variant="outlined"
-                                                    size="small"
-                                                    fullWidth
-                                                />
-                                                
-                                                
-                                            </TableCell>
-
-                                            <TableCell>
-                                                <TextField
-                                                    name="description"
-                                                    placeholder="Description"
-                                                    value={newItem.description}
-                                                    onChange={handleNewItemChange}
-                                                    variant="outlined"
-                                                    size="small"
-                                                    fullWidth
-                                                    multiline
-                                                    minRows={4}  // Initial number of rows
-                                                    maxRows={20}   // Maximum number of rows
-                                                />
-                                            </TableCell>
-
-                                            <TableCell>
-                                                <TextField
-                                                    type="number"
-                                                    name="quantity"
-                                                    placeholder="Quantity"
-                                                    className="bill-inputfield"
-                                                    value={newItem.quantity}
-                                                    onChange={handleNewItemChange}
-                                                    variant="outlined"
-                                                    size="small"
-                                                    fullWidth
-                                                />
-                                            </TableCell>
-                                            <TableCell>
-                                                <TextField
-                                                    type="number"
-                                                    name="rate"
-                                                    placeholder="Rate"
-                                                    className="bill-inputfield"
-                                                    value={newItem.rate}
-                                                    onChange={handleNewItemChange}
-                                                    variant="outlined"
-                                                    size="small"
-                                                    fullWidth
-                                                />
-                                            </TableCell>
-
-                                            <TableCell>
-                                                <TextField
-                                                    placeholder="Sub Total"
-                                                    variant="outlined"
-                                                    size="small"
-                                                    fullWidth
-                                                    value={newItem.sub_total}
-                                                    InputProps={{ readOnly: true }}
-                                                />
-                                            </TableCell>
-
-                                            <TableCell>
-                                                <Select
-                                                    value={newItem.vat}
-                                                    name="vat"
-                                                    fullWidth
-                                                    onChange={handleNewItemChange}
-                                                    displayEmpty
-                                                >
-                                                    <MenuItem value=""><em>Select VAT</em></MenuItem>
-                                                    <MenuItem value={16}>16%</MenuItem>
-                                                    <MenuItem value={0}>0%</MenuItem>
-                                                </Select>
-                                            </TableCell>
-
-                                            <TableCell>
-                                                <TextField
-                                                    placeholder="VAT Amount"
-                                                    variant="outlined"
-                                                    size="small"
-                                                    fullWidth
-                                                    value={newItem.rate_vat}
-                                                    InputProps={{ readOnly: true }}
-                                                />
-                                                </TableCell>
-
-                                                <TableCell>
-                                                <TextField
-                                                    placeholder="Total Amount"
-                                                    variant="outlined"
-                                                    size="small"
-                                                    fullWidth
-                                                    value={newItem.amount}
-                                                    InputProps={{ readOnly: true }}
-                                                />
-                                            </TableCell>
-                                        </TableRow>
-                                    </TableBody> */}
+                                    
                                 </Table>
                             </TableContainer>
 
-                            <Box mt={'10px'}>
+                            <Box mt={'20px'}>
                                 {newItem.map((item, index) => (
-                                    <Box key={index} display={'flex'} gap={'20px'} alignItems={'center'} mb={'20px'}>
-                                        <TextField
-                                            name="item_details"
-                                            placeholder="Item Details"
-                                            value={item.item_details}
-                                            onChange={(e) => handleNewItemChange(e, index)}
-                                            variant="outlined"
-                                            size="small"
-                                            fullWidth
-                                        />
+                                    <Box key={index} display={'flex'} gap={'20px'} mb={'20px'} alignItems={'center'}>
 
+                                        {trucks.length > 0 ? (
+                                            <Select name="item_details" value={item.item_details} onChange={(e) => handleNewItemChange(e, index)} fullWidth displayEmpty>
+                                            <MenuItem value="">Select Item</MenuItem>
+                                                {trucks.map((truck, index) => (
+                                                    <MenuItem key={index} value={truck.truck_number}>{truck.truck_number}</MenuItem>
+                                                ))}
+                                            </Select>
+                                        ):(
+                                            <p>Loading trucks...</p>
+                                        )}
+                                         
 
                                         <TextField
                                             name="description"
@@ -811,8 +720,9 @@ function EditInvoice() {
                                             variant="outlined"
                                             size="small"
                                             fullWidth
+                                            sx={{minWidth:'400px'}}
                                             multiline
-                                            minRows={1}  // Initial number of rows
+                                            minRows={4}  // Initial number of rows
                                             maxRows={20}   // Maximum number of rows
                                         />
 
@@ -880,19 +790,30 @@ function EditInvoice() {
                                             InputProps={{ readOnly: true }}
                                         />
 
+                                        {/* <TextField
+                                            placeholder="Truck Id"
+                                            name="truck_id"
+                                            variant="outlined"
+                                            size="small"
+                                            fullWidth
+                                            value={item.truck_id}
+                                            onChange={(e) => handleNewItemChange(e, index)}
+                                            InputProps={{ readOnly: true }}
+                                        /> */}
+
                                         <IconButton onClick={() => handleDeleteInputField(index)}>
                                                 <DeleteForever sx={{fontSize:'30px', color:'black', border:'2px solid red', padding:'10px', borderRadius:"8px", ":hover":{backgroundColor:'red', color:'white'}}}/>
                                        </IconButton>
-                                        
+
                                     </Box>
                                 ))}
 
-                                <Button onClick={hanldleNewInputField} variant="contained" style={{backgroundColor:'grey', color:'white', marginTop:'20px', display:'flex', justifyContent:'center', alignItems:'center', marginBottom:'20px'}}>
-                                        <AddOutlined sx={{color:'white', fontSize:'19px'}}/>
-                                        <Typography fontWeight={'bold'} fontSize={'12px'}>Add new row</Typography>
+                                <Button onClick={handleNewInputField} variant="contained" style={{backgroundColor:'grey', color:'white', marginTop:'20px', display:'flex', justifyContent:'center', alignItems:'center', marginBottom:'20px'}}>
+                                    <AddOutlined sx={{color:'white', fontSize:'19px'}}/>
+                                    <Typography fontWeight={'bold'} fontSize={'12px'}>Add new row</Typography>
                                 </Button>
 
-                            </Box> 
+                            </Box>
                             
                             <Box display={'flex'} flexDirection={'column'} gap={'15px'} m={'10px'} textAlign={'right'} fontWeight={'bold'}>
                                 <Typography fontFamily={"GT Regular"} fontSize={'20px'} fontWeight={'bold'}>
@@ -932,4 +853,4 @@ function EditInvoice() {
     );
 }
 
-export default EditInvoice;
+export default TruckInvoiceEdit;

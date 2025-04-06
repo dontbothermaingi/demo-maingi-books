@@ -1,17 +1,16 @@
-import { Box,Button,Card,CardContent,FormControl,MenuItem,Pagination,Select,TextField,Typography, useMediaQuery} from "@mui/material";
+import { Box,Button,Card,CardContent,FormControl,MenuItem,Pagination,Select,TextField,ToggleButton,ToggleButtonGroup,Typography, useMediaQuery} from "@mui/material";
 import { DataGrid, GridToolbar } from "@mui/x-data-grid";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { tokens } from "../theme";
 import { useTheme } from "@mui/material";
 
 
 function Trucks(){
   const theme = useTheme();
-  const colors = tokens(theme.palette.mode);
   const [currentPage, setCurrentPage] = useState(1)
   const itemsPerPage = 16;
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const token = localStorage.getItem('access_token')
   const [trucks, setTrucks] = useState([]);
   const [formData,setFormData] = useState({
     truck_number:"",
@@ -23,16 +22,15 @@ function Trucks(){
   })
 
   const navigate = useNavigate();
-  const token = localStorage.getItem('access_token')
   
 
   useEffect(() => {
     fetch('https://db-demo-u07o.onrender.com/trucks',{
-            method:'GET',
-            headers:{
-                'Authorization':`Bearer ${token}`
-            },
-            credentials:'include'
+          method: 'GET',
+          credentials: 'include',
+          headers: {
+              'Authorization': `Bearer ${token}`
+          }
     })
       .then(response => response.json())
       .then((data) => setTrucks(data));
@@ -63,12 +61,12 @@ function Trucks(){
     .then(response => response.json())
     .then(data => {
 
-      fetch('https://db-demo-u07o.onrender.com/trucks', {
-            method:'GET',
-            headers:{
-                'Authorization':`Bearer ${token}`
-            },
-            credentials:'include'
+      fetch('https://db-demo-u07o.onrender.com/trucks',{
+          method: 'GET',
+          credentials: 'include',
+          headers: {
+              'Authorization': `Bearer ${token}`
+          }
       })
       .then(response => response.json())
       .then((data) => setTrucks(data));
@@ -250,107 +248,18 @@ function Trucks(){
   return (
     <Box display={'flex'} flexDirection={'column'}>
 
-            <Box
-                display="grid"
-                gridTemplateColumns= {{xs:"repeat(1, 1fr)", md:"repeat(8, 1fr)"}}
-                gridAutoRows="140px"
-                gap="20px"
-                mb="20px"
-                mt="20px"
-                px={2}  // Adds padding on left and right
-            >
-                <Box
-                    gridColumn="span 2"
-                    backgroundColor={'purple' }
-                    borderRadius="15px"  // Increased border radius for a softer look
-                    display="flex"
-                    alignItems="center"
-                    justifyContent="center"
-                    boxShadow={3}  // Adds a shadow effect for depth
-                    sx={{ transition: 'background-color 0.3s ease' }}  // Smooth color transition
-                    onClick={handleRepair}
-                    hover={{ backgroundColor: colors.primary[500] }}  // Darker color on hover
-                >
-                    <Typography
-                        textAlign="center"
-                        fontSize="24px"  // Slightly smaller font size for better balance
-                        fontWeight="bold"
-                        color="white"  // Ensures text is readable
-                    >
-                        SERVICE
-                    </Typography>
-                </Box>
-                <Box
-                    gridColumn="span 2"
-                    backgroundColor={'purple' }
-                    borderRadius="15px"
-                    display="flex"
-                    alignItems="center"
-                    justifyContent="center"
-                    onClick={handleFueling}
-                    cursor='mouse'
-                    boxShadow={3}
-                    sx={{ transition: 'background-color 0.3s ease' }}
-                    hover={{ backgroundColor: colors.primary[500] }}
-                >
-                    <Typography
-                        textAlign="center"
-                        fontSize="24px"
-                        fontWeight="bold"
-                        color="white"
-                    >
-                        FUEL
-                    </Typography>
-                </Box>
-                <Box
-                    gridColumn="span 2"
-                    backgroundColor={'purple' }
-                    borderRadius="15px"
-                    display="flex"
-                    alignItems="center"
-                    justifyContent="center"
-                    onClick={handleFitNewTyre}
-                    boxShadow={3}
-                    sx={{ transition: 'background-color 0.3s ease' }}
-                    hover={{ backgroundColor: colors.primary[500] }}
-                >
-                    <Typography
-                        textAlign="center"
-                        fontSize="24px"
-                        fontWeight="bold"
-                        color="white"
-                    >
-                        FIT NEW TYRE
-                    </Typography>   
-                </Box>
-                <Box
-                    gridColumn="span 2"
-                    backgroundColor={'purple' }
-                    borderRadius="15px"
-                    display="flex"
-                    alignItems="center"
-                    justifyContent="center"
-                    boxShadow={3}
-                    sx={{ transition: 'background-color 0.3s ease' }}
-                    hover={{ backgroundColor: 'black' }}
-                    onClick={() => handleRepair()}
-                >
-                    <Typography
-                        textAlign="center"
-                        fontSize="24px"
-                        fontWeight="bold"
-                        color="white"
-                    >
-                        REPAIR VEHICLE
-                    </Typography>    
-                </Box>
-            </Box>
+            <ToggleButtonGroup exclusive sx={{ml:'50px', mt:'20px'}}>
+              <ToggleButton onClick={handleRepair}>Repair</ToggleButton>
+              <ToggleButton onClick={handleFueling}>Fuel</ToggleButton>
+              <ToggleButton onClick={handleFitNewTyre}>Fit New Tyre</ToggleButton>
+              <ToggleButton onClick={() => handleRepair()}>Repair</ToggleButton>
+            </ToggleButtonGroup>
 
               <Box>
               <Typography
                   textAlign='center'
                   fontSize='30px'
-                  fontWeight='bold'
+                  fontFamily={"GT Bold"}
                 >
                     ADD VEHICLE
               </Typography>  
@@ -444,7 +353,7 @@ function Trucks(){
                               sx={{mb:'20px'}}
                           />
 
-                      <Button type="submit" variant="contained" color="secondary">ADD VEHICLE</Button>
+                      <Button type="submit" variant="contained" color="secondary" sx={{fontFamily:"GT Bold", width:'150px', mt:'30px'}}>ADD VEHICLE</Button>
                       </FormControl>
                   </form>
                 </Box>
