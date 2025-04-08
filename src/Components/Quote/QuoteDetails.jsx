@@ -15,7 +15,7 @@ function QuoteDetails() {
 
   useEffect(() => {
     setLoading(true);
-    fetch(`https://db-demo-u07o.onrender.com/quotes/${quoteId}`)
+    fetch(`https://demo-server-757m.onrender.com/quotes/${quoteId}`)
       .then((response) => {
         if (!response.ok) {
           throw new Error("Failed to fetch quote details");

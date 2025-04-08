@@ -23,7 +23,7 @@ function Fuel(){
     })
 
     useEffect(()=>{
-        fetch('https://db-demo-u07o.onrender.com/pumpnames', {
+        fetch('https://demo-server-757m.onrender.com/pumpnames', {
             method:'GET',
             headers:{
                 'Authorization':`Bearer ${token}`
@@ -37,7 +37,7 @@ function Fuel(){
     },[token])
 
     useEffect(()=>{
-        fetch('https://db-demo-u07o.onrender.com/pumpfuelings', {
+        fetch('https://demo-server-757m.onrender.com/pumpfuelings', {
             method:'GET',
             headers:{
                 'Authorization':`Bearer ${token}`
@@ -60,7 +60,7 @@ function Fuel(){
     },[token])
 
     useEffect(()=>{
-        fetch('https://db-demo-u07o.onrender.com/trucks', {
+        fetch('https://demo-server-757m.onrender.com/trucks', {
             method:'GET',
             headers:{
                 'Authorization':`Bearer ${token}`
@@ -123,7 +123,7 @@ function Fuel(){
             price: (formData.price * formData.litres)
         };
     
-        fetch('https://db-demo-u07o.onrender.com/pumpfuelings', {
+        fetch('https://demo-server-757m.onrender.com/pumpfuelings', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -135,7 +135,7 @@ function Fuel(){
         .then(response => response.json())
         .then((data) => {
 
-            fetch('https://db-demo-u07o.onrender.com/pumpfuelings', {
+            fetch('https://demo-server-757m.onrender.com/pumpfuelings', {
                 method:'GET',
                 headers:{
                     'Authorization':`Bearer ${token}`
@@ -154,7 +154,7 @@ function Fuel(){
             })
 
 
-            fetch('https://db-demo-u07o.onrender.com/pumpnames', {
+            fetch('https://demo-server-757m.onrender.com/pumpnames', {
                 method:'GET',
                 headers:{
                     'Authorization':`Bearer ${token}`

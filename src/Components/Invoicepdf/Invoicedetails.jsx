@@ -18,7 +18,7 @@ const InvoiceDetails = () => {
 
   useEffect(() => {
     setLoading(true); // Set loading to true before fetching data
-    fetch(`https://db-demo-u07o.onrender.com/invoices/${invoiceId}`,{
+    fetch(`https://demo-server-757m.onrender.com/invoices/${invoiceId}`,{
       method:'GET',
       headers:{
         'Authorization':`Bearer ${token}`
@@ -39,7 +39,7 @@ const InvoiceDetails = () => {
   }, [invoiceId,token]);
 
   useEffect(() => {
-    fetch('https://db-demo-u07o.onrender.com/pumpnames',{
+    fetch('https://demo-server-757m.onrender.com/pumpnames',{
       method:'GET',
       headers:{
         'Authorization':`Bearer ${token}`

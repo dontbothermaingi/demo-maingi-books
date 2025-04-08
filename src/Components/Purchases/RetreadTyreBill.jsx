@@ -51,7 +51,7 @@ function RetreadTyreBill() {
     });
 
     useEffect(() => {
-        fetch('https://db-demo-u07o.onrender.com/newbills',{
+        fetch('https://demo-server-757m.onrender.com/newbills',{
             method:'GET',
             headers:{
                 'Authorization':`Bearer ${token}`
@@ -84,7 +84,7 @@ function RetreadTyreBill() {
     }, [formData.payment_terms, formData.bill_date]);
 
     useEffect(() => {
-        fetch('https://db-demo-u07o.onrender.com/vendors',{
+        fetch('https://demo-server-757m.onrender.com/vendors',{
             method:'GET',
             headers:{
                 'Authorization':`Bearer ${token}`
@@ -243,7 +243,7 @@ function RetreadTyreBill() {
             return formData.items.reduce((total, item) => total + item.amount, 0);
         }
     
-        fetch('https://db-demo-u07o.onrender.com/retreadtyrebills', {
+        fetch('https://demo-server-757m.onrender.com/retreadtyrebills', {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -262,7 +262,7 @@ function RetreadTyreBill() {
         .then(response => response.json())
         .then(data => {
 
-            fetch('https://db-demo-u07o.onrender.com/newbills', {
+            fetch('https://demo-server-757m.onrender.com/newbills', {
                 method:'GET',
                 headers:{
                     'Authorization':`Bearer ${token}`

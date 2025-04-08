@@ -21,7 +21,7 @@ function CreateFuelPump(){
     });
 
     useEffect(() => {
-        fetch('https://db-demo-u07o.onrender.com/pumpnames', {
+        fetch('https://demo-server-757m.onrender.com/pumpnames', {
             method:'GET',
             headers:{
                 'Authorization':`Bearer ${token}`
@@ -54,7 +54,7 @@ function CreateFuelPump(){
     function handleSubmit(event) {
         event.preventDefault();
 
-        fetch('https://db-demo-u07o.onrender.com/pumpnames', {
+        fetch('https://demo-server-757m.onrender.com/pumpnames', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -70,7 +70,7 @@ function CreateFuelPump(){
         .then(response => response.json())
         .then((data) => {
 
-            fetch('https://db-demo-u07o.onrender.com/pumpnames', {
+            fetch('https://demo-server-757m.onrender.com/pumpnames', {
               method:'GET',
               headers:{
                   'Authorization':`Bearer ${token}`

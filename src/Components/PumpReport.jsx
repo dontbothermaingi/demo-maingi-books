@@ -13,7 +13,7 @@ function PumpReport(){
 
 
     useEffect(() => {
-        fetch('https://db-demo-u07o.onrender.com/pumpnames', {
+        fetch('https://demo-server-757m.onrender.com/pumpnames', {
           method:'GET',
           headers:{
             'Authorization':`Bearer ${token}`

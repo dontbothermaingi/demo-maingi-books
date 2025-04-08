@@ -28,7 +28,7 @@ function Tyre() {
 
     // Fetch tyre data and update state
     useEffect(() => {
-        fetch('https://db-demo-u07o.onrender.com/tyres',{
+        fetch('https://demo-server-757m.onrender.com/tyres',{
             method:'GET',
             headers:{
                 'Authorization':`Bearer ${token}`
@@ -45,7 +45,7 @@ function Tyre() {
 
     // Fetch truck data and update state
     useEffect(() => {
-        fetch('https://db-demo-u07o.onrender.com/trucks', {
+        fetch('https://demo-server-757m.onrender.com/trucks', {
             method:'GET',
             headers:{
                 'Authorization':`Bearer ${token}`
@@ -112,7 +112,7 @@ function Tyre() {
         
         event.preventDefault();
 
-        fetch('https://db-demo-u07o.onrender.com/removetyres', {
+        fetch('https://demo-server-757m.onrender.com/removetyres', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'Authorization':`Bearer ${token}` },
             credentials:'include',
@@ -121,7 +121,7 @@ function Tyre() {
             .then(response => response.json())
             .then(() => {
 
-                fetch('https://db-demo-u07o.onrender.com/tyres', {
+                fetch('https://demo-server-757m.onrender.com/tyres', {
                     method:'GET',
                     headers:{
                         'Authorization':`Bearer ${token}`

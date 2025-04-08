@@ -17,7 +17,7 @@ function EditStock (){
     })
 
     useEffect(()=>{
-        fetch(`https://db-demo-u07o.onrender.com/stockitems/${stockId}`, {
+        fetch(`https://demo-server-757m.onrender.com/stockitems/${stockId}`, {
             method:'GET',
             headers:{
                 'Authorization':`Bearer ${access_token}`
@@ -54,7 +54,7 @@ function EditStock (){
     function handleSubmit(event){
         event.preventDefault()
 
-        fetch(`https://db-demo-u07o.onrender.com/stockitems/${stockId}`, {
+        fetch(`https://demo-server-757m.onrender.com/stockitems/${stockId}`, {
             method:"PATCH",
             headers:{
                 'Content-Type':'application/json',

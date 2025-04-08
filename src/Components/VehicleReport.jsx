@@ -26,7 +26,7 @@ function VehicleReport() {
     }
 
     useEffect(() => {
-        fetch("https://db-demo-u07o.onrender.com/trucks", {
+        fetch("https://demo-server-757m.onrender.com/trucks", {
             method: "GET",
             credentials: "include",
             headers: {
@@ -44,7 +44,7 @@ function VehicleReport() {
 
         if (!token || trucks.length === 0) return;
 
-        fetch('https://db-demo-u07o.onrender.com/pumpfuelings', {
+        fetch('https://demo-server-757m.onrender.com/pumpfuelings', {
                 method:'GET',
                 headers:{
                     'Authorization':`Bearer ${token}`

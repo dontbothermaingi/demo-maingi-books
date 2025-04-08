@@ -18,7 +18,7 @@ function UserEdit() {
     const access_token = localStorage.getItem('access_token');
 
     useEffect(() => {
-        fetch('https://db-demo-u07o.onrender.com/userdetails', {
+        fetch('https://demo-server-757m.onrender.com/userdetails', {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
@@ -47,7 +47,7 @@ function UserEdit() {
     function handleSubmit(event) {
         event.preventDefault();
 
-        fetch('https://db-demo-u07o.onrender.com/userdetails', {
+        fetch('https://demo-server-757m.onrender.com/userdetails', {
             method: "PATCH",
             headers: {
                 'Content-Type': 'application/json',

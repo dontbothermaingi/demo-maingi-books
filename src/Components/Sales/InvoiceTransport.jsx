@@ -61,7 +61,7 @@ function InvoiceTransport() {
     const navigate = useNavigate();    
 
     useEffect(() => {
-        fetch('https://db-demo-u07o.onrender.com/invoices', {
+        fetch('https://demo-server-757m.onrender.com/invoices', {
             method:'GET',
             headers:{
                 'Authorization':`Bearer ${token}`
@@ -86,7 +86,7 @@ function InvoiceTransport() {
     }, [token]);
 
     useEffect(() => {
-        fetch('https://db-demo-u07o.onrender.com/trucks', {
+        fetch('https://demo-server-757m.onrender.com/trucks', {
             method:'GET',
             headers:{
                 'Authorization':`Bearer ${token}`
@@ -98,7 +98,7 @@ function InvoiceTransport() {
     }, [token]);
 
     useEffect(() => {
-        fetch('https://db-demo-u07o.onrender.com/customers', {
+        fetch('https://demo-server-757m.onrender.com/customers', {
             method:'GET',
             headers:{
                 'Authorization':`Bearer ${token}`
@@ -278,7 +278,7 @@ function InvoiceTransport() {
     
         console.log(allData);
     
-        fetch('https://db-demo-u07o.onrender.com/invoicetransport', {
+        fetch('https://demo-server-757m.onrender.com/invoicetransport', {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -294,7 +294,7 @@ function InvoiceTransport() {
             return response.json();
         })
         .then((data) => {
-            fetch('https://db-demo-u07o.onrender.com/invoices', {
+            fetch('https://demo-server-757m.onrender.com/invoices', {
                 method:'GET',
                 headers:{
                     'Authorization':`Bearer ${token}`

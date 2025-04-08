@@ -8,7 +8,7 @@ import { format, parseISO } from 'date-fns';
 import { useNavigate } from "react-router-dom";
 
 
-const ReportLayout = ({ piechart }) => {
+const ReportLayout = () => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
   const componentRef = useRef();
@@ -25,7 +25,7 @@ const ReportLayout = ({ piechart }) => {
 
 
   useEffect(() => {
-    fetch('https://db-demo-u07o.onrender.com/accountcategories',{
+    fetch('https://demo-server-757m.onrender.com/accountcategories',{
       method:'GET',
       headers:{
         'Authorization':`Bearer ${token}`

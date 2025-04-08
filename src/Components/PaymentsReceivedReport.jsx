@@ -200,7 +200,7 @@ function PaymentsRececivedReport(){
       };
 
     useEffect(()=>{
-        fetch('https://db-demo-u07o.onrender.com/paymentsreceived',{
+        fetch('https://demo-server-757m.onrender.com/paymentsreceived',{
           method:'GET',
           headers:{
             'Authorization':`Bearer ${token}`

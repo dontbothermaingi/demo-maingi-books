@@ -11,7 +11,7 @@ function DeliveryNoteDetails() {
 
   useEffect(() => {
     setLoading(true);
-    fetch(`https://db-demo-u07o.onrender.com/deliverynotes/${deliveryId}`)
+    fetch(`https://demo-server-757m.onrender.com/deliverynotes/${deliveryId}`)
       .then((response) => {
         if (!response.ok) {
           throw new Error("Failed to fetch delivery note details");

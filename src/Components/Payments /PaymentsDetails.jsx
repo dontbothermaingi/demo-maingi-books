@@ -17,7 +17,7 @@ function PaymentsDetails() {
 
   useEffect(() => {
     setLoading(true);
-    fetch(`https://db-demo-u07o.onrender.com/paymentsmade/${madeId}`, {
+    fetch(`https://demo-server-757m.onrender.com/paymentsmade/${madeId}`, {
       method:'GET',
       headers:{
         'Authorization':`Bearer ${token}`

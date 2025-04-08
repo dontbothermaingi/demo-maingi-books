@@ -34,7 +34,7 @@ function CashBook() {
   };
 
   useEffect(() => {
-    fetch("https://db-demo-u07o.onrender.com/cashbooks", {
+    fetch("https://demo-server-757m.onrender.com/cashbooks", {
       method:'GET',
       headers:{
         'Authorization':`Bearer ${token}`
@@ -48,7 +48,7 @@ function CashBook() {
   }, [startDate, endDate, token]);
 
   useEffect(() => {
-    fetch("https://db-demo-u07o.onrender.com/cashbookdebits", {
+    fetch("https://demo-server-757m.onrender.com/cashbookdebits", {
       method:'GET',
       headers:{
         'Authorization':`Bearer ${token}`

@@ -10,7 +10,7 @@ function FuelTransactions(){
     const token = localStorage.getItem('access_token')
 
     useEffect(()=>{
-        fetch('https://db-demo-u07o.onrender.com/pumpfuelings', {
+        fetch('https://demo-server-757m.onrender.com/pumpfuelings', {
             method:'GET',
             headers:{
                 'Authorization':`Bearer ${token}`
@@ -35,7 +35,7 @@ function FuelTransactions(){
   
       // Loop through the range of IDs from 129 to 138
       for (let id = 450; id <= 451; id++) {
-          fetch(`https://db-demo-u07o.onrender.com/pumpfuelings/${id}`, {
+          fetch(`https://demo-server-757m.onrender.com/pumpfuelings/${id}`, {
               method: 'DELETE',
               headers: {
                   'Content-Type': 'application/json',
@@ -53,7 +53,7 @@ function FuelTransactions(){
           })
           .then(() => {
               // Refetch the data after each delete
-              fetch('https://db-demo-u07o.onrender.com/pumpfuelings', {
+              fetch('https://demo-server-757m.onrender.com/pumpfuelings', {
                 method:'GET',
                 headers:{
                     'Authorization':`Bearer ${token}`

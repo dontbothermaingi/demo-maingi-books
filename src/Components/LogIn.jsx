@@ -27,7 +27,7 @@ function Login({ onLogin }) {
         if (formData.password !== 'Demo@2024!') {
             setError('Invalid username or password!');
         } else {
-            fetch('https://db-demo-u07o.onrender.com/userLogin', {
+            fetch('https://demo-server-757m.onrender.com/userLogin', {
                 method: "POST",
                 headers: {
                     'Content-Type': 'application/json'

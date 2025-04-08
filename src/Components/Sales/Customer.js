@@ -24,7 +24,7 @@ function Customer() {
     const itemsPerPage = 16;
 
     useEffect(() => {
-        fetch('https://db-demo-u07o.onrender.com/customers', {
+        fetch('https://demo-server-757m.onrender.com/customers', {
             method:'GET',
             headers:{
                 'Authorization':`Bearer ${token}`
@@ -48,7 +48,7 @@ function Customer() {
 
     function handleSubmit(event) {
         event.preventDefault();
-        fetch('https://db-demo-u07o.onrender.com/customers', {
+        fetch('https://demo-server-757m.onrender.com/customers', {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -63,7 +63,7 @@ function Customer() {
             .then(response => response.json())
             .then(() => {
                 // Refetch customers after successful submission
-                fetch('https://db-demo-u07o.onrender.com/customers', {
+                fetch('https://demo-server-757m.onrender.com/customers', {
                     method:'GET',
                     headers:{
                         'Authorization':`Bearer ${token}`

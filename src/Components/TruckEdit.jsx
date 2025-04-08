@@ -21,7 +21,7 @@ function TruckEdit() {
 
   useEffect(() => {
     // Fetch truck details to prefill the form
-    fetch(`https://db-demo-u07o.onrender.com/trucks/${truckId}`,{
+    fetch(`https://demo-server-757m.onrender.com/trucks/${truckId}`,{
             method:'GET',
             headers:{
                 'Authorization':`Bearer ${token}`
@@ -64,7 +64,7 @@ function TruckEdit() {
   function handleSubmit(event) {
     event.preventDefault();
 
-    fetch(`https://db-demo-u07o.onrender.com/trucks/${truckId}`, {
+    fetch(`https://demo-server-757m.onrender.com/trucks/${truckId}`, {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",

@@ -51,7 +51,7 @@ function TradingProfitLossAccount() {
     
 
     useEffect(() => {
-        fetch('https://db-demo-u07o.onrender.com/tradingprofitandlossaccounts',{
+        fetch('https://demo-server-757m.onrender.com/tradingprofitandlossaccounts',{
             method:'GET',
             headers:{
                 'Authorization': `Bearer ${token}`

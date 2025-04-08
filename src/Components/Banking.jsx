@@ -61,7 +61,7 @@ function Banking() {
     function handleSubmit(event){
         event.preventDefault()
 
-        fetch('https://db-demo-u07o.onrender.com/bankaccounts',{
+        fetch('https://demo-server-757m.onrender.com/bankaccounts',{
             method:"POST",
             headers:{
                 'Content-Type':'application/json',
@@ -74,7 +74,7 @@ function Banking() {
         .then( (data) => {
             console.log(data)
 
-            fetch('https://db-demo-u07o.onrender.com/bankaccounts', {
+            fetch('https://demo-server-757m.onrender.com/bankaccounts', {
               method:'GET',
               headers:{
                   'Authorization':`Bearer ${token}`
@@ -103,7 +103,7 @@ function Banking() {
       event.preventDefault();
   
       console.log('Submitting deposit data:', formDepositData);
-      fetch('https://db-demo-u07o.onrender.com/deposits', {
+      fetch('https://demo-server-757m.onrender.com/deposits', {
           method: "POST",
           headers: {
               'Content-Type': 'application/json',
@@ -115,7 +115,7 @@ function Banking() {
       .then(response => response.json())
       .then(data => {
 
-        fetch('https://db-demo-u07o.onrender.com/bankaccounts', {
+        fetch('https://demo-server-757m.onrender.com/bankaccounts', {
           method:'GET',
           headers:{
             'Authorization':`Bearer ${token}`
@@ -139,7 +139,7 @@ function Banking() {
                   const updatedAmount = parseFloat(selectedBank.amount) - (parseFloat(formDepositData.amount) + parseFloat(formDepositData.bank_charges || 0));
                   console.log('Updating bank with amount:', updatedAmount);
   
-                  fetch(`https://db-demo-u07o.onrender.com/bankaccounts/${selectedBank.id}`, {
+                  fetch(`https://demo-server-757m.onrender.com/bankaccounts/${selectedBank.id}`, {
                       method: "PATCH",
                       headers: {
                           "Content-Type": "application/json",
@@ -173,7 +173,7 @@ function Banking() {
     const navigate = useNavigate()
 
     useEffect(() => {
-        fetch('https://db-demo-u07o.onrender.com/invoices',{
+        fetch('https://demo-server-757m.onrender.com/invoices',{
           method:'GET',
           headers:{
             'Authorization':`Bearer ${token}`
@@ -195,7 +195,7 @@ function Banking() {
     }, [token]);
 
     useEffect(() => {
-      fetch('https://db-demo-u07o.onrender.com/paymentsmade',{
+      fetch('https://demo-server-757m.onrender.com/paymentsmade',{
           method:'GET',
           headers:{
             'Authorization':`Bearer ${token}`
@@ -213,7 +213,7 @@ function Banking() {
 
 
     useEffect(() => {
-      fetch('https://db-demo-u07o.onrender.com/bankaccounts',{
+      fetch('https://demo-server-757m.onrender.com/bankaccounts',{
           method:'GET',
           headers:{
             'Authorization':`Bearer ${token}`
@@ -228,7 +228,7 @@ function Banking() {
   }, [token]);
 
   useEffect(() => {
-    fetch('https://db-demo-u07o.onrender.com/customers',{
+    fetch('https://demo-server-757m.onrender.com/customers',{
           method:'GET',
           headers:{
             'Authorization':`Bearer ${token}`
@@ -253,7 +253,7 @@ const handleCurrencyChange = (event) => {
 };
 
 useEffect(() => {
-  fetch('https://db-demo-u07o.onrender.com/vendors',{
+  fetch('https://demo-server-757m.onrender.com/vendors',{
           method:'GET',
           headers:{
             'Authorization':`Bearer ${token}`
@@ -270,7 +270,7 @@ useEffect(() => {
 
   
   useEffect(() => {
-    fetch('https://db-demo-u07o.onrender.com/bankaccounts',{
+    fetch('https://demo-server-757m.onrender.com/bankaccounts',{
           method:'GET',
           headers:{
             'Authorization':`Bearer ${token}`
@@ -289,7 +289,7 @@ useEffect(() => {
 }, [token]);
 
   useEffect(() => {
-    fetch('https://db-demo-u07o.onrender.com/paymentsreceived',{
+    fetch('https://demo-server-757m.onrender.compaymentsreceived',{
           method:'GET',
           headers:{
             'Authorization':`Bearer ${token}`
@@ -304,7 +304,7 @@ useEffect(() => {
 }, [token]);
 
   useEffect(() => {
-    fetch('https://db-demo-u07o.onrender.com/funds',{
+    fetch('https://demo-server-757m.onrender.com/funds',{
           method:'GET',
           headers:{
             'Authorization':`Bearer ${token}`
@@ -319,7 +319,7 @@ useEffect(() => {
   }, [token]);
 
   useEffect(() => {
-    fetch('https://db-demo-u07o.onrender.com/funds',{
+    fetch('https://demo-server-757m.onrender.com/funds',{
           method:'GET',
           headers:{
             'Authorization':`Bearer ${token}`

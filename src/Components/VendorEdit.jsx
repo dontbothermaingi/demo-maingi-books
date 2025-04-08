@@ -18,7 +18,7 @@ function VendorEdit (){
     })
 
     useEffect(()=>{
-        fetch(`https://db-demo-u07o.onrender.com/vendors/${vendorId}`, {
+        fetch(`https://demo-server-757m.onrender.com/vendors/${vendorId}`, {
             method:'GET',
             headers:{
                 'Authorization':`Bearer ${token}`
@@ -53,7 +53,7 @@ function VendorEdit (){
 
         event.preventDefault()
         
-        fetch(`https://db-demo-u07o.onrender.com/vendors/${vendorId}`, {
+        fetch(`https://demo-server-757m.onrender.com/vendors/${vendorId}`, {
             method:'PATCH',
             headers:{
                 'Content-Type':'application/json',

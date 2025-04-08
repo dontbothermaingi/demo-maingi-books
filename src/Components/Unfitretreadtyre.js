@@ -27,7 +27,7 @@ function UnfitRetreadTyres() {
     });
 
     useEffect(() => {
-        fetch('https://db-demo-u07o.onrender.com/retreadtyresremove',{
+        fetch('https://demo-server-757m.onrender.com/retreadtyresremove',{
             method: 'GET',
             credentials: 'include',
             headers: {
@@ -102,7 +102,7 @@ function UnfitRetreadTyres() {
             }
             const newFormData = { ...formData, tyre_mileage: tyreMileage };
     
-            fetch('https://db-demo-u07o.onrender.com/unfitretreadtyres', {
+            fetch('https://demo-server-757m.onrender.com/unfitretreadtyres', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -139,7 +139,7 @@ function UnfitRetreadTyres() {
             })
             .then(data => {
                 event.target.reset();
-                fetch('https://db-demo-u07o.onrender.com/retreadtyresremove',{
+                fetch('https://demo-server-757m.onrender.com/retreadtyresremove',{
                     method: 'GET',
                     credentials: 'include',
                     headers: {

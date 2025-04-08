@@ -23,7 +23,7 @@ function RetreadTyre(){
     })
 
     useEffect(()=>{
-        fetch('https://db-demo-u07o.onrender.com/retreadtyres', {
+        fetch('https://demo-server-757m.onrender.com/retreadtyres', {
             method:'GET',
             headers:{
                 'Authorization':`Bearer ${token}`
@@ -39,7 +39,7 @@ function RetreadTyre(){
     },[token])
 
     useEffect(()=>{
-        fetch('https://db-demo-u07o.onrender.com/trucks', {
+        fetch('https://demo-server-757m.onrender.com/trucks', {
             method:'GET',
             headers:{
                 'Authorization':`Bearer ${token}`
@@ -63,7 +63,7 @@ function RetreadTyre(){
 
     function handleSubmit(event){
         event.preventDefault()
-        fetch('https://db-demo-u07o.onrender.com/retreadtyresremove', {
+        fetch('https://demo-server-757m.onrender.com/retreadtyresremove', {
             method:"POST",
             headers:{
                 "Content-Type":"application/json",
@@ -78,7 +78,7 @@ function RetreadTyre(){
         .then(response => response.json())
         .then((data) => {
 
-            fetch('https://db-demo-u07o.onrender.com/retreadtyres', {
+            fetch('https://demo-server-757m.onrender.com/retreadtyres', {
                 method:'GET',
                 headers:{
                     'Authorization':`Bearer ${token}`

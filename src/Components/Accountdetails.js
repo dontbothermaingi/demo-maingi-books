@@ -14,7 +14,7 @@ function AccountDetails() {
     const [details, setDetails] = useState(null);
 
     useEffect(() => {
-        fetch(`https://db-demo-u07o.onrender.com/accounts/${accountId}`)
+        fetch(`https://demo-server-757m.onrender.com/accounts/${accountId}`)
             .then(response => response.json())
             .then(data => {
                 setDetails(data);
@@ -23,7 +23,7 @@ function AccountDetails() {
     }, [accountId]);
 
     useEffect(() => {
-        fetch(`https://db-demo-u07o.onrender.com/accounts/${accountId}`)
+        fetch(`https://demo-server-757m.onrender.com/accounts/${accountId}`)
             .then(response => response.json())
             .then(data => {
                 const expenseItems = data.expenses.flatMap(expense => 
@@ -38,7 +38,7 @@ function AccountDetails() {
     }, [accountId]);
 
     useEffect(() => {
-        fetch(`https://db-demo-u07o.onrender.com/accounts/${accountId}`)
+        fetch(`https://demo-server-757m.onrender.com/accounts/${accountId}`)
             .then(response => response.json())
             .then(data => {
                 const expenseItems = data.salesreceipts.flatMap(expense => 
@@ -53,7 +53,7 @@ function AccountDetails() {
     }, [accountId]);
 
     useEffect(() => {
-        fetch(`https://db-demo-u07o.onrender.com/accounts/${accountId}`)
+        fetch(`https://demo-server-757m.onrender.com/accounts/${accountId}`)
             .then(response => response.json())
             .then(data => {
                 const expenseItems = data.invoices.flatMap(expense => 
@@ -68,7 +68,7 @@ function AccountDetails() {
     }, [accountId]);
 
     useEffect(() => {
-        fetch(`https://db-demo-u07o.onrender.com/accounts/${accountId}`)
+        fetch(`https://demo-server-757m.onrender.com/accounts/${accountId}`)
             .then(response => response.json())
             .then(data => {
                 const billItems = data.bills.flatMap(bill => 
@@ -83,7 +83,7 @@ function AccountDetails() {
     }, [accountId]);
 
     useEffect(() => {
-        fetch(`https://db-demo-u07o.onrender.com/stockitems?account_name=${accountId}`)
+        fetch(`https://demo-server-757m.onrender.com/stockitems?account_name=${accountId}`)
             .then(response => response.json())
             .then(data => {
                 setStockItems(data);

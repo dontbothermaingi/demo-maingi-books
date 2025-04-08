@@ -11,7 +11,7 @@ const Items = () => {
   const token = localStorage.getItem('access_token')
 
   useEffect(() => {
-    fetch('https://db-demo-u07o.onrender.com/stockitems',{
+    fetch('https://demo-server-757m.onrender.com/stockitems',{
             method:'GET',
             headers:{
                 'Authorization':`Bearer ${token}`

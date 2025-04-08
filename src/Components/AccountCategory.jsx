@@ -13,7 +13,7 @@ function AccountCategory() {
     });
 
     useEffect(() => {
-        fetch('https://db-demo-u07o.onrender.com/accounttypes')
+        fetch('hhttps://demo-server-757m.onrender.com/accounttypes')
             .then(response => response.json())
             .then(data => {
                 setAAccounts(data);
@@ -21,7 +21,7 @@ function AccountCategory() {
     }, []);
 
     useEffect(() => {
-        fetch('https://db-demo-u07o.onrender.com/accountcategories')
+        fetch('https://demo-server-757m.onrender.com/accountcategories')
             .then(response => response.json())
             .then(data => {
                 const filtered = data.filter(item => item.account_type_id === 2);
@@ -43,7 +43,7 @@ function AccountCategory() {
     function handleSubmit(event) {
         event.preventDefault();
 
-        fetch('https://db-demo-u07o.onrender.com/accountcategories', {
+        fetch('https://demo-server-757m.onrender.com/accountcategories', {
             method: 'POST',
             headers: {
                 "Content-Type": "application/json"

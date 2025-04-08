@@ -27,7 +27,7 @@ function OldTyres() {
     });
 
     useEffect(() => {
-        fetch('https://db-demo-u07o.onrender.com/removetyres',{
+        fetch('https://demo-server-757m.onrender.com/removetyres',{
             method: 'GET',
             credentials: 'include',
             headers: {
@@ -83,7 +83,7 @@ function OldTyres() {
             }
             const newFormData = { ...formData, tyre_mileage: tyreMileage };
 
-            fetch('https://db-demo-u07o.onrender.com/usedtyres', {
+            fetch('https://demo-server-757m.onrender.com/usedtyres', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -107,7 +107,7 @@ function OldTyres() {
                     // Second PATCH request to update the status of the tyre in removetyres
                     console.log('Updating tyre status for serial number:', formData.serial_number);
                     
-                    fetch(`https://db-demo-u07o.onrender.com/removetyres/${formData.serial_number}`, {
+                    fetch(`https://demo-server-757m.onrender.com/removetyres/${formData.serial_number}`, {
                         method: 'PATCH',
                         headers: {
                             'Content-Type': 'application/json',
@@ -128,7 +128,7 @@ function OldTyres() {
                     })
                     .then(data => {
 
-                        fetch('https://db-demo-u07o.onrender.com/removetyres',{
+                        fetch('https://demo-server-757m.onrender.com/removetyres',{
                             method: 'GET',
                             credentials: 'include',
                             headers: {

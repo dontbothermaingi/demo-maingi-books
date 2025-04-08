@@ -9,7 +9,7 @@ const AvailableRetreadTyres = () => {
   
 
   useEffect(() => {
-    fetch('https://db-demo-u07o.onrender.com/usedtyres',{
+    fetch('https://demo-server-757m.onrender.com/usedtyres',{
           method: 'GET',
           credentials: 'include',
           headers: {

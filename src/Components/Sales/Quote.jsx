@@ -38,7 +38,7 @@ function Quotes (){
     })
 
     useEffect(()=>{
-        fetch('https://db-demo-u07o.onrender.com/customers', {
+        fetch('https://demo-server-757m.onrender.com/customers', {
             method:'GET',
             headers:{
                 'Authorization':`Bearer ${token}`
@@ -50,7 +50,7 @@ function Quotes (){
     }, [token])
 
     useEffect(()=>{
-        fetch('https://db-demo-u07o.onrender.com/quotes', {
+        fetch('https://demo-server-757m.onrender.com/quotes', {
             method:'GET',
             headers:{
                 'Authorization':`Bearer ${token}`
@@ -149,7 +149,7 @@ function Quotes (){
 
         const quoteNumber = quotes.length + 1
 
-        fetch('https://db-demo-u07o.onrender.com/quotes', {
+        fetch('https://demo-server-757m.onrender.com/quotes', {
             method:'POST',
             headers:{
                 'Content-Type':'application/json',
@@ -161,7 +161,7 @@ function Quotes (){
         .then(response => response.json())
         .then(data => {
 
-                fetch('https://db-demo-u07o.onrender.com/quotes',{
+                fetch('https://demo-server-757m.onrender.com/quotes',{
                     method:'GET',
                     headers:{
                         'Authorization':`Bearer ${token}`

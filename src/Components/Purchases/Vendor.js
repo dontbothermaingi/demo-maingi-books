@@ -187,7 +187,7 @@ function Vendor() {
     ];
 
     useEffect(() => {
-        fetch('https://db-demo-u07o.onrender.com/vendors',{
+        fetch('https://demo-server-757m.onrender.com/vendors',{
             method:'GET',
             headers:{
                 'Authorization':`Bearer ${token}`
@@ -215,7 +215,7 @@ function Vendor() {
     function handleSubmit(event) {
         event.preventDefault();
 
-        fetch('https://db-demo-u07o.onrender.com/vendors', {
+        fetch('https://demo-server-757m.onrender.com/vendors', {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -232,7 +232,7 @@ function Vendor() {
             .then((data) => {
                 console.log(data);
 
-                fetch('https://db-demo-u07o.onrender.com/vendors', {
+                fetch('https://demo-server-757m.onrender.com/vendors', {
                     method:'GET',
                     headers:{
                         'Authorization':`Bearer ${token}`

@@ -50,7 +50,7 @@ function InventoryBill() {
     });
 
     useEffect(() => {
-        fetch('https://db-demo-u07o.onrender.com/newbills', {
+        fetch('https://demo-server-757m.onrender.com/newbills', {
             method:'GET',
             headers:{
                 'Authorization':`Bearer ${token}`
@@ -77,7 +77,7 @@ function InventoryBill() {
     }, [formData.payment_terms, formData.bill_date]);
 
     useEffect(() => {
-        fetch('https://db-demo-u07o.onrender.com/vendors', {
+        fetch('https://demo-server-757m.onrender.com/vendors', {
             method:'GET',
             headers:{
                 'Authorization':`Bearer ${token}`
@@ -264,7 +264,7 @@ function InventoryBill() {
         }
         
     
-        fetch('https://db-demo-u07o.onrender.com/inventorybills', {
+        fetch('https://demo-server-757m.onrender.com/inventorybills', {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -282,7 +282,7 @@ function InventoryBill() {
             .then(response => response.json())
             .then(data => {
 
-                fetch('https://db-demo-u07o.onrender.com/newbills',{
+                fetch('https://demo-server-757m.onrender.com/newbills',{
                     method:'GET',
                     headers:{
                         'Authorization':`Bearer ${token}`

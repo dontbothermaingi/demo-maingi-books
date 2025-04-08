@@ -22,7 +22,7 @@ function FitUsedTyre(){
     })
 
     useEffect(() => {
-        fetch('https://db-demo-u07o.onrender.com/usedtyres',{
+        fetch('https://demo-server-757m.onrender.com/usedtyres',{
             method:'GET',
             headers:{
                 'Authorization':`Bearer ${token}`
@@ -40,7 +40,7 @@ function FitUsedTyre(){
     
 
     useEffect(()=>{
-        fetch('https://db-demo-u07o.onrender.com/trucks', {
+        fetch('https://demo-server-757m.onrender.com/trucks', {
             method:'GET',
             headers:{
                 'Authorization':`Bearer ${token}`
@@ -64,7 +64,7 @@ function FitUsedTyre(){
 
     function handleSubmit(event){
         event.preventDefault()
-        fetch('https://db-demo-u07o.onrender.com/fitusedtyres', {
+        fetch('https://demo-server-757m.onrender.com/fitusedtyres', {
             method:"POST",
             headers:{
                 "Content-Type":"application/json",
@@ -79,7 +79,7 @@ function FitUsedTyre(){
         .then(response => response.json())
         .then((data) => {
 
-            fetch('https://db-demo-u07o.onrender.com/usedtyres', {
+            fetch('https://demo-server-757m.onrender.com/usedtyres', {
                 method:'GET',
                 headers:{
                     'Authorization':`Bearer ${token}`

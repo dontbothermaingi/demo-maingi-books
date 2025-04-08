@@ -17,6 +17,7 @@ function InventoryInvoice() {
     const [storeItems, setStoreItems] = useState([]);
     const [currentPage, setCurrentPage] = useState(1);
     const token = localStorage.getItem('access_token')
+    const [lastInvoiceNumber, setLastInvoiceNumber] = useState("")
     const itemsPerPage = 16;
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
@@ -50,12 +51,13 @@ function InventoryInvoice() {
         rate_vat: 0,
         rate: 0,
         amount: 0,
+        store:0,
     });
 
     const navigate = useNavigate();
 
     useEffect(() => {
-        fetch('https://db-demo-u07o.onrender.com/invoices', {
+        fetch('https://demo-server-757m.onrender.com/invoices', {
             method:'GET',
             headers:{
                 'Authorization':`Bearer ${token}`
@@ -72,11 +74,17 @@ function InventoryInvoice() {
 
                 })
                 setInvoices(invoiceTotal);
+
+                const sortedInvoices = data.sort((a,b) => b.id - a.id)
+                const lastInvoiceNumber = sortedInvoices.length > 0 ? sortedInvoices[0].invoice_number : null;
+    
+                console.log("Last Invoice Number:", lastInvoiceNumber);
+                setLastInvoiceNumber(lastInvoiceNumber)
             });
     }, [token]);
 
     useEffect(() => {
-        fetch('https://db-demo-u07o.onrender.com/stockitems', {
+        fetch('https://demo-server-757m.onrender.com/stockitems', {
             method:'GET',
             headers:{
                 'Authorization':`Bearer ${token}`
@@ -84,11 +92,22 @@ function InventoryInvoice() {
             credentials:'include'
         })
             .then(response => response.json())
-            .then((data) => setStoreItems(data));
-    }, [token]);
+            .then((data) => {
+
+                const KOROGA = data.filter(item => item.store === 'KOROGA HOTEL')
+                const CLUB = data.filter(item => item.store === 'B&G CLUB')
+
+                if (formData.customer_name === 'KOROGA HOTEL'){
+                    setStoreItems(KOROGA)
+                }else{
+                    setStoreItems(CLUB)
+                }
+
+            });
+    }, [token, formData.customer_name]);
 
     useEffect(() => {
-        fetch('https://db-demo-u07o.onrender.com/customers', {
+        fetch('https://demo-server-757m.onrender.com/customers', {
             method:'GET',
             headers:{
                 'Authorization':`Bearer ${token}`
@@ -149,7 +168,7 @@ function InventoryInvoice() {
             ...prevFormData,
             items: [...prevFormData.items, itemWithAmount]
         }));
-        setNewItem({ item_details: "", quantity: 0, rate: 0, vat: 0, rate_vat: 0,sub_total:0, amount: 0 });
+        setNewItem({ item_details: "", quantity: 0, rate: 0, vat: 0, rate_vat: 0,sub_total:0, amount: 0, store:"" });
     }
 
     function handleDeleteItem(index) {
@@ -182,7 +201,8 @@ function InventoryInvoice() {
         }
     }
 
-    const invoiceNumber = invoices.length + 1
+    const invoiceNumber = parseInt(lastInvoiceNumber) + 1
+
 
     function handleSubmit(event) {
         event.preventDefault();
@@ -197,11 +217,11 @@ function InventoryInvoice() {
             status: 'UNPAID',
             amount_paid:0,
             amount_owed:calculateInvoiceTotal(),
-            invoice_number: invoiceNumber,
+            invoice_number:invoiceNumber,
         };
     
         // Submit the invoice
-        fetch('https://db-demo-u07o.onrender.com/inventoryinvoices', {
+        fetch('https://demo-server-757m.onrender.com/inventoryinvoices', {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -218,7 +238,7 @@ function InventoryInvoice() {
         })
         .then((data) => {
 
-            fetch('https://db-demo-u07o.onrender.com/invoices', {
+            fetch('https://demo-server-757m.onrender.com/invoices', {
                 method:'GET',
                 headers:{
                     'Authorization':`Bearer ${token}`
@@ -258,7 +278,7 @@ function InventoryInvoice() {
                         items: [],
                         terms_conditions: "",
                     });
-                
+                    // Generate new invoice number
                     setOpenDialog(true); // Open the dialog
                 })
                 .catch((error) => {
@@ -355,7 +375,6 @@ function InventoryInvoice() {
         setNewItem(prevNewItem => ({
             ...prevNewItem,
             item_details: selectedItemName,
-            // quantity: selectedItem ? selectedItem.quantity : 0
         }));
     }
 
@@ -621,7 +640,7 @@ function InventoryInvoice() {
                                 type="text"
                                 name="invoice_number"
                                 label="Invoice Number"
-                                value={formData.invoice_number}
+                                value={invoiceNumber}
                                 onChange={handleChange}
                                 readOnly
                                 variant="outlined"
@@ -791,6 +810,7 @@ function InventoryInvoice() {
                                     <TableHead>
                                     <TableRow>
                                         <TableCell sx={{ minWidth: 150 }}><Typography fontWeight="bold">Item Details</Typography></TableCell>
+                                        <TableCell sx={{ minWidth: 200 }}><Typography fontWeight="bold">STORE</Typography></TableCell>
                                         <TableCell sx={{ minWidth: 100 }}><Typography fontWeight="bold">Quantity</Typography></TableCell>
                                         <TableCell sx={{ minWidth: 150 }}><Typography fontWeight="bold">Rate</Typography></TableCell>
                                         <TableCell sx={{ minWidth: 120 }}><Typography fontWeight="bold">Sub Total</Typography></TableCell>
@@ -805,6 +825,7 @@ function InventoryInvoice() {
                                     {formData.items.map((item, index) => (
                                         <TableRow key={index}>
                                         <TableCell>{item.item_details}</TableCell>
+                                        <TableCell>{item.store}</TableCell>
                                         <TableCell>{new Intl.NumberFormat().format(item.quantity)}</TableCell>
                                         <TableCell>{new Intl.NumberFormat().format(item.rate)}</TableCell>
                                         <TableCell>{new Intl.NumberFormat().format(item.sub_total)}</TableCell>
@@ -834,6 +855,19 @@ function InventoryInvoice() {
                                             <MenuItem key={index} value={item.item_details}>{item.item_details}</MenuItem>
                                             ))}
                                         </Select>
+                                        </TableCell>
+
+                                        <TableCell>
+                                            <TextField
+                                                type="text"
+                                                name="store"
+                                                placeholder="Store"
+                                                variant="outlined"
+                                                size="small"
+                                                fullWidth
+                                                value={selectedItem.store}
+                                                onChange={handleNewItemChange}
+                                            />
                                         </TableCell>
 
                                         <TableCell>

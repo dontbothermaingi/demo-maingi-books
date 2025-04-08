@@ -25,7 +25,7 @@ function TopBar() {
   const access_token = localStorage.getItem('access_token')
 
   useEffect(() => {
-      fetch('https://db-demo-u07o.onrender.com/check_session', {
+      fetch('https://demo-server-757m.onrender.com/check_session', {
           method: 'GET',
           credentials: 'include',
           headers: {

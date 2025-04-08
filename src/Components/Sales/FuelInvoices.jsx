@@ -62,7 +62,7 @@ function FuelInvoice() {
     const navigate = useNavigate();    
 
     useEffect(() => {
-        fetch('https://db-demo-u07o.onrender.com/invoices', {
+        fetch('https://demo-server-757m.onrender.com/invoices', {
             method: 'GET',
             headers: {
                 'Authorization': `Bearer ${token}`
@@ -87,7 +87,7 @@ function FuelInvoice() {
     }, [token]);
     
     useEffect(() => {
-        fetch('https://db-demo-u07o.onrender.com/trucks',{
+        fetch('https://demo-server-757m.onrender.com/trucks',{
             method:'GET',
             headers:{
                 'Authorization':`Bearer ${token}`
@@ -99,7 +99,7 @@ function FuelInvoice() {
     }, [token]);
 
     useEffect(() => {
-        fetch('https://db-demo-u07o.onrender.com/customers', {
+        fetch('https://demo-server-757m.onrender.com/customers', {
             method:'GET',
             headers:{
                 'Authorization':`Bearer ${token}`
@@ -115,7 +115,7 @@ function FuelInvoice() {
     //     if (newItem.length > 0){
     //         const firstItem = newItem[0]
 
-    //     fetch('https://db-demo-u07o.onrender.com/pumpnames', {
+    //     fetch('https://maingi-server-3.onrender.com/pumpnames', {
     //         method:'GET',
     //         headers:{
     //             'Authorization':`Bearer ${token}`
@@ -317,7 +317,7 @@ function FuelInvoice() {
             invoice_number: invoiceNumber,
         };
     
-        fetch('https://db-demo-u07o.onrender.com/fuelinvoices', {
+        fetch('https://demo-server-757m.onrender.com/fuelinvoices', {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -337,7 +337,7 @@ function FuelInvoice() {
         })
         .then((data) => {
 
-            fetch('https://db-demo-u07o.onrender.com/invoices', {
+            fetch('https://demo-server-757m.onrender.com/invoices', {
                 method:'GET',
                 headers:{
                     'Authorization':`Bearer ${token}`

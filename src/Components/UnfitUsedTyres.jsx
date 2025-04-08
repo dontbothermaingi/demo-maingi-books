@@ -25,7 +25,7 @@ function UnfitUsedTyres() {
     });
 
     useEffect(() => {
-        fetch('https://db-demo-u07o.onrender.com/fitusedtyres',{
+        fetch('https://demo-server-757m.onrender.com/fitusedtyres',{
             method:'GET',
             headers:{
                 'Authorization':`Bearer ${token}`
@@ -99,7 +99,7 @@ function UnfitUsedTyres() {
             }
             const newFormData = { ...formData, tyre_mileage: parseInt(tyreMileage) };
     
-            fetch('https://db-demo-u07o.onrender.com/unfitusedtyres', {
+            fetch('https://demo-server-757m.onrender.com/unfitusedtyres', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -118,7 +118,7 @@ function UnfitUsedTyres() {
             })
             .then(data => {
                 event.target.reset();
-                fetch('https://db-demo-u07o.onrender.com/fitusedtyres',{
+                fetch('https://demo-server-757m.onrender.com/fitusedtyres',{
                     method:'GET',
                     headers:{
                         'Authorization':`Bearer ${token}`

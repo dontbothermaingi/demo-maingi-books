@@ -16,7 +16,7 @@ const BillDetails = () => {
 
   useEffect(() => {
     setLoading(true); // Set loading to true before fetching data
-    fetch(`https://db-demo-u07o.onrender.com/newbills/${billId}`,{
+    fetch(`https://demo-server-757m.onrender.com/newbills/${billId}`,{
       method:'GET',
       credentials:'include',
       headers:{

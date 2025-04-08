@@ -12,7 +12,7 @@ function RetreadTyreTripReport() {
     const [tableItems, setTableItems] = useState([]);
 
     useEffect(() => {
-        fetch(`https://db-demo-u07o.onrender.com/retreadshoptrips/${repairId}`)
+        fetch(`https://demo-server-757m.onrender.com/retreadshoptrips/${repairId}`)
             .then(response => response.json())
             .then(data => {
                 console.log("Data received:", data);

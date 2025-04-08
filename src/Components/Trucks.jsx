@@ -25,7 +25,7 @@ function Trucks(){
   
 
   useEffect(() => {
-    fetch('https://db-demo-u07o.onrender.com/trucks',{
+    fetch('https://demo-server-757m.onrender.com/trucks',{
           method: 'GET',
           credentials: 'include',
           headers: {
@@ -49,7 +49,7 @@ function Trucks(){
 
     const vehicleId = trucks.length + 1
 
-    fetch('https://db-demo-u07o.onrender.com/trucks', {
+    fetch('https://demo-server-757m.onrender.com/trucks', {
       method:'POST',
       headers:{
         'Content-Type':'application/json',

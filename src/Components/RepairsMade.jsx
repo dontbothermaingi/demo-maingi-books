@@ -13,7 +13,7 @@ function RepairMade(){
 
 
     useEffect(()=>{
-        fetch("https://db-demo-u07o.onrender.com/vehiclemantainances",{
+        fetch("https://demo-server-757m.onrender.com/vehiclemantainances",{
             method:'GET',
             headers:{
                 'Authorization':`Bearer ${token}`

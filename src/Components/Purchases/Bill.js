@@ -35,7 +35,7 @@ function Bill() {
     });
 
     useEffect(() => {
-        fetch('https://db-demo-u07o.onrender.com/newbills',{
+        fetch('https://demo-server-757m.onrender.com/newbills',{
           method:'GET',
           headers:{
             'Authorization':`Bearer ${token}`

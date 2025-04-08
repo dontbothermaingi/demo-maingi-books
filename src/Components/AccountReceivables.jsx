@@ -187,7 +187,7 @@ function AccountsReceivables() {
     const navigate = useNavigate();
 
   useEffect(() => {
-    fetch('https://db-demo-u07o.onrender.com/customers',{
+    fetch('https://demo-server-757m.onrender.com/customers',{
             method:'GET',
             headers:{
                 'Authorization':`Bearer ${token}`

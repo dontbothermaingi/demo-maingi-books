@@ -14,7 +14,7 @@ const Spares = () => {
   const token = localStorage.getItem('access_token')
 
   useEffect(() => {
-    fetch('https://db-demo-u07o.onrender.com/sparesubcategories',{
+    fetch('https://demo-server-757m.onrender.com/sparesubcategories',{
             method:'GET',
             headers:{
                 'Authorization':`Bearer ${token}`
@@ -35,7 +35,7 @@ const Spares = () => {
   }, [token]);
 
   useEffect(() => {
-    fetch('https://db-demo-u07o.onrender.com/sparesubcategories', {
+    fetch('https://demo-server-757m.onrender.com/sparesubcategories', {
             method:'GET',
             headers:{
                 'Authorization':`Bearer ${token}`

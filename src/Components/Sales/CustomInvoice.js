@@ -56,7 +56,7 @@ function CustomInvoice() {
     const navigate = useNavigate();
 
     useEffect(() => {
-        fetch('https://db-demo-u07o.onrender.com/invoices', {
+        fetch('https://demo-server-757m.onrender.com/invoices', {
             method:'GET',
             headers:{
                 'Authorization':`Bearer ${token}`
@@ -75,7 +75,7 @@ function CustomInvoice() {
     }, [token]);
 
     useEffect(() => {
-        fetch('https://db-demo-u07o.onrender.com/customers', {
+        fetch('https://demo-server-757m.onrender.com/customers', {
             method:'GET',
             headers:{
                 'Authorization':`Bearer ${token}`
@@ -188,7 +188,7 @@ function CustomInvoice() {
             invoice_number:invoiceNumber,
         };
     
-        fetch('https://db-demo-u07o.onrender.com/custominvoices', {
+        fetch('https://demo-server-757m.onrender.com/custominvoices', {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -205,7 +205,7 @@ function CustomInvoice() {
         })
         .then((data) => {
 
-            fetch('https://db-demo-u07o.onrender.com/invoices', {
+            fetch('https://demo-server-757m.onrender.com/invoices', {
                 method:'GET',
                 headers:{
                     'Authorization':`Bearer ${token}`

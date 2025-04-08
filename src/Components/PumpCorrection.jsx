@@ -14,7 +14,7 @@ function PumpCorrections (){
       });
 
     useEffect(()=>{
-        fetch(`https://db-demo-u07o.onrender.com/pumpnames/${pumpId}`,{
+        fetch(`https://demo-server-757m.onrender.com/pumpnames/${pumpId}`,{
             method:'GET',
             headers:{
                 'Authorization':`Bearer ${token}`
@@ -47,7 +47,7 @@ function PumpCorrections (){
     function handleSubmit(event){
         event.preventDefault()
 
-        fetch(`https://db-demo-u07o.onrender.com/pumpnames/${pumpId}`, {
+        fetch(`https://demo-server-757m.onrender.com/pumpnames/${pumpId}`, {
             method:'PATCH',
             headers: {
                 'Content-Type':'application/json',

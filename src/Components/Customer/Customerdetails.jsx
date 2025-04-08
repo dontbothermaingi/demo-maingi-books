@@ -24,7 +24,7 @@ const CustomerDetails = () => {
 
 
   useEffect(() => {
-    fetch(`https://db-demo-u07o.onrender.com/customers/${customerId}`, {
+    fetch(`https://demo-server-757m.onrender.com/customers/${customerId}`, {
       method:'GET',
       credentials:'include',
       headers:{

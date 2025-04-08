@@ -13,7 +13,7 @@ function Invoice() {
     const navigate = useNavigate();
 
     useEffect(() => {
-        fetch('https://db-demo-u07o.onrender.com/invoices', {
+        fetch('https://demo-server-757m.onrender.com/invoices', {
             method:'GET',
             headers:{
                 'Authorization':`Bearer ${token}`

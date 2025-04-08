@@ -41,7 +41,7 @@ function VehicleRepair(){
 
 
     useEffect(()=>{
-        fetch('https://db-demo-u07o.onrender.com/trucks',{
+        fetch('https://demo-server-757m.onrender.com/trucks',{
             method: 'GET',
             credentials: 'include',
             headers: {
@@ -56,7 +56,7 @@ function VehicleRepair(){
 
 
     useEffect(()=>{
-        fetch('https://db-demo-u07o.onrender.com/sparesubcategories', {
+        fetch('https://demo-server-757m.onrender.com/sparesubcategories', {
             method: 'GET',
             credentials: 'include',
             headers: {
@@ -70,7 +70,7 @@ function VehicleRepair(){
     },[token])
 
     useEffect(() => {
-        fetch("https://db-demo-u07o.onrender.com/vehiclemantainances", {
+        fetch("https://demo-server-757m.onrender.com/vehiclemantainances", {
             method: 'GET',
             credentials: 'include',
             headers: {
@@ -208,7 +208,7 @@ function VehicleRepair(){
 
     function handleSubmit(event){
         event.preventDefault()
-        fetch('https://db-demo-u07o.onrender.com/vehiclemantainances', {
+        fetch('https://demo-server-757m.onrender.com/vehiclemantainances', {
             method:"POST",
             headers:{
                 'Content-Type':'application/json',
@@ -223,7 +223,7 @@ function VehicleRepair(){
         .then(response => response.json())
         .then((data) => {
 
-                fetch("https://db-demo-u07o.onrender.com/vehiclemantainances", {
+                fetch("https://demo-server-757m.onrender.com/vehiclemantainances", {
                     method: 'GET',
                     credentials: 'include',
                     headers: {

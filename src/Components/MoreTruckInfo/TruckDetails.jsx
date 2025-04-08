@@ -45,7 +45,7 @@ const TruckReportPage = () => {
   useEffect(() => {
     const fetchInvoices = async () => {
       try {
-        const response = await fetch('https://db-demo-u07o.onrender.com/invoices',{
+        const response = await fetch('https://demo-server-757m.onrender.com/invoices',{
           method:'GET',
           headers:{
             'Authorization':`Bearer ${token}`
@@ -77,7 +77,7 @@ const TruckReportPage = () => {
   useEffect(() => {
     const fetchBills = async () => {
       try {
-        const response = await fetch('https://db-demo-u07o.onrender.com/newbills',{
+        const response = await fetch('https://demo-server-757m.onrender.com/newbills',{
           method:'GET',
           headers:{
             'Authorization':`Bearer ${token}`
@@ -110,7 +110,7 @@ const TruckReportPage = () => {
     setLoading(true);
     const fetchTruckData = async () => {
       try {
-        const response = await fetch(`https://db-demo-u07o.onrender.com/trucks/${truckId}`,{
+        const response = await fetch(`https://demo-server-757m.onrender.com/trucks/${truckId}`,{
           method:'GET',
           headers:{
             'Authorization':`Bearer ${token}`
