@@ -1,16 +1,22 @@
 import { useEffect, useState } from "react";
-import { Box, Typography, Button,IconButton, FormControl, Select, MenuItem, TextField,FormControlLabel, RadioGroup, Radio, ListSubheader, Divider, TableContainer, TableCell, Table, TableHead, TableBody, TableRow,Paper, Card, CardContent, Pagination } from "@mui/material";
+import { Box, Typography, Button,IconButton, FormControl, Select, MenuItem, TextField,FormControlLabel, RadioGroup, Radio, ListSubheader, Divider, TableContainer, TableCell, Table, TableHead, TableRow,Paper, Card, CardContent, Pagination, Alert, Snackbar} from "@mui/material";
 import { DataGrid, GridToolbar } from "@mui/x-data-grid";
-import CloseIcon from '@mui/icons-material/Close';
 import { useNavigate } from "react-router-dom";
 import { useTheme } from '@mui/material/styles';
 import useMediaQuery from '@mui/material/useMediaQuery';
-import { Dialog, DialogActions, DialogContent, DialogTitle } from '@mui/material';
+import { Dialog, DialogContent } from '@mui/material';
+import { AddOutlined, DeleteForever } from "@mui/icons-material";
 
 
 function InventoryInvoice() {
     const [invoices, setInvoices] = useState([]);
-    const [selectedItem, setSelectedItem] = useState([])
+    const [selectedItem, setSelectedItem] = useState([]);
+    const [vatAmount, setVatAmount] = useState(0)
+    const [totalAmount, setTotalAmount] = useState(0)
+    const [subTotalAmount, setSubTotalAmount] = useState(0)
+    const [loading, setLoading] = useState(false)
+    const [openSnackBar, setOpenSnackBar] = useState(false)
+    const [successMessage, setSuccessMessage] = useState("")
     const [openDialog, setOpenDialog] = useState(false);
     const [isVatInclusive, setIsVatInclusive] = useState(true); // true for inclusive, false for exclusive
     const [customers, setCustomers] = useState([]);
@@ -42,17 +48,20 @@ function InventoryInvoice() {
         items: [],
     });
 
-    const [newItem, setNewItem] = useState({
-        item_details: "",
-        description: "",
-        quantity: 0,
-        vat: 0,
-        sub_total:"",
-        rate_vat: 0,
-        rate: 0,
-        amount: 0,
-        store:0,
-    });
+    const [newItem, setNewItem] = useState(
+        [
+            {
+                item_details: "",
+                description: "",
+                quantity: 0,
+                vat: 0,
+                sub_total:"",
+                rate_vat: 0,
+                rate: 0,
+                amount: 0,
+                store:"",
+            }
+    ]);
 
     const navigate = useNavigate();
 
@@ -93,16 +102,7 @@ function InventoryInvoice() {
         })
             .then(response => response.json())
             .then((data) => {
-
-                const KOROGA = data.filter(item => item.store === 'KOROGA HOTEL')
-                const CLUB = data.filter(item => item.store === 'B&G CLUB')
-
-                if (formData.customer_name === 'KOROGA HOTEL'){
-                    setStoreItems(KOROGA)
-                }else{
-                    setStoreItems(CLUB)
-                }
-
+                setStoreItems(data)
             });
     }, [token, formData.customer_name]);
 
@@ -138,44 +138,118 @@ function InventoryInvoice() {
         }
     }
 
-    function handleNewItemChange(event) {
-        const { name, value } = event.target;
-        const uppercasedValue = name === 'item_details' || name === 'description' ? value.toUpperCase() : value;
-        
-        setNewItem(prevNewItem => {
-            const updatedItem = { ...prevNewItem, [name]: uppercasedValue };
-    
-            if (name === 'quantity' || name === 'rate' || name === 'vat') {
-                if (isVatInclusive) {
-                    // Inclusive VAT calculation
-                    updatedItem.amount = updatedItem.quantity * updatedItem.rate;
-                    updatedItem.rate_vat = ((updatedItem.vat / 100) * updatedItem.amount);
-                    updatedItem.sub_total = (updatedItem.quantity * updatedItem.rate) - updatedItem.rate_vat;
-                } else {
-                    // Exclusive VAT calculation
-                    updatedItem.rate_vat = ((updatedItem.vat / 100) * updatedItem.amount);
-                    updatedItem.sub_total = (updatedItem.quantity * updatedItem.rate);
-                    updatedItem.amount = (updatedItem.sub_total) + updatedItem.rate_vat;
-                }
-            }
-            return updatedItem;
-        });
-    }
-    
-    function addInventoryItem() {
-        const itemWithAmount = { ...newItem };
+    function handleToggleVat() {
+        setIsVatInclusive(!isVatInclusive);
         setFormData(prevFormData => ({
             ...prevFormData,
-            items: [...prevFormData.items, itemWithAmount]
+            type_vat: isVatInclusive ? "Exclusive VAT" : "Inclusive VAT"
         }));
-        setNewItem({ item_details: "", quantity: 0, rate: 0, vat: 0, rate_vat: 0,sub_total:0, amount: 0, store:"" });
     }
 
-    function handleDeleteItem(index) {
+    function handleNewItemChange(event, index) {
+        const { name, value } = event.target;
+        const uppercasedValue = name === 'item_details' || name === 'description' ? value.toUpperCase() : value;
+        const values = [...newItem]
+
+        values[index] = {...values[index], [name]:uppercasedValue}
+        values[index] = {...values[index], [name]:uppercasedValue}
+
+        if (name === 'quantity' || name === 'rate' || name === 'vat'){
+            if(isVatInclusive){
+                values[index].amount = values[index].quantity * values[index].rate;
+                values[index].rate_vat = ((values[index].vat / 100) * values[index].amount)
+                values[index].sub_total = (values[index].amount - values[index].rate_vat)
+            }else{
+                values[index].sub_total = values[index].quantity * values[index].rate;
+                values[index].rate_vat = (values[index].vat / 100) * values[index].sub_total;
+                values[index].amount = values[index].sub_total + values[index].rate_vat;
+            }
+        }
+
+        if(name === 'item_details'){
+            const selectedItem = storeItems.find(item => item.item_details === value);
+            setSelectedItem(selectedItem)
+            values[index].item_details = selectedItem ? selectedItem.item_details : "";
+            values[index].store =  selectedItem ? selectedItem.store:"";
+        }
+
+        setNewItem(values)
+        
+        setVatAmount(values.reduce((total, item) => total + item.rate_vat, 0))
+        setTotalAmount(values.reduce((total, item) => total + item.amount, 0))
+        setSubTotalAmount(values.reduce((total, item) => total + item.sub_total, 0))
+
+        setFormData(prevformData => ({
+            ...prevformData,
+            items: values,
+        }))
+    }
+    
+    useEffect(()=>{
+        setNewItem(prevItems => {
+            return prevItems.map(item => {
+                let newAmount;
+                let newRateVat;
+                let newSubTotal;
+    
+                if (isVatInclusive) {
+                    newAmount = item.quantity * item.rate;
+                    newRateVat = ((item.vat / 100) * newAmount).toFixed(2);
+                    newSubTotal = (newAmount - newRateVat).toFixed(2);
+                } else {
+                    newAmount = (item.quantity * item.rate) + item.rate_vat;
+                    newRateVat = ((item.vat / 100) * (item.quantity * item.rate)).toFixed(2);
+                    newSubTotal = (item.quantity * item.rate).toFixed(2);
+                }
+    
+                // Convert strings back to numbers to avoid issues in calculations
+                newAmount = parseFloat(newAmount);
+                newRateVat = parseFloat(newRateVat);
+                newSubTotal = parseFloat(newSubTotal);
+    
+                // Only update if values have changed
+                if (item.amount !== newAmount || item.rate_vat !== newRateVat || item.sub_total !== newSubTotal) {
+                    return {
+                        ...item,
+                        amount: newAmount,
+                        rate_vat: newRateVat,
+                        sub_total: newSubTotal
+                    };
+                }
+    
+                return item;
+            });
+        });
+    },[isVatInclusive])
+
+    useEffect(() => {
+    
+        setVatAmount(newItem.reduce((total, item) => total + item.rate_vat, 0))
+        setTotalAmount(newItem.reduce((total, item) => total + item.amount, 0))
+        setSubTotalAmount(newItem.reduce((total, item) => total + item.sub_total, 0))
+    
+        // Ensure formData.items updates when VAT type is toggled 
         setFormData(prevFormData => ({
             ...prevFormData,
-            items: prevFormData.items.filter((_, i) => i !== index)
+            items: newItem
         }));
+        
+    }, [newItem]);
+    
+    function handleNewInputField() {
+        setNewItem([...newItem, { item_details: "", quantity: 0, rate: 0, vat: 0, rate_vat: 0,sub_total:0, amount: 0, store:"" }]);
+        setSelectedItem("")
+    }
+
+    function handleDeleteInputField(index) {
+        const updatedItems = newItem.filter((_,i) => i !== index)
+
+        setNewItem(updatedItems);
+        
+        setFormData(prevFormData => ({
+            ...prevFormData,
+            items: updatedItems
+        }))
     }
 
     function handleSelectCustomer(event) {
@@ -206,6 +280,26 @@ function InventoryInvoice() {
 
     function handleSubmit(event) {
         event.preventDefault();
+
+        if(!formData.customer_name || !formData.invoice_terms){
+            setOpenSnackBar(true);
+            setSuccessMessage(`Please fill in all the fields!`);
+            return;
+        }
+
+        // Validate items
+        const hasValidItem = formData.items.some(item => 
+            item.item_details || item.store || item.quantity || item.vat || item.rate
+        )
+
+        if (!hasValidItem) {
+            setOpenSnackBar(true)
+            setSuccessMessage("Please add at least one item before saving.");
+            return;
+        }
+            
+        setOpenDialog(true)
+        setLoading(true)
 
         const calculateInvoiceTotal = () => {
             return formData.items.reduce((total, item) => total + item.amount, 0);
@@ -278,11 +372,28 @@ function InventoryInvoice() {
                         items: [],
                         terms_conditions: "",
                     });
-                    // Generate new invoice number
-                    setOpenDialog(true); // Open the dialog
+                    
+                    setOpenDialog(false); // Open the dialog
+                    setLoading(false);
+                    setOpenSnackBar(true);
+                    setSuccessMessage("Invoice saved successfully!")
+
+                    setNewItem([{
+                        item_details: "",
+                        description: "",
+                        quantity: 0,
+                        vat: 0,
+                        sub_total:"",
+                        rate_vat: 0,
+                        rate: 0,
+                        amount: 0,
+                    }])
+
                 })
                 .catch((error) => {
                     console.error('Error with stock update operations:', error);
+                    setOpenSnackBar(true)
+                    setSuccessMessage("Failed to save the invoice. Please try again.")
                 });
     }
     
@@ -315,26 +426,8 @@ function InventoryInvoice() {
         }));
     }
 
-    const vatAmount = formData.items.reduce((total, item) => total + item.rate_vat, 0);
-    const totalAmount = isVatInclusive ? formData.items.reduce((total, item) => total + item.amount, 0) : (formData.items.reduce((total, item) => total + item.sub_total, 0) + vatAmount)
-    const subTotalAmount = isVatInclusive ? formData.items.reduce((total, item) => total + item.sub_total, 0): formData.items.reduce((total, item) => total + item.sub_total, 0);
-
-
-    function handleToggleVat() {
-        setIsVatInclusive(!isVatInclusive);
-        setFormData(prevFormData => ({
-            ...prevFormData,
-            type_vat: isVatInclusive ? "Exclusive VAT" : "Inclusive VAT"
-        }));
-    }
-
     const handleCloseDialog = () => {
         setOpenDialog(false);
-    };
-    
-    const handlePaymentReceived = () => {
-        navigate('/payments-received')
-        handleCloseDialog();
     };
 
     const handleViewDetails = (invoiceId) => {
@@ -367,19 +460,13 @@ function InventoryInvoice() {
 
       const userLocale = currencyLocaleMap[formData.currency] || 'en-KE'
 
-
-    function handleSelectRemoveItem(event) {
-        const selectedItemName = event.target.value;
-        const selectedItem = storeItems.find(item => item.item_details === selectedItemName);
-        setSelectedItem(selectedItem);
-        setNewItem(prevNewItem => ({
-            ...prevNewItem,
-            item_details: selectedItemName,
-        }));
-    }
-
     function handleCustomBill(){
         navigate('/invoice-control')
+    }
+
+    function handleCloseSnackBar(event, reason){
+        if( reason === 'clickaway') return;
+        setOpenSnackBar(false)
     }
     
     const columns = [
@@ -530,7 +617,7 @@ function InventoryInvoice() {
 
     return (
         <Box>
-            <Box>
+                <Box>
                     <Button
                         type="button"
                         color="secondary"
@@ -540,19 +627,26 @@ function InventoryInvoice() {
                     >
                         <Typography fontWeight={'bold'}>BACK</Typography>
                     </Button>
-
                 <Box>
+                
+                    <Snackbar
+                        open={openSnackBar}
+                        autoHideDuration={6000}
+                        anchorOrigin={{horizontal:"center", vertical:"bottom"}}
+                        onClose={handleCloseSnackBar}
+                    >
+                        <Alert  onClose={handleCloseSnackBar} severity={successMessage.includes('Please') ? "error" : "success"} sx={{ width: '100%' }}>
+                            {successMessage}
+                        </Alert>
+                    </Snackbar>
 
-                <Dialog open={openDialog} onClose={handleCloseDialog}>
-                    <DialogTitle>Payment Received?</DialogTitle>
-                    <DialogContent>
-                        <Typography variant="body1">Was the payment received?</Typography>
-                    </DialogContent>
-                    <DialogActions>
-                        <Button onClick={handlePaymentReceived} color="primary">Yes</Button>
-                        <Button onClick={handleCloseDialog} color="secondary">No</Button>
-                    </DialogActions>
-                </Dialog>
+                    <Dialog open={openDialog} onClose={handleCloseDialog}>
+                        <DialogContent>
+                            <Typography fontFamily={"GT Bold"}>Saving...</Typography>
+                        </DialogContent>
+                    </Dialog>
+
+
 
                     <Box>
                         <Typography fontSize={'27px'} fontWeight={'bold'} textAlign={'center'} m={'20px'}>NEW INVENTORY INVOICE</Typography>
@@ -619,9 +713,10 @@ function InventoryInvoice() {
                                 label="Customer Pin"
                                 value={formData.vendor_pin}
                                 onChange={handleChange}
-                                readOnly
+                                inputProps={{ readOnly: true }}
                                 variant="outlined"
                                 sx={{mb:'20px'}}
+
                             />
 
                             <TextField
@@ -630,7 +725,7 @@ function InventoryInvoice() {
                                 label="Currency"
                                 value={formData.currency}
                                 onChange={handleChange}
-                                readOnly
+                                inputProps={{ readOnly: true }}
                                 required
                                 variant="outlined"
                                 sx={{mb:'20px'}}
@@ -645,6 +740,8 @@ function InventoryInvoice() {
                                 readOnly
                                 variant="outlined"
                                 sx={{mb:'20px'}}
+                                inputProps={{ readOnly: true }}
+
                             />
 
 
@@ -800,7 +897,7 @@ function InventoryInvoice() {
 
 
 
-                        {newItem.item_details ? <h2 className="OWE">THERE ARE {new Intl.NumberFormat().format(selectedItem.quantity)} {selectedItem.item_details}'s LEFT.</h2> : ""}
+                        {selectedItem ? <h2 className="OWE">THERE ARE {new Intl.NumberFormat().format(selectedItem.quantity)} {selectedItem.item_details}'s LEFT.</h2> : ""}
 
             
                             <label className="label">Items</label>
@@ -809,179 +906,154 @@ function InventoryInvoice() {
                                 <Table aria-label="Invoice Table" sx={{ minWidth: isMobile ? 900 : 'auto' }}>
                                     <TableHead>
                                     <TableRow>
-                                        <TableCell sx={{ minWidth: 150 }}><Typography fontWeight="bold">Item Details</Typography></TableCell>
-                                        <TableCell sx={{ minWidth: 200 }}><Typography fontWeight="bold">STORE</Typography></TableCell>
-                                        <TableCell sx={{ minWidth: 100 }}><Typography fontWeight="bold">Quantity</Typography></TableCell>
-                                        <TableCell sx={{ minWidth: 150 }}><Typography fontWeight="bold">Rate</Typography></TableCell>
-                                        <TableCell sx={{ minWidth: 120 }}><Typography fontWeight="bold">Sub Total</Typography></TableCell>
-                                        <TableCell sx={{ minWidth: 80 }}><Typography fontWeight="bold">VAT</Typography></TableCell>
-                                        <TableCell sx={{ minWidth: 120 }}><Typography fontWeight="bold">VAT Amount</Typography></TableCell>
-                                        <TableCell sx={{ minWidth: 120 }}><Typography fontWeight="bold">Total Amount</Typography></TableCell>
-                                        <TableCell sx={{ minWidth: 80 }}><Typography fontWeight="bold">Action</Typography></TableCell>
+                                            <TableCell sx={{ minWidth: 150 }}><Typography fontWeight="bold">Item Details</Typography></TableCell>
+                                            <TableCell sx={{ minWidth: 50 }}><Typography fontWeight="bold">Store</Typography></TableCell>
+                                            <TableCell sx={{ minWidth: 50 }}><Typography fontWeight="bold">Quantity</Typography></TableCell>
+                                            <TableCell sx={{ minWidth: 50 }}><Typography fontWeight="bold">Rate</Typography></TableCell>
+                                            <TableCell sx={{ minWidth: 50 }}><Typography fontWeight="bold">Sub Total</Typography></TableCell>
+                                            <TableCell sx={{ minWidth: 50 }}><Typography fontWeight="bold">VAT</Typography></TableCell>
+                                            <TableCell sx={{ minWidth: 50 }}><Typography fontWeight="bold">VAT Amount</Typography></TableCell>
+                                            <TableCell sx={{ minWidth: 50 }}><Typography fontWeight="bold">Total Amount</Typography></TableCell>
                                     </TableRow>
                                     </TableHead>
 
-                                    <TableBody>
-                                    {formData.items.map((item, index) => (
-                                        <TableRow key={index}>
-                                        <TableCell>{item.item_details}</TableCell>
-                                        <TableCell>{item.store}</TableCell>
-                                        <TableCell>{new Intl.NumberFormat().format(item.quantity)}</TableCell>
-                                        <TableCell>{new Intl.NumberFormat().format(item.rate)}</TableCell>
-                                        <TableCell>{new Intl.NumberFormat().format(item.sub_total)}</TableCell>
-                                        <TableCell>{item.vat}%</TableCell>
-                                        <TableCell>{new Intl.NumberFormat().format(item.rate_vat)}</TableCell>
-                                        <TableCell>{new Intl.NumberFormat().format(item.amount)}</TableCell>
-                                        <TableCell>
-                                            <IconButton color="error" onClick={() => handleDeleteItem(index)}>
-                                            <CloseIcon />
-                                            </IconButton>
-                                        </TableCell>
-                                        </TableRow>
-                                    ))}
+                                </Table>
+                            </TableContainer>
 
-                                    {/* Row for Adding New Item */}
-                                    <TableRow>
-                                        <TableCell>
+                            <Box>
+                                {newItem.map((item,index) => (
+                                    <Box  key={index} display={'flex'} gap={'20px'} alignItems={'center'} mt={'20px'}>
                                         <Select
-                                            value={newItem.item_details}
+                                            value={item.item_details}
                                             name="item_details"
                                             fullWidth
                                             displayEmpty
-                                            onChange={handleSelectRemoveItem}
+                                            onChange={(e) => handleNewItemChange(e, index)}
                                         >
                                             <MenuItem value=""><em>Select Item</em></MenuItem>
                                             {storeItems.map((item, index) => (
                                             <MenuItem key={index} value={item.item_details}>{item.item_details}</MenuItem>
                                             ))}
                                         </Select>
-                                        </TableCell>
 
-                                        <TableCell>
-                                            <TextField
-                                                type="text"
-                                                name="store"
-                                                placeholder="Store"
-                                                variant="outlined"
-                                                size="small"
-                                                fullWidth
-                                                value={selectedItem.store}
-                                                onChange={handleNewItemChange}
-                                            />
-                                        </TableCell>
+                                        <TextField
+                                            type="text"
+                                            name="store"
+                                            placeholder="Store"
+                                            variant="outlined"
+                                            size="small"
+                                            fullWidth
+                                            value={item.store}
+                                            onChange={(e) => handleNewItemChange(e, index)}
+                                        />
 
-                                        <TableCell>
                                         <TextField
                                             type="number"
                                             name="quantity"
                                             placeholder="Quantity"
+                                            className="bill-inputfield"
+                                            value={item.quantity}
+                                            onChange={(e) => handleNewItemChange(e, index)}
                                             variant="outlined"
                                             size="small"
                                             fullWidth
-                                            value={newItem.quantity}
-                                            onChange={handleNewItemChange}
                                         />
-                                        </TableCell>
 
-                                        <TableCell>
+
                                         <TextField
                                             type="number"
                                             name="rate"
                                             placeholder="Rate"
+                                            className="bill-inputfield"
+                                            value={item.rate}
+                                            onChange={(e) => handleNewItemChange(e, index)}
                                             variant="outlined"
                                             size="small"
                                             fullWidth
-                                            value={newItem.rate}
-                                            onChange={handleNewItemChange}
                                         />
-                                        </TableCell>
 
-                                        <TableCell>
                                         <TextField
                                             placeholder="Sub Total"
                                             variant="outlined"
                                             size="small"
                                             fullWidth
-                                            value={newItem.sub_total}
+                                            value={item.sub_total}
                                             InputProps={{ readOnly: true }}
                                         />
-                                        </TableCell>
 
-                                        <TableCell>
                                         <Select
-                                            value={newItem.vat}
+                                            value={item.vat}
                                             name="vat"
                                             fullWidth
-                                            onChange={handleNewItemChange}
+                                            onChange={(e) => handleNewItemChange(e, index)}
                                             displayEmpty
                                         >
                                             <MenuItem value=""><em>Select VAT</em></MenuItem>
                                             <MenuItem value={16}>16%</MenuItem>
                                             <MenuItem value={0}>0%</MenuItem>
                                         </Select>
-                                        </TableCell>
 
-                                        <TableCell>
                                         <TextField
                                             placeholder="VAT Amount"
                                             variant="outlined"
                                             size="small"
                                             fullWidth
-                                            value={newItem.rate_vat}
+                                            value={item.rate_vat}
                                             InputProps={{ readOnly: true }}
                                         />
-                                        </TableCell>
 
-                                        <TableCell>
                                         <TextField
                                             placeholder="Total Amount"
                                             variant="outlined"
                                             size="small"
                                             fullWidth
-                                            value={newItem.amount}
+                                            value={item.amount}
                                             InputProps={{ readOnly: true }}
                                         />
-                                        </TableCell>
 
-                                        <TableCell>
-                                        <IconButton color="primary" onClick={() => handleDeleteItem(formData.items.length)}>
-                                            <CloseIcon />
-                                        </IconButton>
-                                        </TableCell>
-                                    </TableRow>
-                                    </TableBody>
-                                </Table>
-                            </TableContainer>
+                                        <IconButton onClick={() => handleDeleteInputField(index)}>
+                                                <DeleteForever sx={{fontSize:'30px', color:'black', border:'2px solid red', padding:'10px', borderRadius:"8px", ":hover":{backgroundColor:'red', color:'white'}}}/>
+                                       </IconButton>
 
-                            <Button type="button" variant="contained" color="secondary" onClick={addInventoryItem} sx={{margin:'20px'}}><Typography fontWeight={'bold'}>ADD ITEM</Typography></Button>
+                                    </Box>
+                                ))}
+
+                                <Button onClick={handleNewInputField} variant="contained" style={{backgroundColor:'grey', color:'white', marginTop:'20px', display:'flex', justifyContent:'center', alignItems:'center', marginBottom:'20px'}}>
+                                        <AddOutlined sx={{color:'white', fontSize:'19px'}}/>
+                                        <Typography fontWeight={'bold'} fontSize={'12px'}>Add new row</Typography>
+                                </Button>
+
+                            </Box>
+
 
                             <Box display={'flex'} flexDirection={'column'} gap={'15px'} m={'10px'} textAlign={'right'} fontWeight={'bold'}>
-                                <Typography fontWeight={'bold'}>
-                                        Sub Total Amount:{" "}
-                                        {formData.currency ? (
-                                            new Intl.NumberFormat(userLocale, { style: 'currency', currency: formData.currency }).format(subTotalAmount)
-                                        ) : (
-                                            subTotalAmount
+                                    <Typography fontFamily={"GT Regular"} fontSize={'20px'} fontWeight={'bold'}>
+                                            Sub Total:{" "}
+                                            {formData.currency ? (
+                                                new Intl.NumberFormat(userLocale, { style: 'currency', currency: formData.currency }).format(subTotalAmount)
+                                            ) : (
+                                                new Intl.NumberFormat().format(subTotalAmount)
+                                            )}
+                                    </Typography>
+    
+                                    <Typography fontSize={'20px'} fontFamily={"GT Regular"} fontWeight={'bold'}>VAT Amount: {" "}
+                                            {formData.currency ? (
+                                                new Intl.NumberFormat(userLocale, { style: 'currency', currency: formData.currency }).format(vatAmount)
+                                            ) : (
+                                                new Intl.NumberFormat().format(vatAmount)
+                                            )}
+                                    </Typography>
+    
+                                    <Typography fontSize={'20px'} fontFamily={"GT Regular"} fontWeight={'bold'}>Total: {" "}
+                                        { formData.currency ? (
+                                            new Intl.NumberFormat(userLocale, {currency:formData.currency, style:'currency'}).format(totalAmount)
+                                        ):(
+                                            new Intl.NumberFormat().format(totalAmount)
                                         )}
-                                </Typography>
-
-                                <Typography fontWeight={'bold'}>VAT Amount: {" "}
-                                        {formData.currency ? (
-                                            new Intl.NumberFormat(userLocale, { style: 'currency', currency: formData.currency }).format(vatAmount)
-                                        ) : (
-                                            vatAmount
-                                        )}
-                                </Typography>
-
-                                <Typography fontWeight={'bold'}>Total Amount: {" "}
-                                    { formData.currency ? (
-                                        new Intl.NumberFormat(userLocale, {currency:formData.currency, style:'currency'}).format(totalAmount)
-                                    ):(
-                                        totalAmount
-                                    )}
-                                </Typography>
-                            </Box>
-                            <Button variant="contained" color="secondary" type="submit" sx={{width:'150px'}}><Typography fontWeight={'bold'}>SAVE</Typography></Button>
+                                    </Typography>
+                                </Box>
+                            
+                            <Button variant="contained" color="secondary" disabled={loading} type="submit" sx={{width:'150px', fontFamily:"GT Bold"}}><Typography sx={{fontFamily:'GT Bold'}}>{loading ? "Saving..." : "Save"}</Typography></Button>
                         </form>
                         </Box>
                     </Box>

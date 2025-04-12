@@ -1,4 +1,4 @@
-import { Alert, Box, Button, Card, CardContent, FormControl, MenuItem, Pagination, Select, Snackbar, TextField,Typography, useMediaQuery } from "@mui/material";
+import { Alert, Box, Button, Card, CardContent, Dialog, DialogContent, FormControl, MenuItem, Pagination, Select, Snackbar, TextField,Typography, useMediaQuery } from "@mui/material";
 import { DataGrid, GridToolbar } from "@mui/x-data-grid";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
@@ -11,6 +11,8 @@ function PaymentsReceived (){
     const [currentPage, setCurrentPage] = useState(1)
     const itemsPerPage = 16;
     const [openSnackbar, setOpenSnackBar] = useState(false)
+    const [loading, setLoading] = useState(false)
+    const [openDialog, setOpenDialog] = useState(false)
     const navigate = useNavigate()
     const [customers, setCustomers] = useState([])
     const [payments, setPayments] = useState([])
@@ -174,9 +176,12 @@ function PaymentsReceived (){
     
     function handleSubmit(event) {
         event.preventDefault();
+
+        setOpenDialog(true)
+        setLoading(true)
     
         // Fetch unpaid or partially paid invoices
-        fetch(`https://demo-server-757m.onrender.com/invoicepayment?customer_name=${formData.customer_name}&status=UNPAID,PARTIALLY PAID`, {
+        fetch(`https://demo-server-757m.onrender.com/invoicepayment?customer_name=${formData.customer_name}`, {
             method: 'GET',
             headers: {
                 'Authorization': `Bearer ${token}`,
@@ -221,6 +226,9 @@ function PaymentsReceived (){
                     })
                     .then(data => {
                         console.log(data);
+
+                        setOpenDialog(false);
+                        setLoading(false);
                         setOpenSnackBar(true);
                         setSuccessMessage('Payment recorded successfully');
 
@@ -261,6 +269,10 @@ function PaymentsReceived (){
     
     function handlePayment(madeId){
         navigate(`/payment-report/${madeId}`)
+    }
+
+    function handleCloseDialog(){
+        setOpenDialog(!openDialog);
     }
 
     const columns = [
@@ -407,6 +419,12 @@ function PaymentsReceived (){
                 </Alert>
             </Snackbar>
 
+            <Dialog open={openDialog} onClose={handleCloseDialog}>
+                <DialogContent>
+                    <Typography fontFamily={"GT Bold"}>Saving...</Typography>
+                </DialogContent>
+            </Dialog>
+
             <Typography fontWeight={'bold'} fontSize={'27px'} textAlign={'center'}>NEW PAYMENT RECEIVED</Typography>
             <Box
                sx={{
@@ -537,8 +555,7 @@ function PaymentsReceived (){
                         sx={{mb:'20px',}}
                     />
 
-                    <Button type="submit" color="secondary" variant="contained">SAVE PAYMENT</Button>
-
+                    <Button type="submit" color="secondary" variant="contained" disabled={loading} sx={{fontFamily:"GT Bold"}}>{loading ? "Saving..." : "Save"}</Button>
                 </form>
             </Box>
 

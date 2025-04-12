@@ -1,13 +1,17 @@
-import { Alert, Box, Button, Snackbar, TextField } from "@mui/material";
+import { Alert, Box, Button, Dialog, DialogActions, DialogTitle, MenuItem, Select, Snackbar, TextField, Typography } from "@mui/material";
 import { useEffect, useState } from "react";
-import { useParams } from "react-router";
+import { useNavigate, useParams } from "react-router";
 
 function EditStock (){
 
     const access_token = localStorage.getItem('access_token')
     const {stockId} = useParams()
+    const [name, setName] = useState("")
     const [openSnackbar, setOpenSnackbar] = useState(false)
     const [successMessage, setSuccessMessage] = useState('')
+    const [openDialog, setOpenDialog] = useState(false);
+    const [loading, setLoading] = useState(false);
+    const navigate = useNavigate();
     const [formData, setFormData] = useState({
         item_details:"",
         quantity:"",
@@ -39,6 +43,8 @@ function EditStock (){
                 measurement: data.measurement,
                 store:data.store,
             })
+
+            setName(data.item_details)
         })
     },[access_token, stockId])
 
@@ -53,6 +59,8 @@ function EditStock (){
 
     function handleSubmit(event){
         event.preventDefault()
+
+        setLoading(true)
 
         fetch(`https://demo-server-757m.onrender.com/stockitems/${stockId}`, {
             method:"PATCH",
@@ -72,8 +80,17 @@ function EditStock (){
         .then((data) => {
             console.log(data)
 
+            setOpenDialog(true)
+            setLoading(false)
             setSuccessMessage('Updated Successfully')
             setOpenSnackbar(true)
+            setFormData({
+                item_details:"",
+                quantity:"",
+                price:"",
+                measurement:"",
+                store:"",
+            })
         })
         .catch(error => {
             console.error('Failed Request', error)
@@ -87,8 +104,25 @@ function EditStock (){
         setOpenSnackbar(false)
     }
 
+    function handleCloseDialog(){
+        setOpenDialog(false)
+    }
+
+    function handleBack(){
+        setOpenDialog(false)
+        navigate("/stock-items")
+    }
+
     return ( 
         <Box>
+
+            <Dialog open={openDialog} onClose={handleCloseDialog}>
+                <DialogTitle sx={{fontFamily:"GT Regular"}}>{name} has been updated successfully!</DialogTitle>
+                <DialogActions>
+                    <Button onClick={handleBack} color="primary">OK</Button>
+                </DialogActions>
+            </Dialog>
+
             <form onSubmit={handleSubmit} style={{display:'flex', flexDirection:'column', margin:'20px'}}>
                 <TextField 
                     type="text"
@@ -120,15 +154,20 @@ function EditStock (){
                     sx={{mb:'20px'}}
                 />
 
-                <TextField 
+                <Typography fontFamily={"GT Regular"}>Store</Typography>
+                <Select 
                     type="text"
                     name="store"
+                    placeholder="Select Store"
                     value={formData.store}
                     onChange={handleChange}
-                    label="Store"
                     variant="outlined"
                     sx={{mb:'20px'}}
-                />
+                >
+                    <MenuItem value="KOROGA HOTEL">KOROGA HOTEL</MenuItem>
+                    <MenuItem value="B&G CLUB">B&G CLUB</MenuItem>
+
+                </Select>
 
                 <TextField 
                     type="number"
@@ -140,7 +179,7 @@ function EditStock (){
                     sx={{mb:'20px'}}
                 />
 
-                <Button color="secondary" variant="contained" type="submit">UPDATE</Button>
+                <Button color="secondary" variant="contained" type="submit" disabled={loading} sx={{fontFamily:'GT Bold', width:'150px'}}>{loading ? "Updating..." : "UPDATE"}</Button>
             </form>
 
             <Snackbar

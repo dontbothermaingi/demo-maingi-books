@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Box, Typography, Button, IconButton, FormControl, Select, MenuItem, TextField, RadioGroup, FormControlLabel, TableContainer, Paper, Table, TableHead, TableRow, TableCell, ListSubheader, Divider, Card, CardContent, Pagination } from "@mui/material";
 import { DataGrid, GridToolbar } from "@mui/x-data-grid";
 import { useNavigate } from "react-router-dom";
-import { Dialog, DialogActions, DialogContent, DialogTitle } from '@mui/material';
+import { Dialog, DialogContent } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import { Radio } from "@mui/material";
@@ -13,6 +13,7 @@ function FuelInvoice() {
     const [invoices, setInvoices] = useState([]);
     const [isVatInclusive, setIsVatInclusive] = useState(true); // true for inclusive, false for exclusive
     const [openDialog, setOpenDialog] = useState(false);
+    const [loading, setLoading] = useState(false)
     const [vatAmount, setVatAmount] = useState(0)
     const [totalAmount, setTotalAmount] = useState(0)
     const [subTotalAmount, setSubTotalAmount] = useState(0)
@@ -48,7 +49,7 @@ function FuelInvoice() {
 
     const [newItem, setNewItem] = useState([
         {
-            item_details: "PUMP A",
+            item_details: "",
             description: "",
             quantity: 0,
             vat: 0,
@@ -109,8 +110,6 @@ function FuelInvoice() {
             .then(response => response.json())
             .then((data) => setCustomers(data));
     }, [token]);
-
-    // useEffect(() => {
 
     //     if (newItem.length > 0){
     //         const firstItem = newItem[0]
@@ -301,6 +300,26 @@ function FuelInvoice() {
 
     function handleSubmit(event) {
         event.preventDefault();
+
+        if(!formData.customer_name || !formData.invoice_terms){
+            setOpenSnackbar(true);
+            setErrorMessage(`Please fill in all the fields!`);
+            return;
+        }
+
+        // Validate items
+        const hasValidItem = formData.items.some(item => 
+            item.item_details || item.description || item.quantity || item.vat || item.rate
+        )
+
+        if (!hasValidItem) {
+            setOpenSnackbar(true)
+            setErrorMessage("Please add at least one item before saving.");
+            return;
+        }
+            
+        setOpenDialog(true)
+        setLoading(true)
     
         const calculateInvoiceTotal = () => {
             return formData.items.reduce((total, item) => total + item.amount, 0);
@@ -374,13 +393,28 @@ function FuelInvoice() {
                 items: [],
                 terms_conditions: "",
             });
-            setOpenSnackbar(true)
-            setErrorMessage('Invoice was submitted successfully');
+
+            setNewItem([{
+                item_details: "",
+                description: "",
+                quantity: 0,
+                vat: 0,
+                sub_total:"",
+                rate_vat: 0,
+                rate: 0,
+                amount: 0,
+            }])
+            
+            setOpenDialog(false); 
+            setLoading(false);
+            setOpenSnackbar(true);
+            setErrorMessage("Invoice saved successfully!")
 
         })
         .catch((error) => {
             console.error('There was a problem with the fetch operation:', error);
-            setErrorMessage('Failed to submit Invoice.');
+            setOpenSnackbar(true)
+            setErrorMessage("Failed to save the invoice. Please try again.")
         });
     }
 
@@ -427,11 +461,6 @@ function FuelInvoice() {
 
     const handleCloseDialog = () => {
         setOpenDialog(false);
-    };
-    
-    const handlePaymentReceived = () => {
-        navigate('/payments-received')
-        handleCloseDialog();
     };
     
     
@@ -641,14 +670,9 @@ function FuelInvoice() {
                     </Button>
 
                     <Dialog open={openDialog} onClose={handleCloseDialog}>
-                        <DialogTitle>Payment Received?</DialogTitle>
                         <DialogContent>
-                            <Typography variant="body1">Was the payment received?</Typography>
+                            <Typography fontFamily={"GT Bold"}>Saving...</Typography>
                         </DialogContent>
-                        <DialogActions>
-                            <Button onClick={handlePaymentReceived} color="primary">Yes</Button>
-                            <Button onClick={handleCloseDialog} color="secondary">No</Button>
-                        </DialogActions>
                     </Dialog>
 
                 <Box>
@@ -901,131 +925,6 @@ function FuelInvoice() {
                                             <TableCell sx={{ minWidth: 50 }}><Typography fontWeight="bold">Total Amount</Typography></TableCell>
                                         </TableRow>
                                     </TableHead>
-                                    {/* <TableBody>
-                                        {formData.items.map((item, index) => (
-                                            <TableRow key={index}>
-                                                <TableCell>{item.item_details}</TableCell>
-                                                <TableCell>{item.description}</TableCell>
-                                                <TableCell>{item.quantity}</TableCell>
-                                                <TableCell>{item.rate}</TableCell>
-                                                <TableCell>{item.sub_total}</TableCell>
-                                                <TableCell>{item.vat}</TableCell>
-                                                <TableCell>{item.rate_vat}</TableCell>
-                                                <TableCell>{item.amount.toLocaleString()}</TableCell>
-                                                <TableCell>
-                                                    <IconButton 
-                                                        color="error"
-                                                        onClick={() => handleDeleteItem(index)}
-                                                    >
-                                                        <CloseIcon />
-                                                    </IconButton>
-                                                </TableCell>
-                                            </TableRow>
-                                        ))}
-                                        <TableRow>
-
-                                            <TableCell>
-                                                <Select 
-                                                    name="item_details" 
-                                                    value={newItem.item_details} 
-                                                    className="bill-inputfield" 
-                                                    onChange={handleNewItemChange} 
-                                                    >
-                                                    <MenuItem value="" >Select Pump</MenuItem>
-                                                    {pumps.map((pump, index) => (
-                                                        <MenuItem key={index} value={pump.pump_name}>
-                                                        {pump.pump_name}
-                                                        </MenuItem>
-                                                    ))}
-                                                </Select> 
-                                            </TableCell>
-
-                                            <TableCell>
-                                                <Select name="description" value={newItem.description} onChange={handleNewItemChange} fullWidth displayEmpty>
-                                                    <MenuItem value="">Select Item</MenuItem>
-                                                    {trucks.map((truck, index) => (
-                                                        <MenuItem key={index} value={truck.truck_number}>{truck.truck_number}</MenuItem>
-                                                    ))}
-                                                </Select>
-                                                
-                                                
-                                            </TableCell>
-
-                                            <TableCell>
-                                                <TextField
-                                                    type="number"
-                                                    name="quantity"
-                                                    placeholder="Litres"
-                                                    className="bill-inputfield"
-                                                    value={newItem.quantity}
-                                                    onChange={handleNewItemChange}
-                                                    variant="outlined"
-                                                    size="small"
-                                                    fullWidth
-                                                />
-                                            </TableCell>
-                                            <TableCell>
-                                                <TextField
-                                                    type="number"
-                                                    name="rate"
-                                                    placeholder="Rate"
-                                                    className="bill-inputfield"
-                                                    value={newItem.rate}
-                                                    onChange={handleNewItemChange}
-                                                    variant="outlined"
-                                                    size="small"
-                                                    fullWidth
-                                                />
-                                            </TableCell>
-
-                                            <TableCell>
-                                                <TextField
-                                                    placeholder="Sub Total"
-                                                    variant="outlined"
-                                                    size="small"
-                                                    fullWidth
-                                                    value={newItem.sub_total}
-                                                    InputProps={{ readOnly: true }}
-                                                />
-                                            </TableCell>
-
-                                            <TableCell>
-                                                <Select
-                                                    value={newItem.vat}
-                                                    name="vat"
-                                                    fullWidth
-                                                    onChange={handleNewItemChange}
-                                                    displayEmpty
-                                                >
-                                                    <MenuItem value=""><em>Select VAT</em></MenuItem>
-                                                    <MenuItem value={16}>16%</MenuItem>
-                                                    <MenuItem value={0}>0%</MenuItem>
-                                                </Select>
-                                            </TableCell>
-
-                                            <TableCell>
-                                                <TextField
-                                                    placeholder="VAT Amount"
-                                                    variant="outlined"
-                                                    size="small"
-                                                    fullWidth
-                                                    value={newItem.rate_vat}
-                                                    InputProps={{ readOnly: true }}
-                                                />
-                                                </TableCell>
-
-                                                <TableCell>
-                                                <TextField
-                                                    placeholder="Total Amount"
-                                                    variant="outlined"
-                                                    size="small"
-                                                    fullWidth
-                                                    value={newItem.amount}
-                                                    InputProps={{ readOnly: true }}
-                                                />
-                                            </TableCell>
-                                        </TableRow>
-                                    </TableBody> */}
                                 </Table>
                             </TableContainer>
                             {/* <Button variant="contained" color="secondary" onClick={addItem} sx={{margin:'30px'}}><Typography fontWeight={'bold'}>ADD ITEM</Typography></Button> */}
@@ -1158,8 +1057,8 @@ function FuelInvoice() {
                                 </Typography>
                             </Box>
 
-                            <Button variant="contained" color="secondary" type="submit" sx={{width:'150px'}}><Typography fontWeight={'bold'}>SAVE</Typography></Button>
-
+                            <Button variant="contained" color="secondary" disabled={loading} type="submit" sx={{width:'150px', fontFamily:"GT Bold"}}><Typography sx={{fontFamily:'GT Bold'}}>{loading ? "Saving..." : "Save"}</Typography></Button>
+                            
                         </form>
                     </Box>
 
@@ -1169,7 +1068,7 @@ function FuelInvoice() {
                          onClose={handleCloseSnackbar} 
                          anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
                     >
-                        <Alert onClose={handleCloseSnackbar} severity={errorMessage.includes('Failed') ? "error" : "success"} sx={{ width: '100%' }}>{errorMessage}</Alert>
+                        <Alert onClose={handleCloseSnackbar} severity={errorMessage.includes('Please') ? "error" : "success"} sx={{ width: '100%' }}>{errorMessage}</Alert>
                     </Snackbar>
                 </Box>
             </Box>

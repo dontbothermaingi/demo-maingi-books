@@ -1,28 +1,113 @@
-import { Box, Card, CardContent, Pagination, Typography, useMediaQuery} from "@mui/material";
+import { Box, Button, Card, CardContent, Pagination, Typography, useMediaQuery, Paper, TableContainer, Table, TableHead, TableRow, TableCell, TableBody, Snackbar, Alert, Dialog, DialogContent} from "@mui/material";
 import { DataGrid, GridToolbar } from "@mui/x-data-grid";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import '../Components/Invoicepdf/Invoicepage.css'; // Import your CSS file
+import { useReactToPrint } from "react-to-print";
+import { useNavigate } from "react-router";
+
 
 
 const Items = () => {
   const [diesel, setDiesel] = useState([]);
   const [currentPage, setCurrentPage] = useState(1)
-  const itemsPerPage = 16;
+  const [openDialog, setOpenDialog] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('')
+  const [openSnackbar, setOpenSnackbar] = useState(false)
+  const [loading, setLoading] = useState(false);
+  const itemsPerPage = 29;
   const isMobile = useMediaQuery('(max-width: 768px)');
   const token = localStorage.getItem('access_token')
+  const componentRef = useRef();
+  const navigate = useNavigate();
+
+  const handlePrint = useReactToPrint({
+    content: () => componentRef.current,
+    documentTitle: 'STOCK ITEMS',
+  });
 
   useEffect(() => {
-    fetch('https://demo-server-757m.onrender.com/stockitems',{
-            method:'GET',
-            headers:{
-                'Authorization':`Bearer ${token}`
-            },
-            credentials:'include'
+    fetch('https://demo-server-757m.onrender.com/stockitems', {
+          method: 'GET',
+          credentials: 'include',
+          headers: {
+              'Authorization': `Bearer ${token}`
+          }
     })
       .then(response => response.json())
       .then((data) => {
-          setDiesel(data); // Assuming you want the first item from the data array
+
+          const sorted = data.sort((a,b) => a.item_details.localeCompare(b.item_details))
+          setDiesel(sorted); // Assuming you want the first item from the data array
+
       });
   }, [token]);
+
+  function handleReload(){
+    fetch('https://demo-server-757m.onrender.com/stockitems', {
+      method: 'GET',
+      credentials: 'include',
+      headers: {
+          'Authorization': `Bearer ${token}`
+      }
+    })
+      .then(response => response.json())
+      .then((data) => {
+
+          const sorted = data.sort((a,b) => a.item_details.localeCompare(b.item_details))
+          setDiesel(sorted); // Assuming you want the first item from the data array
+
+      });
+  }
+
+  function setPageItems (items,itemsPerPage){
+    let Pages = []
+    for(let i = 0; i < items.length; i += itemsPerPage){
+      Pages.push(items.slice(i, i + itemsPerPage))
+    }
+    return Pages
+  }
+
+  const pages = setPageItems(diesel,itemsPerPage)
+
+  function handleEdit(stockId){
+    navigate(`/edit-stock/${stockId}`)
+  }
+
+  function handleDelete(id){
+
+    setOpenDialog(true)
+    setLoading(true)
+
+    fetch(`https://demo-server-757m.onrender.com/stockitems/${id}`,{
+      method:"DELETE",
+      headers:{
+        "Authorization":`Bearer ${token}`
+      }
+    })
+    .then(response => response.json())
+    .then(()=> {
+
+      handleReload()
+      setLoading(false)
+      setOpenDialog(false)
+      setOpenSnackbar(true)
+      setErrorMessage("Item deleted successfully!")
+    })
+    .catch((error) => {
+      console.error('Failed Request', error)
+      setOpenSnackbar(true)
+      setErrorMessage("Delete failed. Please try again!")
+    })
+  }
+
+  function handleCloseDialog(){
+    setOpenDialog(!openDialog)
+  }
+
+  function handleCloseSnackBar(event, reason){
+    if(reason === 'clickaway') return;
+    setOpenSnackbar(false)
+  }
 
   const columns = [
     {
@@ -38,6 +123,44 @@ const Items = () => {
       headerName: "QUANTITY",
       flex: 0.3,
     },
+    {
+      field: "measurement",
+      headerName: "MEASUREMENT",
+      flex: 0.3,
+    },
+    {
+      field: "store",
+      headerName: "STORE",
+      flex: 0.3,
+    },
+    {
+      field: "Action",
+      headerName: "EDIT",
+      flex: 0.3,
+      renderCell: (params) => (
+        <Button
+          onClick={() => handleEdit(params.id)}
+          variant="contained"
+        >
+          EDIT
+        </Button>
+      )
+    },
+    {
+      field: "Delete",
+      headerName: "DELETE",
+      flex: 0.3,
+      renderCell: (params) => (
+        <Button
+          onClick={() => handleDelete(params.id)}
+          variant="contained"
+          disabled={loading}
+        >
+          {loading ? "Deleting..." : "Delete"}
+        </Button>
+      )
+    },
+    
   ];
 
       const totalPages = Math.ceil(diesel.length / itemsPerPage)
@@ -49,7 +172,25 @@ const Items = () => {
 
   return (
     <Box margin={{xs:'10px', md:'40px'}}>
-      <Box>
+
+        <Button variant="contained" color="secondary" onClick={handlePrint}>Print Stock Items</Button>
+
+        <Dialog open={openDialog} onClose={handleCloseDialog}>
+              <DialogContent>
+                  <Typography fontFamily={"GT Bold"}>Deleting...</Typography>
+              </DialogContent>
+        </Dialog>
+
+        <Snackbar
+            open={openSnackbar} 
+            autoHideDuration={6000} 
+            onClose={handleCloseSnackBar} 
+            anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+        >
+            <Alert onClose={handleCloseSnackBar} severity={errorMessage.includes('Please') ? "error" : "success"} sx={{ width: '100%' }}>{errorMessage}</Alert>
+        </Snackbar>
+        
+        <Box>
             {isMobile ? (
                 <Box>
                     <Typography textAlign={'center'} fontSize={'30px'} fontWeight={'bold'}>STOCK ITEMS</Typography>
@@ -120,6 +261,43 @@ const Items = () => {
                </Box> 
             )}
         </Box>
+
+        <Box ref={componentRef} className="a4-print-mobile" padding='5mm'>
+        
+            <Typography fontSize={'27px'} fontWeight={'bold'} textAlign={'center'}>STOCK ITEMS FOR KOROGA HOTEL AND B&G CLUB</Typography>
+
+            {pages.map((pageItems,pageIndex) => (
+              <Box key={pageIndex} className="invoice-page" display='flex' flexDirection='column' height='92vh' justifyContent='space-between'>                  
+                  {/* {Content Area} */}
+                  <Box marginBottom='20px' mt={'30px'} className="table-container">
+                    <TableContainer component={Paper}>
+                      <Table>
+                        <TableHead>
+                          <TableRow>
+                            {columns.map((column) => (
+                              <TableCell key={column.field} sx={{ fontWeight: 'bold', fontSize:'10px' }}>{column.headerName}</TableCell>
+                            ))}
+                          </TableRow>
+                        </TableHead>
+                        <TableBody>
+                          {pageItems.map((item, index) => (
+                            <TableRow key={index}>
+                              <TableCell>{item.item_details}</TableCell>
+                              <TableCell>{item.measurement}</TableCell>
+                              <TableCell>{item.quantity}</TableCell>
+                              <TableCell>{item.store}</TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </TableContainer>
+
+                  </Box>
+
+            </Box>
+            ))}
+        </Box>
+
     </Box>
   );
 };

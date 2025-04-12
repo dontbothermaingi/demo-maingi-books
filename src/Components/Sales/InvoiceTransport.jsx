@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
-import { Box, Typography, Button, IconButton, FormControl, Select, MenuItem, TextField, RadioGroup, FormControlLabel, TableContainer, Paper, Table, TableHead, TableRow, TableCell, ListSubheader, Divider, Card, CardContent, Pagination } from "@mui/material";
+import { Box, Typography, Button, IconButton, FormControl, Select, MenuItem, TextField, RadioGroup, FormControlLabel, TableContainer, Paper, Table, TableHead, TableRow, TableCell, ListSubheader, Divider, Card, CardContent, Pagination, Snackbar, Alert } from "@mui/material";
 import { DataGrid, GridToolbar } from "@mui/x-data-grid";
 import { useNavigate } from "react-router-dom";
-import { Dialog, DialogActions, DialogContent, DialogTitle } from '@mui/material';
+import { Dialog, DialogContent } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import './Invoice.css'
@@ -12,7 +12,10 @@ import { DeleteForever, AddOutlined } from "@mui/icons-material";
 function InvoiceTransport() {
     const [invoices, setInvoices] = useState([]);
     const [isVatInclusive, setIsVatInclusive] = useState(true); // true for inclusive, false for exclusive
+    const [errorMessage, setErrorMessage] = useState('')
+    const [openSnackbar, setOpenSnackbar] = useState(false)
     const [openDialog, setOpenDialog] = useState(false);
+    const [loading, setLoading] = useState(false)
     const [vatAmount, setVatAmount] = useState(0)
     const [totalAmount, setTotalAmount] = useState(0)
     const [subTotalAmount, setSubTotalAmount] = useState(0)
@@ -263,6 +266,27 @@ function InvoiceTransport() {
 
     function handleSubmit(event) {
         event.preventDefault();
+
+
+        if(!formData.customer_name || !formData.invoice_terms){
+            setOpenSnackbar(true);
+            setErrorMessage(`Please fill in all the fields!`);
+            return;
+        }
+
+        // Validate items
+        const hasValidItem = formData.items.some(item => 
+            item.item_details || item.description || item.quantity || item.vat || item.rate
+        )
+
+        if (!hasValidItem) {
+            setOpenSnackbar(true)
+            setErrorMessage("Please add at least one item before saving.");
+            return;
+        }
+            
+        setOpenDialog(true)
+        setLoading(true)
     
         const calculateInvoiceTotal = () => {
             return formData.items.reduce((total, item) => total + item.amount, 0);
@@ -344,12 +368,17 @@ function InvoiceTransport() {
                 rate: 0,
                 amount: 0,
             }])
-            setOpenDialog(true); // Open the dialog
+            
+            setOpenDialog(false); 
+            setLoading(false);
+            setOpenSnackbar(true);
+            setErrorMessage("Invoice saved successfully!")
+
         })
         .catch((error) => {
             console.error('There was a problem with the fetch operation:', error);
-            // Optional: Add a user-friendly alert or notification
-            alert("An error occurred while submitting the invoice. Please try again.");
+            setOpenSnackbar(true)
+            setErrorMessage("Failed to save the invoice. Please try again.")
         });
     }
     
@@ -393,12 +422,7 @@ function InvoiceTransport() {
     const handleCloseDialog = () => {
         setOpenDialog(false);
     };
-    
-    const handlePaymentReceived = () => {
-        navigate('/payments-received')
-        handleCloseDialog();
-    };
-    
+
     
     const columns = [
         { field: "id", headerName: "ID", flex: 0.2 },
@@ -592,6 +616,11 @@ function InvoiceTransport() {
         setCurrentPage(value);
     };
 
+    const handleCloseSnackbar = (event, reason) => {
+        if (reason === 'clickaway') return;
+        setOpenSnackbar(false);
+    };
+
     return (
         <Box>
             <Box>
@@ -606,15 +635,19 @@ function InvoiceTransport() {
                     </Button>
 
                     <Dialog open={openDialog} onClose={handleCloseDialog}>
-                        <DialogTitle>Payment Received?</DialogTitle>
                         <DialogContent>
-                            <Typography variant="body1">Was the payment received?</Typography>
+                            <Typography fontFamily={"GT Bold"}>Saving...</Typography>
                         </DialogContent>
-                        <DialogActions>
-                            <Button onClick={handlePaymentReceived} color="primary">Yes</Button>
-                            <Button onClick={handleCloseDialog} color="secondary">No</Button>
-                        </DialogActions>
                     </Dialog>
+
+                    <Snackbar
+                          open={openSnackbar} 
+                          autoHideDuration={6000} 
+                          onClose={handleCloseSnackbar} 
+                          anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+                     >
+                         <Alert onClose={handleCloseSnackbar} severity={errorMessage.includes('Please') ? "error" : "success"} sx={{ width: '100%' }}>{errorMessage}</Alert>
+                     </Snackbar>                   
 
                 <Box>
                     <Typography fontSize={'30px'} fontWeight={'bold'} textAlign={'center'} marginTop={'20px'}>NEW TRANSPORT INVOICE</Typography>
@@ -1024,8 +1057,8 @@ function InvoiceTransport() {
                                 </Typography>
                             </Box>
 
-                            <Button variant="contained" color="secondary" type="submit" sx={{width:'150px'}}><Typography fontWeight={'bold'}>SAVE</Typography></Button>
-
+                            <Button variant="contained" color="secondary" disabled={loading} type="submit" sx={{width:'150px', fontFamily:"GT Bold"}}><Typography sx={{fontFamily:'GT Bold'}}>{loading ? "Saving..." : "Save"}</Typography></Button>
+                            
                         </form>
                     </Box>
                 </Box>

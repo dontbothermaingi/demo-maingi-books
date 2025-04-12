@@ -1,4 +1,4 @@
-import { Alert, Box, Button, Card, CardContent, FormControl, MenuItem, Pagination, Select, Snackbar, TextField,Typography, useMediaQuery } from "@mui/material";
+import { Alert, Box, Button, Card, CardContent, Dialog, DialogContent, FormControl, MenuItem, Pagination, Select, Snackbar, TextField,Typography, useMediaQuery } from "@mui/material";
 import { DataGrid, GridToolbar } from "@mui/x-data-grid";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
@@ -11,6 +11,8 @@ function PaymentsMade (){
     const [currentPage, setCurrentPage] = useState(1)
     const itemsPerPage = 16;
     const [openSnackbar, setOpenSnackBar] = useState(false)
+    const [loading, setLoading] = useState(false)
+    const [openDialog, setOpenDialog] = useState(false)
     const navigate = useNavigate()
     const [customers, setCustomers] = useState([])
     const [payments, setPayments] = useState([])
@@ -51,7 +53,9 @@ function PaymentsMade (){
         })
         .then(response => response.json())
         .then((data) => {
-            setPayments(data)
+
+            const sorted = data.sort((a,b) => b.id - a.id)
+            setPayments(sorted)
         })
     },[token])
 
@@ -174,6 +178,9 @@ function PaymentsMade (){
     
     function handleSubmit(event) {
         event.preventDefault();
+
+        setOpenDialog(true)
+        setLoading(true)
     
         // Fetch unpaid or partially paid invoices
         fetch(`https://demo-server-757m.onrender.com/newbillstatus?vendor_name=${formData.vendor_name}`, {
@@ -223,6 +230,9 @@ function PaymentsMade (){
                     })
                     .then(data => {
                         console.log(data);
+
+                        setOpenDialog(false);
+                        setLoading(false);
                         setOpenSnackBar(true);
 
                         fetch('https://demo-server-757m.onrender.com/paymentsmade', {
@@ -261,6 +271,13 @@ function PaymentsMade (){
             .catch(error => console.error('Error fetching invoices:', error));
     }
     
+    function handlePayment(paymentId){
+        navigate(`/report-for-payments-made/${paymentId}`)
+    }
+
+    function handleCloseDialog(){
+        setOpenDialog(!openDialog);
+    }
     const columns = [
         { field: "id", headerName: "ID", flex: 0.05 },
         {
@@ -270,25 +287,53 @@ function PaymentsMade (){
           cellClassName: "name-column--cell",
           flex: 0.3,
           align: "left",
+          renderCell: (params) => (
+            <Box onClick={() => handlePayment(params.row.id)} sx={{display:'flex', alignItems:'center', cursor:'pointer', marginTop:'13px'}}>
+                <Typography fontFamily={"GT Regular"} fontSize={"15px"}>
+                 {params.value}
+                </Typography>
+            </Box>
+          )
         },
         {
             field: "vendor_email",
             headerName: "VENDOR EMAIL",
             flex: 0.3,
+            renderCell: (params) => (
+                <Box onClick={() => handlePayment(params.row.id)} sx={{display:'flex', alignItems:'center', cursor:'pointer', mt:'13px'}}>
+                    <Typography fontFamily={"GT Regular"} fontSize={"15px"}>
+                     {params.value}
+                    </Typography>
+                </Box>
+            )
         },
         {
             field: "vendor_phone",
             headerName: "VENDOR PHONE",
             flex: 0.2,
+            renderCell: (params) => (
+                <Box onClick={() => handlePayment(params.row.id)} sx={{display:'flex', alignItems:'center', cursor:'pointer', mt:'13px'}}>
+                    <Typography fontFamily={"GT Regular"} fontSize={"15px"}>
+                     {params.value}
+                    </Typography>
+                </Box>
+            )
         },
         {
             field: "currency",
             headerName: "CURRENCY",
             flex: 0.15,
+            renderCell: (params) => (
+                <Box onClick={() => handlePayment(params.row.id)} sx={{display:'flex', alignItems:'center', cursor:'pointer', mt:'13px'}}>
+                    <Typography fontFamily={"GT Regular"} fontSize={"15px"}>
+                     {params.value}
+                    </Typography>
+                </Box>
+            )
         },
         {
           field: "payment_amount",
-          headerName: "AMOUNT RECEIVED",
+          headerName: "AMOUNT PAID",
           flex: 0.2,
           renderCell: (params) => {
             // Use Intl.NumberFormat for currency formatting
@@ -303,9 +348,10 @@ function PaymentsMade (){
                   display: 'flex', 
                   alignItems: 'center', 
                   cursor: 'pointer', 
+                  mt:'13px'
                 }}
               >
-                <Typography variant="h7">
+                <Typography fontFamily={"GT Regular"} fontSize={"15px"}>
                   {formattedAmount}  {/* Display formatted amount */}
                 </Typography>
               </Box>
@@ -316,11 +362,26 @@ function PaymentsMade (){
           field: "payment_date",
           headerName: "PAYMENT DATE",
           flex: 0.15,
+          renderCell: (params) => (
+            <Box onClick={() => handlePayment(params.row.id)} sx={{display:'flex', alignItems:'center', cursor:'pointer', mt:'13px'}}>
+                <Typography fontFamily={"GT Regular"} fontSize={"15px"}>
+                 {params.value}
+                </Typography>
+            </Box>
+          )
         },
         {
           field: "payment_mode",
           headerName: "PAYMENT MODE",
+          cellClassName: "name-column--cell",
           flex: 0.2,
+          renderCell: (params) => (
+            <Box onClick={() => handlePayment(params.row.id)} sx={{display:'flex', alignItems:'center', cursor:'pointer'}} mt={'13px'}>
+                <Typography fontFamily={"GT Regular"} fontSize={"15px"}>
+                    {params.value}
+                </Typography>
+            </Box>
+          )
         },
       ];
 
@@ -340,6 +401,13 @@ function PaymentsMade (){
                     {successMessage}
                 </Alert>
             </Snackbar>
+
+            <Dialog open={openDialog} onClose={handleCloseDialog}>
+                <DialogContent>
+                    <Typography fontFamily={"GT Bold"}>Saving...</Typography>
+                </DialogContent>
+            </Dialog>
+
             <Typography fontWeight={'bold'} fontSize={'27px'} textAlign={'center'}>NEW PAYMENT MADE</Typography>
             <Box
                sx={{
@@ -470,7 +538,7 @@ function PaymentsMade (){
                         sx={{mb:'20px',}}
                     />
 
-                    <Button type="submit" color="secondary" variant="contained">SAVE PAYMENT</Button>
+                    <Button type="submit" color="secondary" variant="contained" disabled={loading} sx={{fontFamily:"GT Bold"}}>{loading ? "Saving..." : "Save"}</Button>
 
                 </form>
             </Box>

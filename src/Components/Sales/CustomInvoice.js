@@ -1,13 +1,13 @@
 import { useEffect, useState } from "react";
-import { Box, Typography, Button, IconButton, FormControl, Select, MenuItem, TextField, RadioGroup, FormControlLabel, TableContainer, Paper, Table, TableHead, TableRow, TableCell, ListSubheader, Divider, TableBody, Card, CardContent, Pagination } from "@mui/material";
+import { Box, Typography, Button, IconButton, FormControl, Select, MenuItem, TextField, RadioGroup, FormControlLabel, TableContainer, Paper, Table, TableHead, TableRow, TableCell, ListSubheader, Divider, Card, CardContent, Pagination, Snackbar, Alert } from "@mui/material";
 import { DataGrid, GridToolbar } from "@mui/x-data-grid";
 import { useNavigate } from "react-router-dom";
-import CloseIcon from '@mui/icons-material/Close';
-import { Dialog, DialogActions, DialogContent, DialogTitle } from '@mui/material';
+import { Dialog, DialogContent } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import './Invoice.css'
 import { Radio } from "@mui/material";
+import { AddOutlined, DeleteForever } from "@mui/icons-material";
 
 function CustomInvoice() {
     const [invoices, setInvoices] = useState([]);
@@ -15,43 +15,53 @@ function CustomInvoice() {
     const [openDialog, setOpenDialog] = useState(false);
     const [customers, setCustomers] = useState([]);
     const [currentPage, setCurrentPage] = useState(1)
+    const [vatAmount, setVatAmount] = useState(0)
+    const [totalAmount, setTotalAmount] = useState(0)
+    const [subTotalAmount, setSubTotalAmount] = useState(0)
+    const [loading, setLoading] = useState(false)
+    const [openSnackBar, setOpenSnackBar] = useState(false)
+    const [successMessage, setSuccessMessage] = useState("")
     const itemsPerPage = 16;
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
     const token = localStorage.getItem('access_token')
-    const [formData, setFormData] = useState({
-        customer_name: "",
-        customer_phone: "",
-        customer_email: "",
-        invoice_number: "",
-        order_number: "",
-        invoice_date: "",
-        invoice_terms: "",
-        vendor_pin: "",
-        type_vat:"Inclusive Tax",
-        due_date: "",
-        consignee: "",
-        sales_person: "",
-        amount_paid:"",
-        amount_owed:"",
-        category_name:"",
-        payment_made:0,
-        status:"UNPAID",
-        currency:"",
-        items: [],
-        terms_conditions: "",
-    });
+    const [formData, setFormData] = useState([
+        {
+            customer_name: "",
+            customer_phone: "",
+            customer_email: "",
+            invoice_number: "",
+            order_number: "",
+            invoice_date: "",
+            invoice_terms: "",
+            vendor_pin: "",
+            type_vat:"Inclusive Tax",
+            due_date: "",
+            consignee: "",
+            sales_person: "",
+            amount_paid:"",
+            amount_owed:"",
+            category_name:"",
+            payment_made:0,
+            status:"UNPAID",
+            currency:"",
+            items: [],
+            terms_conditions: "",
+        }
+]);
 
-    const [newItem, setNewItem] = useState({
-        item_details: "",
-        description: "",
-        quantity: 0,
-        vat: 0,
-        sub_total:"",
-        rate_vat: 0,
-        rate: 0,
-        amount: 0,
-    });
+    const [newItem, setNewItem] = useState([
+        {
+            item_details: "",
+            description: "",
+            quantity: 0,
+            vat: 0,
+            sub_total:"",
+            rate_vat: 0,
+            rate: 0,
+            amount: 0,
+        }
+]);
 
     const navigate = useNavigate();
 
@@ -106,44 +116,111 @@ function CustomInvoice() {
         }
     }
 
-    function handleNewItemChange(event) {
+    function handleToggleVat() {
+        setIsVatInclusive(!isVatInclusive);
+        setFormData(prevFormData => ({
+            ...prevFormData,
+            type_vat: isVatInclusive ? "Exclusive VAT" : "Inclusive VAT"
+        }));
+    }
+
+    function handleNewItemChange(event, index) {
         const { name, value } = event.target;
         const uppercasedValue = name === 'item_details' || name === 'description' ? value.toUpperCase() : value;
-        
-        setNewItem(prevNewItem => {
-            const updatedItem = { ...prevNewItem, [name]: uppercasedValue };
-    
-            if (name === 'quantity' || name === 'rate' || name === 'vat') {
-                if (isVatInclusive) {
-                    // Inclusive VAT calculation
-                    updatedItem.amount = updatedItem.quantity * updatedItem.rate;
-                    updatedItem.rate_vat = ((updatedItem.vat / 100) * updatedItem.amount);
-                    updatedItem.sub_total = (updatedItem.quantity * updatedItem.rate) - updatedItem.rate_vat;
-                } else {
-                    // Exclusive VAT calculation
-                    updatedItem.rate_vat = ((updatedItem.vat / 100) * updatedItem.amount);
-                    updatedItem.sub_total = (updatedItem.quantity * updatedItem.rate);
-                    updatedItem.amount = (updatedItem.sub_total) + updatedItem.rate_vat;
-                }
+        const values = [...newItem]
+
+        values[index] = {...values[index], [name]:uppercasedValue}
+
+        if (name === 'quantity' || name === 'rate' || name === 'vat'){
+            if(isVatInclusive){
+                values[index].amount = values[index].quantity * values[index].rate;
+                values[index].rate_vat = ((values[index].vat / 100) * values[index].amount)
+                values[index].sub_total = (values[index].amount - values[index].rate_vat)
+            }else{
+                values[index].sub_total = values[index].quantity * values[index].rate;
+                values[index].rate_vat = (values[index].vat / 100) * values[index].sub_total;
+                values[index].amount = values[index].sub_total + values[index].rate_vat;
             }
-            return updatedItem;
-        });
+            
+        }
+
+        setNewItem(values)
+        
+        setVatAmount(values.reduce((total, item) => total + item.rate_vat, 0))
+        setTotalAmount(values.reduce((total, item) => total + item.amount, 0))
+        setSubTotalAmount(values.reduce((total, item) => total + item.sub_total, 0))
+
+        setFormData(prevformData => ({
+            ...prevformData,
+            items: values,
+        }))
     }
+
+    useEffect(() => {
+        setNewItem(prevItems => {
+            return prevItems.map((item) => {
+                let newAmount;
+                let newRateVat;
+                let newSubTotal;
+    
+                if (isVatInclusive) {
+                    newAmount = item.quantity * item.rate;
+                    newRateVat = ((item.vat / 100) * newAmount).toFixed(2);
+                    newSubTotal = (newAmount - newRateVat).toFixed(2);
+                } else {
+                    newAmount = (item.quantity * item.rate) + item.rate_vat;
+                    newRateVat = ((item.vat / 100) * (item.quantity * item.rate)).toFixed(2);
+                    newSubTotal = (item.quantity * item.rate).toFixed(2);
+                }
+    
+                // Convert strings back to numbers to avoid issues in calculations
+                newAmount = parseFloat(newAmount);
+                newRateVat = parseFloat(newRateVat);
+                newSubTotal = parseFloat(newSubTotal);
+    
+                // Only update if values have changed
+                if (item.amount !== newAmount || item.rate_vat !== newRateVat || item.sub_total !== newSubTotal) {
+                    return {
+                        ...item,
+                        amount: newAmount,
+                        rate_vat: newRateVat,
+                        sub_total: newSubTotal
+                    };
+                }
+    
+                return item;
+            });
+        });
+    },[isVatInclusive])
+
+    useEffect(() => {
+    
+        setVatAmount(newItem.reduce((total, item) => total + item.rate_vat, 0))
+        setTotalAmount(newItem.reduce((total, item) => total + item.amount, 0))
+        setSubTotalAmount(newItem.reduce((total, item) => total + item.sub_total, 0))
+    
+        // Ensure formData.items updates when VAT type is toggled 
+        setFormData(prevFormData => ({
+            ...prevFormData,
+            items: newItem
+        }));
+        
+    }, [newItem]);
     
 
-    function addItem() {
-        setFormData(prevFormData => ({
-            ...prevFormData,
-            items: [...prevFormData.items, newItem]
-        }));
-        setNewItem({ item_details: "", description: "", quantity: 0, rate: 0, vat: 0, rate_vat: 0,sub_total:0, amount: 0 });
+    function handleNewInputField() {
+        setNewItem([...newItem, { item_details: "", description: "", quantity: 0, rate: 0, vat: 0, rate_vat: 0,sub_total:0, amount: 0 }]);
     }
 
-    function handleDeleteItem(index) {
+    function handleDeleteInputField(index) {
+        const updatedItems = newItem.filter((_,i) => i !== index)
+
+        setNewItem(updatedItems);
+        
         setFormData(prevFormData => ({
             ...prevFormData,
-            items: prevFormData.items.filter((_, i) => i !== index)
-        }));
+            items: updatedItems
+        }))
     }
 
     function handleSelectCustomer(event) {
@@ -173,11 +250,30 @@ function CustomInvoice() {
 
     function handleSubmit(event) {
         event.preventDefault();
-    
+
+        if(!formData.customer_name || !formData.invoice_terms){
+            setOpenSnackBar(true);
+            setSuccessMessage(`Please fill in all the fields!`);
+            return;
+        }
+
+        // Validate items
+        const hasValidItem = formData.items.some(item => 
+            item.item_details || item.description || item.quantity || item.vat || item.rate
+        )
+
+        if (!hasValidItem) {
+            setOpenSnackBar(true)
+            setSuccessMessage("Please add at least one item before saving.");
+            return;
+        }
+            
+        setOpenDialog(true)
+        setLoading(true)
+
         const calculateInvoiceTotal = () => {
             return formData.items.reduce((total, item) => total + item.amount, 0);
         }
-        
     
         const allData = {
             ...formData,
@@ -185,7 +281,7 @@ function CustomInvoice() {
             amount_owed: calculateInvoiceTotal(),
             status: 'UNPAID',
             invoice_total: calculateInvoiceTotal(),
-            invoice_number:invoiceNumber,
+            invoice_number: invoiceNumber,
         };
     
         fetch('https://demo-server-757m.onrender.com/custominvoices', {
@@ -244,11 +340,29 @@ function CustomInvoice() {
                 items: [],
                 terms_conditions: "",
             });
-            setOpenDialog(true); // Open the dialog
+
+            setOpenDialog(false); // Open the dialog
+            setLoading(false);
+            setOpenSnackBar(true);
+            setSuccessMessage("Invoice saved successfully!")
+
+            setNewItem([{
+                item_details: "",
+                description: "",
+                quantity: 0,
+                vat: 0,
+                sub_total:"",
+                rate_vat: 0,
+                rate: 0,
+                amount: 0,
+            }])
 
         })
+        
         .catch((error) => {
             console.error('There was a problem with the fetch operation:', error);
+            setOpenSnackBar(true)
+            setSuccessMessage("Failed to save the invoice. Please try again.")
         });
     }
     
@@ -280,18 +394,6 @@ function CustomInvoice() {
         }));
     }
 
-    const vatAmount = formData.items.reduce((total, item) => total + item.rate_vat, 0);
-    const totalAmount = isVatInclusive ? formData.items.reduce((total, item) => total + item.amount, 0) : (formData.items.reduce((total, item) => total + item.sub_total, 0) + vatAmount)
-    const subTotalAmount = isVatInclusive ? formData.items.reduce((total, item) => total + item.sub_total, 0): formData.items.reduce((total, item) => total + item.sub_total, 0);
-
-
-    function handleToggleVat() {
-        setIsVatInclusive(!isVatInclusive);
-        setFormData(prevFormData => ({
-            ...prevFormData,
-            type_vat: isVatInclusive ? "Exclusive VAT" : "Inclusive VAT"
-        }));
-    }
     const handleViewDetails = (invoiceId) => {
         navigate(`/invoices/${invoiceId}`);
       };
@@ -304,10 +406,11 @@ function CustomInvoice() {
         setOpenDialog(false);
     };
     
-    const handlePaymentReceived = () => {
-        navigate('/payments-received')
-        handleCloseDialog();
-    };
+    function handleCloseSnackBar(event, reason){
+        if( reason === 'clickaway') return;
+        setOpenSnackBar(false)
+    }
+
     const columns = [
         { field: "id", headerName: "ID", flex: 0.2 },
         {
@@ -490,7 +593,7 @@ function CustomInvoice() {
         BRL: "pt-BR", // Brazilian Real
       };
 
-      const userLocale = currencyLocaleMap[formData.currency] || 'en-KE'
+    const userLocale = currencyLocaleMap[formData.currency] || 'en-KE'
 
     const totalPages = Math.ceil(invoices.length / itemsPerPage)
     const displayedItems = invoices.slice((currentPage - 1)*itemsPerPage, currentPage * itemsPerPage)
@@ -513,19 +616,25 @@ function CustomInvoice() {
                         <Typography fontWeight={'bold'}>BACK</Typography>
                     </Button>
 
+                    <Snackbar
+                        open={openSnackBar}
+                        autoHideDuration={6000}
+                        anchorOrigin={{horizontal:"center", vertical:"bottom"}}
+                        onClose={handleCloseSnackBar}
+                    >
+                        <Alert  onClose={handleCloseSnackBar} severity={successMessage.includes('Please') ? "error" : "success"} sx={{ width: '100%' }}>
+                            {successMessage}
+                        </Alert>
+                    </Snackbar>
+
                     <Dialog open={openDialog} onClose={handleCloseDialog}>
-                        <DialogTitle>Payment Received?</DialogTitle>
                         <DialogContent>
-                            <Typography variant="body1">Was the payment received?</Typography>
+                            <Typography fontFamily={"GT Bold"}>Saving...</Typography>
                         </DialogContent>
-                        <DialogActions>
-                            <Button onClick={handlePaymentReceived} color="primary">Yes</Button>
-                            <Button onClick={handleCloseDialog} color="secondary">No</Button>
-                        </DialogActions>
                     </Dialog>
 
                 <Box>
-                    <Typography fontSize={'30px'} fontWeight={'bold'} textAlign={'center'} marginTop={'20px'}>NEW TRANSPORT INVOICE</Typography>
+                    <Typography fontSize={'30px'} fontWeight={'bold'} textAlign={'center'} marginTop={'20px'}>NEW CUSTOM INVOICE</Typography>
 
                     <Box
                          sx={{
@@ -549,22 +658,27 @@ function CustomInvoice() {
                           }}
                     >
                         <form style={{display:'flex', flexDirection:'column', margin:'40px'}} onSubmit={handleSubmit}>
-                            <FormControl>
-                            <Typography fontWeight={'bold'}>Customer Name</Typography>
-                            <Select name="customer_name" value={formData.customer_name} onChange={handleSelectCustomer} sx={{mb:'20px'}}>
-                                <MenuItem value="">Select Customer</MenuItem>
-                                {customers.map((customer, index) => (
-                                    <MenuItem key={index} value={customer.customer_name}>{customer.customer_name}</MenuItem>
-                                ))}
-                                <MenuItem value="new_customer">Create New Customer</MenuItem>
-                            </Select>
-                            </FormControl>
 
+                            {customers.length > 0 ? (
+                                <FormControl>
+                                <Typography fontWeight={'bold'}>Customer Name</Typography>
+                                <Select name="customer_name" value={formData.customer_name} onChange={handleSelectCustomer} sx={{mb:'20px'}}>
+                                    <MenuItem value="">Select Customer</MenuItem>
+                                    {customers.map((customer, index) => (
+                                        <MenuItem key={index} value={customer.customer_name}>{customer.customer_name}</MenuItem>
+                                    ))}
+                                    <MenuItem value="new_customer">Create New Customer</MenuItem>
+                                </Select>
+                                </FormControl>
+                            ):(
+                                <p>Loading customers...</p>
+                            )}
+                            
 
+                            <Typography fontWeight={'bold'}>Customer Phone</Typography>
                             <TextField
                                 type="text"
                                 name="customer_phone"
-                                label="Customer Phone"
                                 value={formData.customer_phone}
                                 onChange={handleChange}
                                 readOnly
@@ -572,10 +686,10 @@ function CustomInvoice() {
                                 sx={{mb:'20px'}}
                             />
 
+                            <Typography fontWeight={'bold'}>Customer Email</Typography>
                             <TextField
                                 type="text"
                                 name="customer_email"
-                                label="Customer Email"
                                 value={formData.customer_email}
                                 onChange={handleChange}
                                 readOnly
@@ -583,32 +697,33 @@ function CustomInvoice() {
                                 sx={{mb:'20px'}}
                             />
 
+                            <Typography fontWeight={'bold'}>Customer Pin</Typography>
                             <TextField
                                 type="text"
                                 name="customer_pin"
-                                label="Customer Pin"
                                 value={formData.vendor_pin}
                                 onChange={handleChange}
                                 readOnly
                                 variant="outlined"
                                 sx={{mb:'20px'}}
+                                inputProps={{ readOnly: true }}
                             />
-
+                            
+                            <Typography fontWeight={'bold'}>Currency</Typography>
                             <TextField
                                 type="text"
                                 name="currency"
-                                label="Currency"
                                 value={formData.currency}
                                 onChange={handleChange}
-                                readOnly
                                 variant="outlined"
                                 sx={{mb:'20px'}}
+                                inputProps={{ readOnly: true }}
                             />
 
+                            <Typography fontWeight={'bold'}>Invoice Number</Typography>
                             <TextField
                                 type="text"
                                 name="invoice_number"
-                                label="Invoice Number"
                                 className="bill-inputfield"
                                 value={invoiceNumber}
                                 onChange={handleChange}
@@ -699,10 +814,10 @@ function CustomInvoice() {
                                     <MenuItem value='new_account'>Create New Account</MenuItem>
                             </Select>
 
+                            <Typography fontWeight={'bold'}>Consignee</Typography>
                             <TextField
                                 type="text"
                                 name="consignee"
-                                label="Consignee"
                                 value={formData.consignee}
                                 onChange={handleChange}
                                 required
@@ -710,6 +825,7 @@ function CustomInvoice() {
                                 sx={{mb:'20px'}}
                             />
 
+                            <Typography fontWeight={'bold'}>Invoice Date</Typography>
                             <TextField
                                 type="date"
                                 name="invoice_date"
@@ -720,10 +836,10 @@ function CustomInvoice() {
                                 sx={{mb:'20px'}}
                             />
 
+                            <Typography fontWeight={'bold'}>Invoice Terms</Typography>
                             <TextField
                                 type="text"
                                 name="invoice_terms"
-                                label="Invoice Terms"
                                 value={formData.invoice_terms}
                                 onChange={handleChange}
                                 required
@@ -731,6 +847,7 @@ function CustomInvoice() {
                                 sx={{mb:'20px'}}
                             />
 
+                            <Typography fontWeight={'bold'}>Due Date</Typography>
                             <TextField
                                 type="date"
                                 name="due_date"
@@ -778,173 +895,150 @@ function CustomInvoice() {
                                     <TableHead>
                                         <TableRow>
                                             <TableCell sx={{ minWidth: 150 }}><Typography fontWeight="bold">Item</Typography></TableCell>
-                                            <TableCell sx={{ minWidth: 430 }}><Typography fontWeight="bold">Cargo Description</Typography></TableCell>
-                                            <TableCell sx={{ minWidth: 150 }}><Typography fontWeight="bold">Weight</Typography></TableCell>
-                                            <TableCell sx={{ minWidth: 150 }}><Typography fontWeight="bold">Rate</Typography></TableCell>
-                                            <TableCell sx={{ minWidth: 150 }}><Typography fontWeight="bold">Sub Total</Typography></TableCell>
-                                            <TableCell sx={{ minWidth: 150 }}><Typography fontWeight="bold">VAT</Typography></TableCell>
-                                            <TableCell sx={{ minWidth: 150 }}><Typography fontWeight="bold">VAT Amount</Typography></TableCell>
-                                            <TableCell sx={{ minWidth: 150 }}><Typography fontWeight="bold">Total Amount</Typography></TableCell>
+                                            <TableCell sx={{ minWidth: 200 }}><Typography fontWeight="bold">Description</Typography></TableCell>
+                                            <TableCell sx={{ minWidth: 50 }}><Typography fontWeight="bold">Quantity</Typography></TableCell>
+                                            <TableCell sx={{ minWidth: 50 }}><Typography fontWeight="bold">Rate</Typography></TableCell>
+                                            <TableCell sx={{ minWidth: 50 }}><Typography fontWeight="bold">Sub Total</Typography></TableCell>
+                                            <TableCell sx={{ minWidth: 50 }}><Typography fontWeight="bold">VAT</Typography></TableCell>
+                                            <TableCell sx={{ minWidth: 50 }}><Typography fontWeight="bold">VAT Amount</Typography></TableCell>
+                                            <TableCell sx={{ minWidth: 50 }}><Typography fontWeight="bold">Total Amount</Typography></TableCell>
                                         </TableRow>
                                     </TableHead>
-                                    <TableBody>
-                                        {formData.items.map((item, index) => (
-                                            <TableRow key={index}>
-                                                <TableCell>{item.item_details}</TableCell>
-                                                <TableCell>{item.description}</TableCell>
-                                                <TableCell>{item.quantity}</TableCell>
-                                                <TableCell>{item.rate}</TableCell>
-                                                <TableCell>{item.sub_total}</TableCell>
-                                                <TableCell>{item.vat}</TableCell>
-                                                <TableCell>{item.rate_vat}</TableCell>
-                                                <TableCell>{item.amount.toLocaleString()}</TableCell>
-                                                <TableCell>
-                                                    <IconButton 
-                                                        color="error"
-                                                        onClick={() => handleDeleteItem(index)}
-                                                    >
-                                                        <CloseIcon />
-                                                    </IconButton>
-                                                </TableCell>
-                                            </TableRow>
-                                        ))}
-                                        <TableRow>
-                                            <TableCell>
-                                            <TextField
-                                                    name="item_details"
-                                                    placeholder="Item Details"
-                                                    value={newItem.item_details}
-                                                    onChange={handleNewItemChange}
-                                                    variant="outlined"
-                                                    size="small"
-                                                    fullWidth
-                                                />
-                                                
-                                                
-                                            </TableCell>
-
-                                            <TableCell>
-                                                <TextField
-                                                    name="description"
-                                                    placeholder="Description"
-                                                    value={newItem.description}
-                                                    onChange={handleNewItemChange}
-                                                    variant="outlined"
-                                                    size="small"
-                                                    fullWidth
-                                                    multiline
-                                                    minRows={4}  // Initial number of rows
-                                                    maxRows={20}   // Maximum number of rows
-                                                />
-                                            </TableCell>
-
-                                            <TableCell>
-                                                <TextField
-                                                    type="number"
-                                                    name="quantity"
-                                                    placeholder="Quantity"
-                                                    className="bill-inputfield"
-                                                    value={newItem.quantity}
-                                                    onChange={handleNewItemChange}
-                                                    variant="outlined"
-                                                    size="small"
-                                                    fullWidth
-                                                />
-                                            </TableCell>
-                                            <TableCell>
-                                                <TextField
-                                                    type="number"
-                                                    name="rate"
-                                                    placeholder="Rate"
-                                                    className="bill-inputfield"
-                                                    value={newItem.rate}
-                                                    onChange={handleNewItemChange}
-                                                    variant="outlined"
-                                                    size="small"
-                                                    fullWidth
-                                                />
-                                            </TableCell>
-
-                                            <TableCell>
-                                                <TextField
-                                                    placeholder="Sub Total"
-                                                    variant="outlined"
-                                                    size="small"
-                                                    fullWidth
-                                                    value={newItem.sub_total}
-                                                    InputProps={{ readOnly: true }}
-                                                />
-                                            </TableCell>
-
-                                            <TableCell>
-                                                <Select
-                                                    value={newItem.vat}
-                                                    name="vat"
-                                                    fullWidth
-                                                    onChange={handleNewItemChange}
-                                                    displayEmpty
-                                                >
-                                                    <MenuItem value=""><em>Select VAT</em></MenuItem>
-                                                    <MenuItem value={16}>16%</MenuItem>
-                                                    <MenuItem value={0}>0%</MenuItem>
-                                                </Select>
-                                            </TableCell>
-
-                                            <TableCell>
-                                                <TextField
-                                                    placeholder="VAT Amount"
-                                                    variant="outlined"
-                                                    size="small"
-                                                    fullWidth
-                                                    value={newItem.rate_vat}
-                                                    InputProps={{ readOnly: true }}
-                                                />
-                                                </TableCell>
-
-                                                <TableCell>
-                                                <TextField
-                                                    placeholder="Total Amount"
-                                                    variant="outlined"
-                                                    size="small"
-                                                    fullWidth
-                                                    value={newItem.amount}
-                                                    InputProps={{ readOnly: true }}
-                                                />
-                                            </TableCell>
-                                        </TableRow>
-                                    </TableBody>
                                 </Table>
                             </TableContainer>
+
+                            <Box>
+                                {newItem.map((item,index) => (
+                                    <Box key={index} display={'flex'} gap={'20px'} alignItems={'center'} mt={'20px'}>
+                                        <TextField
+                                            name="item_details"
+                                            placeholder="Item Details"
+                                            value={item.item_details}
+                                            onChange={(e) => handleNewItemChange(e,index)}
+                                            variant="outlined"
+                                            size="small"
+                                            fullWidth
+                                        />
+
+                                        <TextField
+                                            name="description"
+                                            placeholder="Description"
+                                            value={item.description}
+                                            onChange={(e) => handleNewItemChange(e, index)}
+                                            variant="outlined"
+                                            size="small"
+                                            fullWidth
+                                            sx={{minWidth:'400px'}}
+                                            multiline
+                                            minRows={4}  // Initial number of rows
+                                            maxRows={20}   // Maximum number of rows
+                                        />
+
+                                        <TextField
+                                            type="number"
+                                            name="quantity"
+                                            placeholder="Quantity"
+                                            className="bill-inputfield"
+                                            value={item.quantity}
+                                            onChange={(e) => handleNewItemChange(e, index)}
+                                            variant="outlined"
+                                            size="small"
+                                            fullWidth
+                                        />
+
+
+                                        <TextField
+                                            type="number"
+                                            name="rate"
+                                            placeholder="Rate"
+                                            className="bill-inputfield"
+                                            value={item.rate}
+                                            onChange={(e) => handleNewItemChange(e, index)}
+                                            variant="outlined"
+                                            size="small"
+                                            fullWidth
+                                        />
+
+                                        <TextField
+                                            placeholder="Sub Total"
+                                            variant="outlined"
+                                            size="small"
+                                            fullWidth
+                                            value={item.sub_total}
+                                            InputProps={{ readOnly: true }}
+                                        />
+
+                                        <Select
+                                            value={item.vat}
+                                            name="vat"
+                                            fullWidth
+                                            onChange={(e) => handleNewItemChange(e, index)}
+                                            displayEmpty
+                                        >
+                                            <MenuItem value=""><em>Select VAT</em></MenuItem>
+                                            <MenuItem value={16}>16%</MenuItem>
+                                            <MenuItem value={0}>0%</MenuItem>
+                                        </Select>
+
+                                        <TextField
+                                            placeholder="VAT Amount"
+                                            variant="outlined"
+                                            size="small"
+                                            fullWidth
+                                            value={item.rate_vat}
+                                            InputProps={{ readOnly: true }}
+                                        />
+
+                                        <TextField
+                                            placeholder="Total Amount"
+                                            variant="outlined"
+                                            size="small"
+                                            fullWidth
+                                            value={item.amount}
+                                            InputProps={{ readOnly: true }}
+                                        />
+
+                                        <IconButton onClick={() => handleDeleteInputField(index)}>
+                                                <DeleteForever sx={{fontSize:'30px', color:'black', border:'2px solid red', padding:'10px', borderRadius:"8px", ":hover":{backgroundColor:'red', color:'white'}}}/>
+                                       </IconButton>
+
+                                    </Box>
+                                ))}
+
+                                    <Button onClick={handleNewInputField} variant="contained" style={{backgroundColor:'grey', color:'white', marginTop:'20px', display:'flex', justifyContent:'center', alignItems:'center', marginBottom:'20px'}}>
+                                        <AddOutlined sx={{color:'white', fontSize:'19px'}}/>
+                                        <Typography fontWeight={'bold'} fontSize={'12px'}>Add new row</Typography>
+                                    </Button>
+                            </Box>
                             
-                            <Button variant="contained" color="secondary" onClick={addItem} sx={{margin:'20px'}}><Typography fontWeight={'bold'}>ADD ITEM</Typography></Button>
                             <Box display={'flex'} flexDirection={'column'} gap={'15px'} m={'10px'} textAlign={'right'} fontWeight={'bold'}>
-                                <Typography fontWeight={'bold'}>
-                                        Sub Total Amount:{" "}
+                                <Typography fontFamily={"GT Regular"} fontSize={'20px'} fontWeight={'bold'}>
+                                        Sub Total:{" "}
                                         {formData.currency ? (
                                             new Intl.NumberFormat(userLocale, { style: 'currency', currency: formData.currency }).format(subTotalAmount)
                                         ) : (
-                                            subTotalAmount
+                                            new Intl.NumberFormat().format(subTotalAmount)
                                         )}
                                 </Typography>
 
-                                <Typography fontWeight={'bold'}>VAT Amount: {" "}
+                                <Typography fontSize={'20px'} fontFamily={"GT Regular"} fontWeight={'bold'}>VAT Amount: {" "}
                                         {formData.currency ? (
                                             new Intl.NumberFormat(userLocale, { style: 'currency', currency: formData.currency }).format(vatAmount)
                                         ) : (
-                                            vatAmount
+                                            new Intl.NumberFormat().format(vatAmount)
                                         )}
                                 </Typography>
 
-                                <Typography fontWeight={'bold'}>Total Amount: {" "}
+                                <Typography fontSize={'20px'} fontFamily={"GT Regular"} fontWeight={'bold'}>Total: {" "}
                                     { formData.currency ? (
                                         new Intl.NumberFormat(userLocale, {currency:formData.currency, style:'currency'}).format(totalAmount)
                                     ):(
-                                        totalAmount
+                                        new Intl.NumberFormat().format(totalAmount)
                                     )}
                                 </Typography>
                             </Box>
 
-                            <Button variant="contained" color="secondary" type="submit" sx={{width:'150px'}}><Typography fontWeight={'bold'}>SAVE</Typography></Button>
+                            <Button variant="contained" color="secondary" disabled={loading} type="submit" sx={{width:'150px', fontFamily:"GT Bold"}}><Typography sx={{fontFamily:'GT Bold'}}>{loading ? "Saving..." : "Save"}</Typography></Button>
 
                         </form>
                     </Box>
