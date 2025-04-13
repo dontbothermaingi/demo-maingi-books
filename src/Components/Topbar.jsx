@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Box, IconButton, Typography, InputBase, Drawer, List, ListItem,useMediaQuery, Button } from '@mui/material';
+import { Box, IconButton, Typography, InputBase, Drawer, List,useMediaQuery, Button, ListItemText, ListItemButton } from '@mui/material';
 import { useNavigate, NavLink } from 'react-router-dom';
 import SearchIcon from '@mui/icons-material/Search';
 import NotificationsOutlinedIcon from '@mui/icons-material/NotificationsOutlined';
@@ -58,6 +58,10 @@ function TopBar() {
     setDrawerOpen(!drawerOpen);
   };
 
+  function closeDrawer(){
+    setDrawerOpen(false)
+  }
+
   const handleUserEdit = () => {
     navigate('/user-accounts')
   };
@@ -75,13 +79,14 @@ function TopBar() {
     <NavLink
       exact
       to={to}
-      className="navlink"
-      activeClassName="active"
-      onClick={handleDrawerToggle} // Close the drawer when a link is clicked
+      style={{ textDecoration: 'none', color: 'inherit' }}
     >
-      <Box display="flex" flexDirection="row" gap="10px" textAlign="center" alignItems="left" justifyContent="center">
-        <ListItem variant="body2">{label}</ListItem>
-      </Box>
+      <ListItemButton onClick={closeDrawer}>
+        <ListItemText
+          primary={label}
+          primaryTypographyProps={{ fontFamily: 'GT Light', fontSize: '12px' }}
+        />
+      </ListItemButton>
     </NavLink>
   );
   
@@ -157,7 +162,7 @@ function TopBar() {
           <List sx={{ overflow: 'auto' }}>
               {[
                   { id: 'dashboard', icon: <HomeOutlinedIcon />, label: 'DASHBOARD', links: [{ path: "/", label: "Dashboard" }] },
-                  { id: 'trucks', icon: <LocalShippingOutlinedIcon />, label: 'VEHICLES', links: [{ path: "/trucks", label: "Vehicles" }] },
+                  { id: 'trucks', icon: <LocalShippingOutlinedIcon />, label: 'VEHICLES', links: [{ path: "/trucks", label: "Vehicles" },{path:"/truck-invoices", label:'Fuel Report'}] },
                   { id: 'sales', icon: <PeopleOutlinedIcon />, label: 'SALES', links: [{ path: "/customers", label: "Customers" }, { path: "/invoice", label: "Invoices" }, { path: "/credit-note", label: "Credit Note" }, { path: "/quotes", label: "Quote" }, { path: "/delivery-notes", label: "Delivery Note" }] },
                   { id: 'purchases', icon: <RequestQuoteIcon />, label: 'PURCHASES', links: [{ path: "/vendors", label: "Vendors" }, { path: "/bill", label: "Bill" }] },
                   { id: 'banking', icon: <RequestQuoteIcon />, label: 'BANKING', links: [{ path: "/banking", label: "Banking" }, { path: "/payments-received", label: "Payments Received" }, { path: "/payments-made", label: "Payments Made" }] },
@@ -165,7 +170,7 @@ function TopBar() {
                   { id: 'spares', icon: <Build />, label: 'SPARES', links: [{ path: "/spares", label: "Spares" }, { path: "/vehicle-repair", label: "Vehicle Repair" }] },
                   { id: 'stock', icon: <Inventory />, label: 'STOCK', links: [{ path: "/stock-items", label: "Stock" }] },
                   { id: 'tyres', icon: <Storefront />, label: 'TYRES', links: [{ path: "/tyre-control", label: "New Tyres" }, { path: "/retread-tyres-control", label: "Retread Tyres" }, { path: "/used-tyres-control", label: "Used Tyres" }] },
-                  { id: 'reports', icon: <ReceiptOutlinedIcon />, label: 'REPORTS', links: [{ path: "/balance-sheet", label: "Balance Sheet" }, { path: "/trading-profit-loss-account", label: "Trading, Profit and Loss Account" }, { path: "/cash-book", label: "Cash Book" }, { path: "/sales-report", label: "Sales" }, { path: "/expenses-reports", label: "Expenses Report" }, { path: "/customer-balance-report", label: "Customer Balances" }, { path: "/vat-payable", label: "Vat Payable" }, { path: "/all-invoices-report", label: "Detailed Report" }, { path: "/account-receivables-report", label: "Account Receivables" }, { path: "/account-payables-report", label: "Account Payables" }, { path: "/credit-notes-report", label: "Credit Note Report" }, { path: "/payments-made-report", label: "Payments Made Report" }, { path: "/payments-received-report", label: "Payments Received Report" }, { path: "/pump-reports", label: "Pump Report" }, { path: "/fuel-transactions", label: "Fuel Transactions" }, { path: "/repairs-made", label: "Repairs Made" }] }
+                  { id: 'reports', icon: <ReceiptOutlinedIcon />, label: 'REPORTS', links: [{ path: "/balance-sheet", label: "Balance Sheet" }, { path: "/trading-profit-loss-account", label: "Trading, Profit and Loss Account" }, { path: "/cash-book", label: "Cash Book" }, { path: "/sales-report", label: "Sales" }, { path: "/expenses-reports", label: "Expenses Report" }, { path: "/customer-balance-report", label: "Customer Balances" }, { path: "/vat-payable", label: "Vat Payable" }, { path: "/all-invoices-report", label: "Detailed Report" }, { path: "/account-receivables-report", label: "Account Receivables" }, { path: "/account-payables-report", label: "Account Payables" }, { path: "/credit-notes-report", label: "Credit Note Report" }, { path: "/payments-made-report", label: "Payments Made Report" }, { path: "/payments-received-report", label: "Payments Received Report" }, { path: "/pump-reports", label: "Pump Report" }, {path:"/truck-invoices", label:'Fuel Report'}, { path: "/fuel-transactions", label: "Fuel Transactions" }, { path: "/repairs-made", label: "Repairs Made" }] }
               ].map((item) => (
                   <Box key={item.id}>
                       <Typography
@@ -174,6 +179,7 @@ function TopBar() {
                               cursor: 'pointer',
                               display: 'flex',
                               alignItems: 'center',
+                              fontFamily:'GT Regular',
                               width:'150px',
                               margin:'20px',
                               fontWeight: 'bold',

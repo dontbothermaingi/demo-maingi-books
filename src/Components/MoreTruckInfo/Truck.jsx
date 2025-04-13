@@ -1158,19 +1158,19 @@ function TruckReport ({
 
               <Box display="flex" justifyContent="center" flexDirection='column' alignItems='center' mb='30px'>
                       <Box>
-                          <Typography fontSize={'35px'} color="black" ml="23px" mt="9px" fontWeight="bold" style={{ textDecoration: 'underline' }} >
+                          <Typography fontSize={{md:'35px', xs:'24px'}} color="black" ml="23px" mt="9px" fontFamily={"GT Bold"} style={{ textDecoration: 'underline' }} >
                             {manufacturer}
                           </Typography>
                       </Box>
 
                       <Box>
-                          <Typography fontSize={'27px'} color="black" ml="23px" mt="9px" fontWeight="bold" >
+                          <Typography fontSize={{md:'27px', xs:'20px'}} color="black" ml="23px" mt="9px" fontWeight="bold" >
                             {vehicleType}
                           </Typography>
                       </Box>
 
                       <Box>
-                          <Typography variant="h4" color="black" ml="23px" mt="9px" fontWeight="bold">
+                          <Typography fontSize={{md:'27px', xs:'20px'}}  color="black" ml="23px" mt="9px" fontWeight="bold">
                             {title} / {trailer}
                           </Typography>
                       </Box>

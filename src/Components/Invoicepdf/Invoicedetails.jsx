@@ -1,4 +1,4 @@
-import { Box, Button, Typography } from "@mui/material";
+import { Box, Button, CircularProgress, Dialog, DialogContent, Typography } from "@mui/material";
 import { useEffect, useState } from "react";
 import InvoiceLayout from "./Invoice";
 import { useNavigate, useParams } from "react-router-dom";
@@ -10,6 +10,8 @@ const InvoiceDetails = () => {
   const [vatTotal, setVatTotal] = useState(null);
   const [diesels, setDiesels] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [pending, setPending] = useState(false);
+  const [openDialog, setOpenDialog] = useState(false)
   const [error, setError] = useState(null);
   const [subtotal, setSubtotal] = useState(0); // Initialize subtotal state
   const token = localStorage.getItem('access_token')
@@ -93,6 +95,43 @@ const InvoiceDetails = () => {
     navigate(`/invoice-edit/${invoiceId}`)
   }
 
+  function handleTruckInvoiceEdit(){
+    navigate(`/truck_invoice_edit/${invoiceId}`)
+  }
+
+  function handleInvoices(){
+    navigate("/invoice")
+  }
+
+  function handleDelete(){
+
+    setPending(true);
+    setOpenDialog(true);
+
+    fetch(`https://demo-server-757m.onrender.com/invoices/${invoiceId}`, {
+      method:"DELETE",
+      headers:{
+        'Authorization':`Bearer ${token}`
+      },
+      credentials:'include'
+    })
+    .then(response => response.json())
+    .then(()=>{
+
+      setPending(false);
+      setOpenDialog(false);
+      console.log('successfully deleted')
+      handleInvoices()
+    })
+    .catch((error) => {
+      console.error("Failed to Delete", error)
+    })
+  }
+
+  function handleCloseDialog(){
+    setOpenDialog(!openDialog);
+  }
+
 
   if (loading) return <div>Loading...</div>;
   if (error) return <div>Error fetching invoice details</div>;
@@ -101,13 +140,32 @@ const InvoiceDetails = () => {
   return (
     <Box m="30px">
 
-      <Button
-          variant="contained"
-          color="secondary"
-          onClick={handleInvoiceEdit}
-      >
-        <Typography>EDIT INVOICE</Typography>
-      </Button>
+      <Dialog open={openDialog} onClose={handleCloseDialog}>
+        <DialogContent sx={{display:'flex', alignItems:'center', gap:'20px'}}>
+            <CircularProgress sx={{fontSize:'10px'}}/>
+            <Typography fontFamily={'GT Bold'}>Deleting...</Typography>
+        </DialogContent>
+      </Dialog>
+
+      <Box display={'flex'} gap={'20px'}>
+        <Button
+            variant="contained"
+            color="secondary"
+            onClick={invoice.category_name === 'Transport Sales' ? handleTruckInvoiceEdit:handleInvoiceEdit}
+
+        >
+          <Typography fontFamily={"GT Bold"}>EDIT INVOICE</Typography>
+        </Button>
+
+        <Button
+            variant="contained"
+            color="secondary"
+            onClick={handleDelete}
+            disabled={pending}
+        >
+          <Typography fontFamily={"GT Bold"}>{pending ? "DELETING INVOICE..." : "DELETE INVOICE"}</Typography>
+        </Button>
+      </Box>
 
       <InvoiceLayout
         title="INVOICE"

@@ -1,10 +1,14 @@
 import { useEffect, useState } from "react";
-import { Box, Button, Card, CardContent, FormControl, MenuItem, Pagination, Select, TextField, ToggleButton, ToggleButtonGroup, Typography, useMediaQuery} from "@mui/material";
+import { Alert, Box, Button, Card, CardContent, CircularProgress, Dialog, DialogContent, FormControl, MenuItem, Pagination, Select, Snackbar, TextField, ToggleButton, ToggleButtonGroup, Typography, useMediaQuery} from "@mui/material";
 import { DataGrid, GridToolbar } from "@mui/x-data-grid";
 import { useNavigate } from "react-router";
 
 function Vendor() {
     const [vendors, setVendors] = useState([]);
+    const [loading, setLoading] = useState(false);
+    const [openDialog, setOpenDialog] = useState(false)
+    const [openSnackBar, setOpenSnackbar] = useState(false)
+    const [errorMessage, setErrorMessage] = useState("")
     const [isNewVendor, setIsNewVendor] = useState("All Vendors")
     const [currentPage, setCurrentPage] = useState(1)
     const itemsPerPage = 16;
@@ -215,6 +219,9 @@ function Vendor() {
     function handleSubmit(event) {
         event.preventDefault();
 
+        setLoading(true);
+        setOpenDialog(true);
+
         fetch('https://demo-server-757m.onrender.com/vendors', {
             method: "POST",
             headers: {
@@ -258,8 +265,16 @@ function Vendor() {
                     total_amount_owed: "",
                     amount_paid:"",
                 });
+
+                setLoading(false);
+                setOpenDialog(false);
+                setIsNewVendor("All Vendors")
             })
-            .catch(error => console.error('Error:', error));
+            .catch((error) => {
+                console.error("Failed to update vendor", error)
+                setOpenSnackbar(true)
+                setErrorMessage("Update failed. Please try again!")
+            });
     }
 
     function handleVendor(vendorId) {
@@ -284,7 +299,7 @@ function Vendor() {
             }}
             onClick={() => handleVendor(params.row.id)}
           >
-            <Typography>
+            <Typography fontFamily={"GT Regular"}>
               {params.value}
             </Typography>
           </Box>
@@ -294,17 +309,72 @@ function Vendor() {
           field: "vendor_email",
           headerName: "VENDOR EMAIL",
           flex: 0.3,
+          renderCell: (params) => (
+            <Box 
+            sx={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              cursor: 'pointer', 
+              margin: '15px'
+            }}
+            onClick={() => handleVendor(params.row.id)}
+          >
+            <Typography fontFamily={"GT Regular"}>
+              {params.value}
+            </Typography>
+          </Box>
+          ),
         },
         {
           field: "vendor_phone",
           headerName: "VENDOR PHONE",
           flex: 0.2,
+          renderCell: (params) => (
+            <Box 
+            sx={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              cursor: 'pointer', 
+              margin: '15px'
+            }}
+            onClick={() => handleVendor(params.row.id)}
+          >
+            <Typography fontFamily={"GT Regular"}>
+              {params.value}
+            </Typography>
+          </Box>
+          ),
         },
         {
           field: "kra_pin",
           headerName: "KRA PIN",
           flex: 0.2,
+          renderCell: (params) => (
+            <Box 
+            sx={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              cursor: 'pointer', 
+              margin: '15px'
+            }}
+            onClick={() => handleVendor(params.row.id)}
+          >
+            <Typography fontFamily={"GT Regular"}>
+              {params.value}
+            </Typography>
+          </Box>
+          ),
         },
+        // {
+        //     field: "opening_balance",
+        //     headerName: "OPENING BALANCE",
+        //     flex: 0.15,
+        //   },
+        // {
+        //   field: "total_amount_owed",
+        //   headerName: "TOTAL AMOUNT OWED",
+        //   flex: 0.15,
+        // },
       ];
 
       const totalPages = Math.ceil(vendors.length / itemsPerPage)
@@ -314,6 +384,15 @@ function Vendor() {
       const handlePageChange = (event, value) => {
         setCurrentPage(value);
        };
+    
+    function handleCloseDialog(){
+        setOpenDialog(false)
+    }
+
+    function handleCloseSnackbar(event, reason){
+        if( reason === 'clickaway') return;
+        setOpenSnackbar(false)
+    }
 
     return (
         <Box height={'100vh'} overflow={'auto'}>
@@ -323,12 +402,30 @@ function Vendor() {
                 value={isNewVendor}
                 exclusive
                 color="secondary"
-                sx={{ml:'20px', mt:'10px'}}
+                sx={{ml:'20px', mt:'10px', mb:{xs:'10px', md:'0px'}}}
+                size={isMobile ? "small" : "medium"}
+                
             >
-                <ToggleButton value={'All Vendors'}>All Vendors</ToggleButton>
-                <ToggleButton value={'New Vendors'}>New Vendor</ToggleButton>
+                <ToggleButton value={'All Vendors'} sx={{fontSize:{xs:"11px", md:'14px'}}}>All Vendors</ToggleButton>
+                <ToggleButton value={'New Vendors'} sx={{fontSize:{xs:"11px", md:'14px'}}}>New Vendor</ToggleButton>
 
             </ToggleButtonGroup>
+
+            <Dialog open={openDialog} onClose={handleCloseDialog}>
+                <DialogContent sx={{display:'flex', alignItems:'center', gap:'20px'}}>
+                    <CircularProgress sx={{fontSize:'10px'}}/>
+                    <Typography fontFamily={'GT Bold'}>Saving...</Typography>
+                </DialogContent>
+            </Dialog>
+
+                <Snackbar
+                    open={openSnackBar} 
+                    autoHideDuration={6000} 
+                    onClose={handleCloseSnackbar} 
+                    anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+                >
+                    <Alert onClose={handleCloseSnackbar} severity={errorMessage.includes('Please') ? "error" : "success"} sx={{ width: '100%' }}>{errorMessage}</Alert>
+                </Snackbar>
 
             {isNewVendor === "All Vendors" ? "" : 
             
@@ -410,7 +507,7 @@ function Vendor() {
                                 required
                             />
 
-                            <Button type="submit" variant="contained" color="secondary">Save</Button>
+                            <Button disabled={loading} type="submit" variant="contained" color="secondary" sx={{width:"150px", fontFamily:'GT Bold'}}>{loading ? "Saving..." : "Save"}</Button>
                         </form>
                     </Box>
                 </Box>
@@ -481,7 +578,7 @@ function Vendor() {
                 </Box>
             ):(
                  <Box m="20px" mt='50px'>
-                 <Typography fontWeight="bold" variant="h5" textAlign="center">
+                 <Typography fontFamily={"GT Bold"} fontSize={'27px'} textAlign="center">
                        VENDORS
                  </Typography>
                  <Box

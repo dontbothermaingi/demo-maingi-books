@@ -1,11 +1,16 @@
-import { Box, Button, TextField, Typography } from "@mui/material";
+import { Alert, Box, Button, CircularProgress, Dialog, DialogContent, Snackbar, TextField, Typography } from "@mui/material";
 import { useEffect, useState } from "react";
-import { useParams } from "react-router";
+import { useNavigate, useParams } from "react-router";
 
 function CustomerEdit (){
 
     const token = localStorage.getItem('access_token')
+    const navigate = useNavigate();
     const {customerId} = useParams()
+    const [loading, setLoading] = useState(false);
+    const [openDialog, setOpenDialog] = useState(false)
+    const [openSnackBar, setOpenSnackbar] = useState(false)
+    const [errorMessage, setErrorMessage] = useState("")
     const [formData, setFormData] = useState({
         customer_type : "",
         customer_name : "",
@@ -57,6 +62,9 @@ function CustomerEdit (){
 
         event.preventDefault()
 
+        setLoading(true);
+        setOpenDialog(true);
+
         fetch(`https://demo-server-757m.onrender.com/customers/${customerId}`, {
             method:'PATCH',
             headers:{
@@ -73,12 +81,59 @@ function CustomerEdit (){
                 return response.json()
             }
         })
-        .then((data)=>{
-            console.log(data)
+        .then(()=>{
+
+            setFormData({
+                customer_type : "",
+                customer_name : "",
+                company_name : "",
+                customer_email : "",
+                customer_phone : "",
+                currency : "",
+                kra_pin : "",
+                amount_paid : "",
+                payment_terms : "",
+                total_amount_owed : "",
+            })
+            
+            setLoading(false);
+            setOpenDialog(false);
+            navigate(`/customers/${customerId}`)
+        })
+        .catch((error) => {
+            console.error("Failed to update vendor", error)
+            setOpenSnackbar(true)
+            setErrorMessage("Update failed. Please try again!")
         })
     }
+
+
+    function handleCloseDialog(){
+        setOpenDialog(false);
+    }
+
+    function handleCloseSnackbar(event, reason){
+        if( reason === 'clickaway') return;
+        setOpenSnackbar(false)
+    }
+
     return ( 
         <Box>
+                <Dialog open={openDialog} onClose={handleCloseDialog}>
+                    <DialogContent sx={{display:'flex', alignItems:'center', gap:'20px'}}>
+                        <CircularProgress sx={{fontSize:'10px'}}/>
+                        <Typography fontFamily={"GT Bold"}>Updating...</Typography>
+                    </DialogContent>
+                </Dialog>
+                
+                <Snackbar
+                    open={openSnackBar} 
+                    autoHideDuration={6000} 
+                    onClose={handleCloseSnackbar} 
+                    anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+                >
+                    <Alert onClose={handleCloseSnackbar} severity={errorMessage.includes('Please') ? "error" : "success"} sx={{ width: '100%' }}>{errorMessage}</Alert>
+                </Snackbar>
 
             <Typography textAlign={'center'} fontSize={'27px'} fontWeight={'bold'}>EDIT CUSTOMER</Typography>
             <form onSubmit={handleSubmit} style={{display:"flex", flexDirection:"column", margin:"20px"}}>
@@ -182,7 +237,8 @@ function CustomerEdit (){
                      sx={{mb:'20px'}}
                 />
 
-                <Button type="submit" variant="contained" color="secondary">UPDATE</Button>
+                <Button disabled={loading} type="submit" variant="contained" color="secondary" sx={{width:"150px", fontFamily:'GT Bold'}}>{loading ? "Updating..." : "Update"}</Button>
+                
             </form>
 
         </Box>

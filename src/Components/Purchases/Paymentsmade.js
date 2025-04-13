@@ -1,4 +1,4 @@
-import { Alert, Box, Button, Card, CardContent, Dialog, DialogContent, FormControl, MenuItem, Pagination, Select, Snackbar, TextField,Typography, useMediaQuery } from "@mui/material";
+import { Alert, Box, Button, Card, CardContent, CircularProgress, Dialog, DialogContent, FormControl, MenuItem, Pagination, Select, Snackbar, TextField,Typography, useMediaQuery } from "@mui/material";
 import { DataGrid, GridToolbar } from "@mui/x-data-grid";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
@@ -404,6 +404,7 @@ function PaymentsMade (){
 
             <Dialog open={openDialog} onClose={handleCloseDialog}>
                 <DialogContent>
+                    <CircularProgress sx={{fontSize:'10px'}}/>
                     <Typography fontFamily={"GT Bold"}>Saving...</Typography>
                 </DialogContent>
             </Dialog>

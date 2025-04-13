@@ -443,7 +443,7 @@ function InventoryBill() {
       };
 
     const handleCloseDialog = () => {
-        setOpenDialog(false);
+        setOpenDialog(!openDialog);
     };
 
     const columns = [
@@ -1058,7 +1058,6 @@ function InventoryBill() {
                                 </Typography>
                             </Box>
 
-                            
                         
                         </Box>
 

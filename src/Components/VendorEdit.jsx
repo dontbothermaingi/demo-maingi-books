@@ -1,10 +1,15 @@
-import { Box, Button, TextField, Typography } from "@mui/material";
+import { Alert, Box, Button, CircularProgress, Dialog, DialogContent, Snackbar, TextField, Typography } from "@mui/material";
 import { useEffect, useState } from "react";
-import { useParams } from "react-router";
+import { useNavigate, useParams } from "react-router";
 
 function VendorEdit (){
 
     const token = localStorage.getItem('access_token')
+    const navigate = useNavigate();
+    const [loading, setLoading] = useState(false);
+    const [openDialog, setOpenDialog] = useState(false)
+    const [openSnackBar, setOpenSnackbar] = useState(false)
+    const [errorMessage, setErrorMessage] = useState("")
     const {vendorId} = useParams()
     const [formData, setFormData] = useState({
         vendor_name : "",
@@ -51,7 +56,10 @@ function VendorEdit (){
 
     function handleSubmit(event){
 
-        event.preventDefault()
+        event.preventDefault();
+
+        setLoading(true);
+        setOpenDialog(true);
         
         fetch(`https://demo-server-757m.onrender.com/vendors/${vendorId}`, {
             method:'PATCH',
@@ -69,12 +77,56 @@ function VendorEdit (){
                 return response.json()
             }
         })
-        .then((data)=>{
-            console.log(data)
+        .then(()=>{
+
+            setFormData({
+                vendor_name : "",
+                vendor_email : "",
+                vendor_phone : "",
+                opening_balance : "",
+                kra_pin : "",
+                currency : "",
+                amount_paid : "",
+                total_amount_owed : "",
+            })
+
+            setLoading(false);
+            setOpenDialog(false);
+            navigate(`/vendors/${vendorId}`)
+            
         })
+        .catch((error) => {
+            console.error("Failed to update vendor", error)
+            setOpenSnackbar(true)
+            setErrorMessage("Update failed. Please try again!")
+        })
+    }
+
+    function handleCloseDialog(){
+        setOpenDialog(false);
+    }
+
+    function handleCloseSnackbar(event, reason){
+        if( reason === 'clickaway') return;
+        setOpenSnackbar(false)
     }
     return ( 
         <Box>
+                <Dialog open={openDialog} onClose={handleCloseDialog}>
+                    <DialogContent sx={{display:'flex', alignItems:'center', gap:'20px'}}>
+                        <CircularProgress sx={{fontSize:'10px'}}/>
+                        <Typography fontFamily={"GT Bold"}>Updating...</Typography>
+                    </DialogContent>
+                </Dialog>
+                
+                <Snackbar
+                    open={openSnackBar} 
+                    autoHideDuration={6000} 
+                    onClose={handleCloseSnackbar} 
+                    anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+                >
+                    <Alert onClose={handleCloseSnackbar} severity={errorMessage.includes('Please') ? "error" : "success"} sx={{ width: '100%' }}>{errorMessage}</Alert>
+                </Snackbar>
 
             <Typography textAlign={'center'} fontSize={'27px'} fontWeight={'bold'}>EDIT VENDOR</Typography>
             <form onSubmit={handleSubmit} style={{display:"flex", flexDirection:"column", margin:"20px"}}>
@@ -158,7 +210,7 @@ function VendorEdit (){
                      sx={{mb:'20px'}}
                 />
 
-                <Button type="submit" variant="contained" color="secondary">UPDATE</Button>
+                <Button disabled={loading} type="submit" variant="contained" color="secondary" sx={{width:"150px", fontFamily:'GT Bold'}}>{loading ? "Updating..." : "Update"}</Button>
             </form>
 
         </Box>

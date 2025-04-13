@@ -1,4 +1,4 @@
-import { Box, TextField, Typography } from "@mui/material";
+import { Box, Button, TextField, Typography } from "@mui/material";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import PieChart from "../PieChart";
@@ -172,34 +172,41 @@ const TruckReportPage = () => {
 
   return (
     <Box m="30px">
-      <Box display='flex' justifyContent='space-between'>
-            <Box>
-                <LocalizationProvider dateAdapter={AdapterDateFns}>
-                <Typography fontSize='23px' fontWeight='Bold'>FILTER BY DATE</Typography>
-                    <DatePicker
-                        label="Start Date"
-                        value={startDate}
-                        onChange={(date) => setStartDate(date)}
-                        renderInput={(params) => <TextField {...params} />}
-                    />
-                    <DatePicker
-                        label="End Date"
-                        value={endDate}
-                        onChange={(date) => setEndDate(date)}
-                        renderInput={(params) => <TextField {...params} />}
-                    />
-                </LocalizationProvider>
-            </Box>
+      <Box display='flex' flexDirection={'column'} alignItems={'center'} gap={'10px'}>
 
             <Box>
-              <button 
+              <Button 
                  type="button"
-                 className="button"
+                 variant="contained"
+                 color="secondary"
+                 sx={{width:'150px', fontFamily:'GT Bold'}}
                  onClick={handleEditTRuck}
               >
                 EDIT VEHICLE
-              </button>
+              </Button>
             </Box>
+            
+            <Box display='flex' flexDirection={'column'} alignItems={'center'} gap={'10px'} mb={'20px'}>
+                <LocalizationProvider dateAdapter={AdapterDateFns}>
+                <Typography fontSize='23px' fontWeight='Bold'>FILTER BY DATE</Typography>
+                  <Box display={'flex'} gap={'5px'} flexDirection={{xs:'row', md:'row'}}>
+                      <DatePicker
+                          label="Start Date"
+                          value={startDate}
+                          onChange={(date) => setStartDate(date)}
+                          renderInput={(params) => <TextField {...params} />}
+                      />
+                      <DatePicker
+                          label="End Date"
+                          value={endDate}
+                          onChange={(date) => setEndDate(date)}
+                          renderInput={(params) => <TextField {...params} />}
+                      />
+                  </Box>
+                </LocalizationProvider>
+            </Box>
+
+            
         </Box>
 
       <TruckReport
@@ -218,6 +225,7 @@ const TruckReportPage = () => {
         retreadTotal={retreadTotal}
         dieselTotal={dieselTotal}
         invoiceTotal={invoiceTotal}
+        trailer = {truckDetails.trailer}
         billTotal={billTotal}
         barchartbills={<PieChart chartdata={newChart} />}
         // barchartretread={<PieChart chartdata={retreadchart} />}

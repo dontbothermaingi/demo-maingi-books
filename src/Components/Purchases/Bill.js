@@ -292,10 +292,11 @@ function Bill() {
             onChange={(e) => setIsNewBill(e.target.value)}
             exclusive
             color="secondary"
-            sx={{ml:'20px'}}
+            sx={{ml:'20px', mt:'10px', mb:{xs:'10px', md:'0px'}}}
+            size={isMobile ? "small" : "medium"}
           >
-            <ToggleButton value={"All Bills"}>All Bills</ToggleButton>
-            <ToggleButton value={"New Bills"}>New Bills</ToggleButton>
+            <ToggleButton value={"All Bills"} sx={{fontSize:{xs:"11px", md:'14px'}}}>All Bills</ToggleButton>
+            <ToggleButton value={"New Bills"} sx={{fontSize:{xs:"11px", md:'14px'}}}>New Bill</ToggleButton>
           </ToggleButtonGroup>
 
           {isNewBill === 'New Bills' ? 

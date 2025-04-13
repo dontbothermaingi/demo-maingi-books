@@ -8,10 +8,18 @@ function DeliveryNoteDetails() {
   const [ deliveryNotes, setDeliveryNote] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const token = localStorage.getItem('access_token')
+
 
   useEffect(() => {
     setLoading(true);
-    fetch(`https://demo-server-757m.onrender.com/deliverynotes/${deliveryId}`)
+    fetch(`https://demo-server-757m.onrender.com/deliverynotes/${deliveryId}`, {
+      method:'GET',
+      headers:{
+        'Authorization': `Bearer ${token}`
+      },
+      credentials:"include"
+    })
       .then((response) => {
         if (!response.ok) {
           throw new Error("Failed to fetch delivery note details");
@@ -26,7 +34,7 @@ function DeliveryNoteDetails() {
         setError(error.message);
         setLoading(false);
       });
-  }, [deliveryId]);
+  }, [deliveryId,token]);
 
   if (loading) {
     return (

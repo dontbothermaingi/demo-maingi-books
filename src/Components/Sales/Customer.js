@@ -1,11 +1,15 @@
 import { useEffect, useState } from "react";
-import { Box, Button, Card, CardContent, FormControl, MenuItem, Pagination, Select, TextField, ToggleButton, ToggleButtonGroup, Typography, useMediaQuery } from "@mui/material";
+import { Alert, Box, Button, Card, CardContent, CircularProgress, Dialog, DialogContent, FormControl, MenuItem, Pagination, Select, Snackbar, TextField, ToggleButton, ToggleButtonGroup, Typography, useMediaQuery } from "@mui/material";
 import { DataGrid, GridToolbar } from "@mui/x-data-grid";
 import { useNavigate } from "react-router";
 
 function Customer() {
     const [customers, setCustomers] = useState([]);
     const [isNewCustomer, setIsNewCustomer] = useState("All Customers")
+    const [loading, setLoading] = useState(false);
+    const [openDialog, setOpenDialog] = useState(false)
+    const [openSnackBar, setOpenSnackbar] = useState(false)
+    const [errorMessage, setErrorMessage] = useState("")
     const token = localStorage.getItem('access_token')
     const navigate = useNavigate()
     const [formData, setFormData] = useState({
@@ -48,6 +52,10 @@ function Customer() {
 
     function handleSubmit(event) {
         event.preventDefault();
+
+        setLoading(true);
+        setOpenDialog(true);
+
         fetch('https://demo-server-757m.onrender.com/customers', {
             method: "POST",
             headers: {
@@ -87,8 +95,16 @@ function Customer() {
                     documents: "",
                     total_amount_owed: "",
                 });
+
+                setLoading(false);
+                setOpenDialog(false);
+                setIsNewCustomer("All Customers")
             })
-            .catch(error => console.error('Error:', error));
+            .catch((error) => {
+                console.error("Failed to save customer", error)
+                setOpenSnackbar(true)
+                setErrorMessage("Save failed. Please try again!")
+            });
     }
 
     const currencyOptions = [
@@ -415,6 +431,15 @@ function Customer() {
         setCurrentPage(value);
     };
 
+    function handleCloseDialog(){
+        setOpenDialog(false)
+    }
+
+    function handleCloseSnackbar(event, reason){
+        if( reason === 'clickaway') return;
+        setOpenSnackbar(false)
+    }
+
     return (
         <Box>
             <Box>
@@ -424,12 +449,29 @@ function Customer() {
                     onChange={(e) => setIsNewCustomer(e.target.value)}
                     exclusive
                     color="secondary"
-                    sx={{ml:'20px'}}
+                    sx={{ml:'20px', mt:'10px', mb:{xs:'10px', md:'0px'}}}
+                    size={isMobile ? "small" : "medium"}
                 >
-                    <ToggleButton value={"All Customers"}>All Customers</ToggleButton>
-                    <ToggleButton value={"New Customers"}>New Customers</ToggleButton>
+                    <ToggleButton value={"All Customers"} sx={{fontSize:{xs:"11px", md:'14px'}}}>All Customers</ToggleButton>
+                    <ToggleButton value={"New Customers"} sx={{fontSize:{xs:"11px", md:'14px'}}}>New Customers</ToggleButton>
 
                 </ToggleButtonGroup>
+
+                <Dialog open={openDialog} onClose={handleCloseDialog}>
+                    <DialogContent sx={{display:'flex', alignItems:'center', gap:'20px'}}>
+                        <CircularProgress sx={{fontSize:'10px'}}/>
+                        <Typography fontFamily={'GT Bold'}>Saving...</Typography>
+                    </DialogContent>
+                </Dialog>
+                
+                <Snackbar
+                    open={openSnackBar} 
+                    autoHideDuration={6000} 
+                    onClose={handleCloseSnackbar} 
+                    anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+                >
+                    <Alert onClose={handleCloseSnackbar} severity={errorMessage.includes('Please') ? "error" : "success"} sx={{ width: '100%' }}>{errorMessage}</Alert>
+                </Snackbar>
 
         {isNewCustomer === "All Customers" ? "" : 
         
@@ -549,8 +591,8 @@ function Customer() {
                                 <MenuItem value="60 days">60 days</MenuItem>
                             </Select>
 
-                            <Button type="submit" color="secondary" variant="contained" sx={{justifyContent:'center', display:'flex'}}>Save</Button>
-
+                            <Button disabled={loading} type="submit" variant="contained" color="secondary" sx={{width:"150px", fontFamily:'GT Bold'}}>{loading ? "Saving..." : "Save"}</Button>
+                            
                             </FormControl>
                         </form>
             </Box> 

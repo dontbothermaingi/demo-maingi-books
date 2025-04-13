@@ -1,11 +1,15 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import Typography from "@mui/material/Typography"; // Import Typography from Material-UI
-import { Box, Button, FormControl, MenuItem, Select, TextField } from "@mui/material";
+import { Alert, Box, Button, CircularProgress, Dialog, DialogContent, FormControl, MenuItem, Select, Snackbar, TextField } from "@mui/material";
 
 function TruckEdit() {
   const { truckId } = useParams(); // Get truckId from URL parameters
   const navigate = useNavigate();
+  const [pending, setPending] = useState(false);
+  const [openDialog, setOpenDialog] = useState(false)
+  const [openSnackBar, setOpenSnackbar] = useState(false)
+  const [errorMessage, setErrorMessage] = useState("")
   const [formData, setFormData] = useState({
     truck_number: "",
     vehicle_type: "",
@@ -64,6 +68,9 @@ function TruckEdit() {
   function handleSubmit(event) {
     event.preventDefault();
 
+    setPending(true)
+    setOpenDialog(true)
+
     fetch(`https://demo-server-757m.onrender.com/trucks/${truckId}`, {
       method: "PATCH",
       headers: {
@@ -77,12 +84,26 @@ function TruckEdit() {
       .then((data) => {
         console.log("Truck updated successfully:", data);
         // Navigate to the trucks page after successful update
-        navigate("/trucks");
+        navigate(`/truck-edit/${truckId}`);
+
+        setOpenDialog(false)
+        setPending(false)
       })
       .catch((error) => {
         console.error("Error updating truck:", error);
+        setOpenSnackbar(true)
+        setErrorMessage("Failed to update vehicle. Please try again!")
       });
   }
+
+  function handleCloseSnackbar(event, reason){
+    if(reason === 'clickaway') return;
+    setOpenDialog(false)
+  }
+
+  const handleCloseDialog = () => {
+    setOpenDialog(false);
+  };
 
   if (loading) return <p>Loading truck details...</p>;
   if (error) return <p>Error: {error}</p>;
@@ -93,6 +114,23 @@ function TruckEdit() {
       <Typography textAlign="center" fontSize="30px" fontWeight="bold" mt={'30px'}>
         EDIT VEHICLE
       </Typography>
+
+              <Dialog open={openDialog} onClose={handleCloseDialog}>
+                  <DialogContent sx={{display:'flex', alignItems:'center', gap:'20px'}}>
+                      <CircularProgress sx={{fontSize:'10px'}}/>
+                      <Typography fontFamily={'GT Bold'}>Updating...</Typography>
+                  </DialogContent>
+              </Dialog>
+
+
+               <Snackbar
+                  open={openSnackBar} 
+                  autoHideDuration={6000} 
+                  onClose={handleCloseSnackbar} 
+                  anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+              >
+                  <Alert onClose={handleCloseSnackbar} severity={errorMessage.includes('Please') ? "error" : "success"} sx={{ width: '100%' }}>{errorMessage}</Alert>
+              </Snackbar>
 
       <Box
           sx={{
@@ -188,8 +226,8 @@ function TruckEdit() {
             sx={{mb:'20px'}}
           />
 
-        <Button type="submit" variant="contained" color="secondary">
-          UPDATE VEHICLE
+        <Button sx={{width:'150px', fontFamily:"GT Bold"}} type="submit" disabled={pending} variant="contained" color="secondary">
+            {pending ? "Updating...":"UPDATE VEHICLE"}
         </Button>
       </form>
 

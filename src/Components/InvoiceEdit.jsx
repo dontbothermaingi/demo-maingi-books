@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Box, Typography, Button, IconButton, FormControl, Select, MenuItem, TextField, RadioGroup, FormControlLabel, TableContainer, Paper, Table, TableHead, TableRow, TableCell, ListSubheader, Divider} from "@mui/material";
+import { Box, Typography, Button, IconButton, FormControl, Select, MenuItem, TextField, RadioGroup, FormControlLabel, TableContainer, Paper, Table, TableHead, TableRow, TableCell, ListSubheader, Divider, DialogContent, Dialog, CircularProgress} from "@mui/material";
 import { useNavigate, useParams } from "react-router-dom";
 import useMediaQuery from '@mui/material/useMediaQuery';
 import { Radio } from "@mui/material";
@@ -8,12 +8,14 @@ import { AddOutlined, DeleteForever } from "@mui/icons-material";
 function EditInvoice() {
     const [isVatInclusive, setIsVatInclusive] = useState(true); // true for inclusive, false for exclusive
     const [customers, setCustomers] = useState([]);
+    const [loading, setLoading] = useState(false);
     const [invoice, setInvoice] = useState([]);
     const [vatAmount, setVatAmount] = useState(0);
     const [totalAmount, setTotalAmount] = useState(0);
     const [subTotalAmount, setSubTotalAmount] = useState(0);
     const {invoiceId} = useParams();
     const [originalInvoiceAmount, setOriginalInvoiceAmount] = useState(0);
+    const [openDialog, setOpenDialog] = useState(false)
     const token = localStorage.getItem('access_token')
     const isMobile = useMediaQuery('(max-width: 768px)');
     const [formData, setFormData] = useState({
@@ -76,8 +78,6 @@ function EditInvoice() {
                     setNewItem(data.items);
                 }, 500); // Delay by 500ms
 
-                console.log("Form Data items", data.items)
-                
                 setInvoice(data)
                 setOriginalInvoiceAmount(data.items ? data.items.reduce((total, item) => total + item.amount, 0) : 0);
 
@@ -274,7 +274,9 @@ function EditInvoice() {
 
     function handleSubmit(event) {
         event.preventDefault();
-    
+
+        setLoading(true);
+
         const calculateInvoiceTotal = () => {
             return formData.items.reduce((total, item) => total + item.amount, 0);
         }
@@ -308,6 +310,7 @@ function EditInvoice() {
         })
         .then((data) => {
 
+            
             setFormData({
                 customer_name: "",
                 customer_phone: "",
@@ -330,12 +333,29 @@ function EditInvoice() {
                 terms_conditions: "",
             });
 
+            setNewItem([{
+                item_details: "",
+                description: "",
+                quantity: 0,
+                vat: 0,
+                sub_total:"",
+                rate_vat: 0,
+                rate: 0,
+                amount: 0,
+            }])
+
+            setOpenDialog(false);
+            setLoading(false);
+
         })
         .catch((error) => {
             console.error('There was a problem with the fetch operation:', error);
         });
     }
-    
+
+    const handleCloseDialog = () => {
+        setOpenDialog(false);
+    };
 
     function calculateDueDate(terms, invoiceDate) {
         const date = new Date(invoiceDate);
@@ -405,6 +425,13 @@ function EditInvoice() {
                     >
                         <Typography fontWeight={'bold'}>BACK</Typography>
                     </Button>
+                
+                <Dialog open={openDialog} onClose={handleCloseDialog}>
+                    <DialogContent sx={{display:'flex', alignItems:'center', gap:'20px'}}>
+                        <CircularProgress sx={{fontSize:'10px'}}/>
+                        <Typography fontFamily={'GT Bold'}>Updating...</Typography>
+                    </DialogContent>
+                </Dialog>
 
                 <Box>
                     <Typography fontSize={'30px'} fontWeight={'bold'} textAlign={'center'} marginTop={'20px'}>EDIT INVOICE</Typography>
@@ -660,132 +687,6 @@ function EditInvoice() {
                                             <TableCell sx={{ minWidth: 50 }}><Typography fontWeight="bold">Total Amount</Typography></TableCell>
                                         </TableRow>
                                     </TableHead>
-                                    {/* <TableBody>
-                                        {formData.items.map((item, index) => (
-                                            <TableRow key={index}>
-                                                <TableCell>{item.item_details}</TableCell>
-                                                <TableCell>{item.description}</TableCell>
-                                                <TableCell>{item.quantity}</TableCell>
-                                                <TableCell>{item.rate}</TableCell>
-                                                <TableCell>{item.sub_total}</TableCell>
-                                                <TableCell>{item.vat}</TableCell>
-                                                <TableCell>{item.rate_vat}</TableCell>
-                                                <TableCell>{item.amount.toLocaleString()}</TableCell>
-                                                <TableCell>
-                                                    <IconButton color="primary" onClick={() => handleEditItem(index)}>
-                                                        <EditIcon />
-                                                    </IconButton>
-                                                    <IconButton color="error" onClick={() => handleDeleteItem(index)}>
-                                                        <CloseIcon />
-                                                    </IconButton>
-                                                </TableCell>
-                                            </TableRow>
-                                        ))}
-                                        <TableRow>
-                                            <TableCell>
-                                            <TextField
-                                                    name="item_details"
-                                                    placeholder="Item Details"
-                                                    value={newItem.item_details}
-                                                    onChange={handleNewItemChange}
-                                                    variant="outlined"
-                                                    size="small"
-                                                    fullWidth
-                                                />
-                                                
-                                                
-                                            </TableCell>
-
-                                            <TableCell>
-                                                <TextField
-                                                    name="description"
-                                                    placeholder="Description"
-                                                    value={newItem.description}
-                                                    onChange={handleNewItemChange}
-                                                    variant="outlined"
-                                                    size="small"
-                                                    fullWidth
-                                                    multiline
-                                                    minRows={4}  // Initial number of rows
-                                                    maxRows={20}   // Maximum number of rows
-                                                />
-                                            </TableCell>
-
-                                            <TableCell>
-                                                <TextField
-                                                    type="number"
-                                                    name="quantity"
-                                                    placeholder="Quantity"
-                                                    className="bill-inputfield"
-                                                    value={newItem.quantity}
-                                                    onChange={handleNewItemChange}
-                                                    variant="outlined"
-                                                    size="small"
-                                                    fullWidth
-                                                />
-                                            </TableCell>
-                                            <TableCell>
-                                                <TextField
-                                                    type="number"
-                                                    name="rate"
-                                                    placeholder="Rate"
-                                                    className="bill-inputfield"
-                                                    value={newItem.rate}
-                                                    onChange={handleNewItemChange}
-                                                    variant="outlined"
-                                                    size="small"
-                                                    fullWidth
-                                                />
-                                            </TableCell>
-
-                                            <TableCell>
-                                                <TextField
-                                                    placeholder="Sub Total"
-                                                    variant="outlined"
-                                                    size="small"
-                                                    fullWidth
-                                                    value={newItem.sub_total}
-                                                    InputProps={{ readOnly: true }}
-                                                />
-                                            </TableCell>
-
-                                            <TableCell>
-                                                <Select
-                                                    value={newItem.vat}
-                                                    name="vat"
-                                                    fullWidth
-                                                    onChange={handleNewItemChange}
-                                                    displayEmpty
-                                                >
-                                                    <MenuItem value=""><em>Select VAT</em></MenuItem>
-                                                    <MenuItem value={16}>16%</MenuItem>
-                                                    <MenuItem value={0}>0%</MenuItem>
-                                                </Select>
-                                            </TableCell>
-
-                                            <TableCell>
-                                                <TextField
-                                                    placeholder="VAT Amount"
-                                                    variant="outlined"
-                                                    size="small"
-                                                    fullWidth
-                                                    value={newItem.rate_vat}
-                                                    InputProps={{ readOnly: true }}
-                                                />
-                                                </TableCell>
-
-                                                <TableCell>
-                                                <TextField
-                                                    placeholder="Total Amount"
-                                                    variant="outlined"
-                                                    size="small"
-                                                    fullWidth
-                                                    value={newItem.amount}
-                                                    InputProps={{ readOnly: true }}
-                                                />
-                                            </TableCell>
-                                        </TableRow>
-                                    </TableBody> */}
                                 </Table>
                             </TableContainer>
 
@@ -921,7 +822,7 @@ function EditInvoice() {
                                 </Typography>
                             </Box>
 
-                            <Button variant="contained" color="secondary" type="submit" sx={{width:'150px'}}><Typography fontWeight={'bold'}>SAVE</Typography></Button>
+                            <Button onClick={() => setOpenDialog(true)} disabled={loading} variant="contained" color="secondary" type="submit" sx={{width:'150px'}}><Typography fontFamily={"GT Bold"}>{loading ? "Saving..." : "Save"}</Typography></Button>
 
                         </form>
                     </Box>

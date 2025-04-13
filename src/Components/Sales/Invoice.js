@@ -238,11 +238,11 @@ function Invoice() {
             onChange={(e) => setNewInvoice(e.target.value)}
             exclusive
             color="secondary"
-            sx={{ml:'20px', color:'purple'}}
-            style={{color:'purple'}}
+            sx={{ml:'20px', mt:'10px', mb:{xs:'10px', md:'0px'}}}
+            size={isMobile ? "small" : "medium"}
           >
-            <ToggleButton value={'All Invoices'}>All Invoices</ToggleButton>
-            <ToggleButton value={'New Invoices'}>New Invoices</ToggleButton>
+            <ToggleButton value={'All Invoices'} sx={{fontSize:{xs:"11px", md:'14px'}}}>All Invoices</ToggleButton>
+            <ToggleButton value={'New Invoices'} sx={{fontSize:{xs:"11px", md:'14px'}}}>New Invoices</ToggleButton>
           </ToggleButtonGroup>
 
         {newInvoice === 'New Invoices' ?  

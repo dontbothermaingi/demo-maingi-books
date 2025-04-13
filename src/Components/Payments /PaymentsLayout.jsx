@@ -188,20 +188,20 @@ const PaymentLayout = ({
 
   return (
     <Box padding="20px">
-      {/* Print Button */}
+
       <Box padding={'20px'}>
-        <ReactToPrint
-          trigger={() => (
-            <Button
-              variant="contained"
-              color="primary"
-              sx={{fontFamily:'GT Bold'}}
-            >
-              Print
-            </Button>
-          )}
-          content={() => componentRef.current}
-        />
+          <ReactToPrint
+            trigger={() => (
+              <Button
+                variant="contained"
+                color="primary"
+                sx={{fontFamily:'GT Bold'}}
+              >
+                Print
+              </Button>
+            )}
+            content={() => componentRef.current}
+          />
       </Box>
 
       <Box ref={componentRef} className="a4-print" padding="20px" border="1px solid #ddd">

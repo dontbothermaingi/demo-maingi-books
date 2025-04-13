@@ -1,4 +1,4 @@
-import { Box, Button } from "@mui/material";
+import { Box, Button, CircularProgress, Dialog, DialogContent, Typography } from "@mui/material";
 import { useEffect, useState } from "react";
 import BillLayout from "./Bill";
 import { useNavigate, useParams } from "react-router-dom";
@@ -8,11 +8,13 @@ const BillDetails = () => {
   const [bill, setBill] = useState(null);
   const [total, setTotal] = useState(null);
   const [vatTotal, setVatTotal] = useState(null);
+  const [pending, setPending] = useState(false);
+  const [openDialog, setOpenDialog] = useState(false)
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [subtotal, setSubtotal] = useState(0); // Initialize subtotal state
   const token = localStorage.getItem('access_token')
-  const navigate = useNavigate()
+  const navigate = useNavigate() 
 
   useEffect(() => {
     setLoading(true); // Set loading to true before fetching data
@@ -67,6 +69,34 @@ const BillDetails = () => {
     navigate(`/bill-edit/${billId}`)
   }
 
+  function handleDelete(){
+
+    setPending(true);
+    setOpenDialog(true);
+
+    fetch(`https://demo-server-757m.onrender.com/newbills/${billId}`, {
+      method:"DELETE",
+      headers:{
+        'Authorization':`Bearer ${token}`
+      },
+      credentials:'include'
+    })
+    .then(response => response.json())
+    .then(()=>{
+      setPending(false);
+      setOpenDialog(false);
+      console.log('successfully deleted')
+      navigate("/bill")
+    })
+    .catch((error) => {
+      console.error("Failed to Delete", error)
+    })
+  }
+
+  function handleCloseDialog(){
+    setOpenDialog(!openDialog);
+  }
+
   // Check if bill is defined before formatting payment and remainder
   const formattedPayment = bill ? new Intl.NumberFormat().format(bill.amount_paid || 0) : "";
   const formattedRemainder = bill ? new Intl.NumberFormat().format(bill.amount_owed || 0) : "";
@@ -78,13 +108,36 @@ const BillDetails = () => {
   return (
     <Box m="30px">
 
-      <Button
-           variant="contained"
-           color="secondary"
-           onClick={handleBillEdit}
+      <Box
+         display="flex"
+         flexDirection="row"
+         justifyContent="space-between"
+         gap={2} // Add some space between buttons
       >
-        EDIT
-      </Button>
+      <Button
+            variant="contained"
+            color="secondary"
+            onClick={handleBillEdit}
+        >
+          <Typography fontFamily={"GT Bold"}>EDIT BILL</Typography>
+        </Button>
+
+        <Button
+          variant="contained"
+          color="secondary"
+          onClick={handleDelete}
+          disabled={pending}
+        >
+          <Typography fontFamily={"GT Bold"}>{pending ? "DELETING BILL..." : "DELETE BILL"}</Typography>
+        </Button>
+      </Box>
+
+      <Dialog open={openDialog} onClose={handleCloseDialog}>
+        <DialogContent sx={{display:'flex', alignItems:'center', gap:'20px'}}>
+            <CircularProgress sx={{fontSize:'10px'}}/>
+            <Typography fontFamily={'GT Bold'}>Deleting...</Typography>
+        </DialogContent>
+      </Dialog>
 
       <BillLayout
         title="BILL"
