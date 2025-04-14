@@ -2,10 +2,6 @@ import { useEffect, useState } from "react";
 import { Box, Typography, Select, MenuItem, FormControl, InputLabel, useMediaQuery, Card, CardContent, Pagination } from "@mui/material";
 import { DataGrid, GridToolbar } from "@mui/x-data-grid";
 import { useNavigate } from "react-router-dom";
-import StatBox from "./StatBox";
-import {PointOfSale } from "@mui/icons-material";
-import { tokens } from "../theme";
-import {useTheme } from "@mui/material";
 
 function AccountsPayables() {
 
@@ -178,9 +174,6 @@ function AccountsPayables() {
     { code: "ZWL", label: "Zimbabwean Dollar" }
 ];
 
-
-    const theme = useTheme();
-    const colors = tokens(theme.palette.mode);
     const [receivables, setReceivables] = useState([]);
     const [selectedCurrency, setSelectedCurrency] = useState("KES"); 
     const [filteredReceivables, setFilteredReceivables] = useState([]);
@@ -392,39 +385,25 @@ function AccountsPayables() {
           </Select>
       </FormControl>
 
-
         <Box
-            display={'grid'}
-            gridTemplateColumns={{xs:'repeat(1,1fr)', sm:'repeat(2,1fr)'}}
-            gap="10px"
-            margin="0 10px"
+          sx={{
+            backgroundColor:'purple',
+            borderRadius:'10px',
+            padding:'20px',
+            width:{xs:'300px', md:'400px'},
+            margin:'auto'
+          }}
         >
-            <Box
-                gridColumn="span 3"
-                backgroundColor={colors.primary[400]}
-                borderRadius="10px"
-                display="flex"
-                alignItems="center"
-                justifyContent="center"
-            >
-                <StatBox
-                    title={`${new Intl.NumberFormat('en-KE', {style:'currency', currency:'KES'}).format(total)}`}
-                    subtitle="AMOUNT PAYABLE"
-                    icon={
-                        <PointOfSale
-                            sx={{ color: colors.greenAccent[500], fontSize: "26px" }}
-                        />
-                    }
-                />
-            </Box>
+          <Typography fontFamily={"GT Bold"} fontSize={"27px"} color={'white'} textAlign={'center'}>Total</Typography>
+          <Typography fontFamily={"GT Bold"} fontSize={"27px"} color={'white'} textAlign={'center'}>{new Intl.NumberFormat('en-KE', {style:'currency', currency:'KES'}).format(total)}</Typography>
         </Box>
         {isMobile ? (
                 <Box>
-                    <Typography textAlign={'center'} fontSize={'30px'} fontWeight={'bold'}>ACCOUNTS PAYABLE</Typography>
+                    <Typography textAlign={'center'} fontSize={'25px'} fontFamily={"GT Bold"} padding={'10px'}>ACCOUNTS PAYABLE</Typography>
                     <Box
                         display={'grid'}
                         gridTemplateColumns={{xs:'repeat(1,1fr)', sm:'repeat(2,1fr)'}}
-                        gap="10px"
+                        gap="20px"
                         margin="0 10px"
                     >
                         {displayedItems.map((item) => (
@@ -437,7 +416,6 @@ function AccountsPayables() {
                                 flexDirection: 'column',
                                 height: 'auto', // Adjust height for better flexibility
                                 boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
-                                padding: '10px',
                                 backgroundColor: '#fff',
                                 transition: 'transform 0.3s ease-in-out',
                                 '&:hover': {
@@ -449,33 +427,33 @@ function AccountsPayables() {
 
                                 <CardContent>
                                     <Box display={'flex'} gap={'5px'}>
-                                      <Typography>Name:</Typography>
-                                      <Typography fontWeight={'bold'}>{item.vendor_name}</Typography>
+                                      <Typography fontFamily={"GT Medium"} fontSize={'15px'}>Name:</Typography>
+                                      <Typography fontFamily={"GT Light"} fontSize={'15px'}>{item.vendor_name}</Typography>
                                     </Box>
 
                                     <Box display={'flex'} gap={'5px'}>
-                                      <Typography>Phone:</Typography>
-                                      <Typography fontWeight={'bold'}>{item.vendor_phone}</Typography>
+                                      <Typography fontFamily={"GT Medium"} fontSize={'15px'}>Phone:</Typography>
+                                      <Typography fontFamily={"GT Light"} fontSize={'15px'}>{item.vendor_phone}</Typography>
                                     </Box>
                                     
                                     <Box display={'flex'} gap={'5px'}>
-                                      <Typography>Email:</Typography>
-                                      <Typography fontWeight={'bold'}>{item.vendor_email}</Typography>
+                                      <Typography fontFamily={"GT Medium"} fontSize={'15px'}>Email:</Typography>
+                                      <Typography fontFamily={"GT Light"} fontSize={'15px'}>{item.vendor_email}</Typography>
                                     </Box>
 
                                     <Box display={'flex'} gap={'5px'}>
-                                      <Typography>Currency:</Typography>
-                                      <Typography fontWeight={'bold'}>{item.currency}</Typography>
+                                      <Typography fontFamily={"GT Medium"} fontSize={'15px'}>Currency:</Typography>
+                                      <Typography fontFamily={"GT Light"} fontSize={'15px'}>{item.currency}</Typography>
                                     </Box>
                                     
                                     <Box display={'flex'} gap={'5px'}>
-                                      <Typography>KRA Pin:</Typography>
-                                      <Typography fontWeight={'bold'}>{item.kra_pin}</Typography>
+                                      <Typography fontFamily={"GT Medium"} fontSize={'15px'}>KRA Pin:</Typography>
+                                      <Typography fontFamily={"GT Light"} fontSize={'15px'}>{item.kra_pin}</Typography>
                                     </Box>
 
                                     <Box display={'flex'} gap={'5px'}>
-                                      <Typography>Amount Owed:</Typography>
-                                      <Typography fontWeight={'bold'}>{item.total_amount_owed}</Typography>
+                                      <Typography fontFamily={"GT Medium"} fontSize={'15px'}>Amount Owed:</Typography>
+                                      <Typography fontFamily={"GT Light"} fontSize={'15px'}>{item.total_amount_owed}</Typography>
                                     </Box>
 
                                 </CardContent>
@@ -491,7 +469,7 @@ function AccountsPayables() {
                 </Box>
             ):(
                  <Box m="20px" mt='50px'>
-                 <Typography fontWeight="bold" variant="h5" textAlign="center">
+                 <Typography  fontSize={'30px'} fontFamily={"GT Bold"} padding={'10px'} textAlign="center">
                        ACCOUNTS PAYABLE
                  </Typography>
                  <Box

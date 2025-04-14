@@ -245,40 +245,40 @@ const columns = [
 
                                 <CardContent>
                                   <Box display={'flex'} gap={'3px'}>
-                                    <Typography>Vehicle Number:</Typography>
-                                    <Typography fontWeight={'bold'}>{item.truck_number}</Typography>
+                                    <Typography fontFamily={"GT Medium"} fontSize={'15px'}>Vehicle Number:</Typography>
+                                    <Typography fontFamily={"GT Light"} fontSize={'15px'}>{item.truck_number}</Typography>
                                   </Box>
 
                                   <Box display={'flex'} gap={'3px'}>
-                                    <Typography>Manufacturer:</Typography>
-                                    <Typography fontWeight={'bold'}>{item.manufacturer}</Typography>
+                                    <Typography fontFamily={"GT Medium"} fontSize={'15px'}>Manufacturer:</Typography>
+                                    <Typography fontFamily={"GT Light"} fontSize={'15px'}>{item.manufacturer}</Typography>
                                   </Box>
                                   
                                   <Box display={'flex'} gap={'3px'}>
-                                    <Typography>Job Type:</Typography>
-                                    <Typography fontWeight={'bold'}>{item.job_description}</Typography>
+                                    <Typography fontFamily={"GT Medium"} fontSize={'15px'}>Job Type:</Typography>
+                                    <Typography fontFamily={"GT Light"} fontSize={'15px'}>{item.job_description}</Typography>
                                   </Box>
                                   
                                   <Box display={'flex'} gap={'3px'}>
-                                    <Typography>Spare:</Typography>
-                                    <Typography fontWeight={'bold'}>{item.spare_subcategory_name}</Typography>
+                                    <Typography fontFamily={"GT Medium"} fontSize={'15px'}>Spare:</Typography>
+                                    <Typography fontFamily={"GT Light"} fontSize={'15px'}>{item.spare_subcategory_name}</Typography>
                                   </Box>
                                     
                                   
                                   <Box display={'flex'} gap={'3px'}>
-                                    <Typography>Mechanic:</Typography>
-                                    <Typography fontWeight={'bold'}>{item.mechanic}</Typography>
+                                    <Typography fontFamily={"GT Medium"} fontSize={'15px'}>Mechanic:</Typography>
+                                    <Typography fontFamily={"GT Light"} fontSize={'15px'}>{item.mechanic}</Typography>
                                   </Box>
                                   
                                   <Box display={'flex'} gap={'3px'}>
-                                    <Typography>Quantity:</Typography>
-                                    <Typography fontWeight={'bold'}>{item.quantity}</Typography>
+                                    <Typography fontFamily={"GT Medium"} fontSize={'15px'}>Quantity:</Typography>
+                                    <Typography fontFamily={"GT Light"} fontSize={'15px'}>{item.quantity}</Typography>
                                   </Box>
                                    
 
                                   <Box display={'flex'} gap={'3px'}>
-                                    <Typography>Job Description:</Typography>
-                                    <Typography fontWeight={'bold'}>{item.job_name}</Typography>
+                                    <Typography fontFamily={"GT Medium"} fontSize={'15px'}>Job Description:</Typography>
+                                    <Typography fontFamily={"GT Light"} fontSize={'15px'}>{item.job_name}</Typography>
                                   </Box>
                                     
                                 </CardContent>

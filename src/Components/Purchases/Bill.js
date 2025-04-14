@@ -309,20 +309,20 @@ function Bill() {
                 <Box
                     display={'grid'}
                     gridTemplateColumns={{xs:'repeat(1,1fr)', sm:'repeat(2,1fr)'}}
-                    gap="10px"
+                    gap="20px"
                     margin="0 10px"
                 >
 
                     {displayedItems.map((item) => (
                         <Card
                             key={item.id}
+                            onClick={() => handleViewDetails(item.id)}
                             sx={{
                                 borderRadius: '15px',
                                 display: 'flex',
                                 flexDirection: 'column',
                                 height: 'auto', // Adjust height for better flexibility
                                 boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
-                                padding: '10px',
                                 backgroundColor: '#fff',
                                 transition: 'transform 0.3s ease-in-out',
                                 '&:hover': {
@@ -333,38 +333,38 @@ function Bill() {
                         >
                             <CardContent>
                                   <Box display={'flex'} gap={'5px'}>
-                                    <Typography>Vendor Name:</Typography>
-                                    <Typography fontWeight={'bold'}>{item.vendor_name}</Typography>
+                                    <Typography fontFamily={"GT Medium"} fontSize={'15px'}>Name:</Typography>
+                                    <Typography fontFamily={"GT Light"} fontSize={'15px'}>{item.vendor_name}</Typography>
                                   </Box>
 
                                   <Box display={'flex'} gap={'5px'}>
-                                    <Typography>Bill Number:</Typography>
-                                    <Typography fontWeight={'bold'}>{item.bill_number}</Typography>
+                                    <Typography fontFamily={"GT Medium"} fontSize={'15px'}>Bill Number:</Typography>
+                                    <Typography fontFamily={"GT Light"} fontSize={'15px'}>{item.bill_number}</Typography>
                                   </Box>
 
                                   <Box display={'flex'} gap={'5px'}>
-                                    <Typography>Bill Date: {item.bill_date}</Typography>
-                                    <Typography fontWeight={'bold'}>{item.bill_date}</Typography>
+                                    <Typography fontFamily={"GT Medium"} fontSize={'15px'}>Bill Date:</Typography>
+                                    <Typography fontFamily={"GT Light"} fontSize={'15px'}>{item.bill_date}</Typography>
                                   </Box>
 
                                   <Box display={'flex'} gap={'5px'}>
-                                    <Typography>Payment Terms:</Typography>
-                                    <Typography fontWeight={'bold'}>{item.payment_terms}</Typography>
+                                    <Typography fontFamily={"GT Medium"} fontSize={'15px'}>Payment Terms:</Typography>
+                                    <Typography fontFamily={"GT Light"} fontSize={'15px'}>{item.payment_terms}</Typography>
                                   </Box>
 
                                   <Box display={'flex'} gap={'5px'}>
-                                    <Typography>Amount:</Typography>
-                                    <Typography fontWeight={'bold'}>{new Intl.NumberFormat(currencyLocaleMap[item.currency] || 'en-KE', {style:'currency', currency:'KES'}).format(item.totalAmount)}</Typography>
+                                    <Typography fontFamily={"GT Medium"} fontSize={'15px'}>Amount:</Typography>
+                                    <Typography fontFamily={"GT Light"} fontSize={'15px'}>{new Intl.NumberFormat(currencyLocaleMap[item.currency] || 'en-KE', {style:'currency', currency:'KES'}).format(item.totalAmount)}</Typography>
                                   </Box>
 
                                   <Box display={'flex'} gap={'5px'}>
-                                    <Typography>Status:</Typography>
-                                    <Typography fontWeight={'bold'}>{item.status}</Typography>
+                                    <Typography fontFamily={"GT Medium"} fontSize={'15px'}>Status:</Typography>
+                                    <Typography fontFamily={"GT Light"} fontSize={'15px'}>{item.status}</Typography>
                                   </Box>
 
                                   <Box display={'flex'} gap={'5px'}>
-                                    <Typography>Due Date:</Typography>
-                                    <Typography fontWeight={'bold'}>{item.due_date}</Typography>
+                                    <Typography fontFamily={"GT Medium"} fontSize={'15px'}>Due Date:</Typography>
+                                    <Typography fontFamily={"GT Light"} fontSize={'15px'}>{item.due_date}</Typography>
                                   </Box>
                             </CardContent>
                         </Card>

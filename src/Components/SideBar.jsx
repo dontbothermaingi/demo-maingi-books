@@ -389,7 +389,6 @@ import { useState } from "react";
                                      {renderNavLink("/cash-book", "Cash Book")}
                                      {renderNavLink("/sales-report", "Sales")}
                                      {renderNavLink("/expenses-reports", "Expenses Report")}
-                                     {renderNavLink("/customer-balance-report", "Customer Balances")}
                                      {renderNavLink("/vat-payable", "Vat Payable")}
                                      {renderNavLink("/all-invoices-report", "Detailed Report")}
                                      {renderNavLink("/account-receivables-report", "Account Receivables")}

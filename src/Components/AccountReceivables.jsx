@@ -2,10 +2,6 @@ import { useEffect, useState } from "react";
 import { Box, Typography, Select, MenuItem, FormControl, InputLabel, useMediaQuery, Card, CardContent, Pagination } from "@mui/material";
 import { DataGrid, GridToolbar } from "@mui/x-data-grid";
 import { useNavigate } from "react-router-dom";
-import StatBox from "./StatBox";
-import {PointOfSale } from "@mui/icons-material";
-import { tokens } from "../theme";
-import {useTheme } from "@mui/material";
 
 function AccountsReceivables() {
 
@@ -178,9 +174,6 @@ function AccountsReceivables() {
     { code: "ZWL", label: "Zimbabwean Dollar" }
 ];
 
-
-    const theme = useTheme();
-    const colors = tokens(theme.palette.mode);
     const [receivables, setReceivables] = useState([]);
     const [selectedCurrency, setSelectedCurrency] = useState("KES"); 
     const [filteredReceivables, setFilteredReceivables] = useState([]);
@@ -222,7 +215,7 @@ function AccountsReceivables() {
   const calculateTotal = (items) =>
     items.reduce((total, item) => total + (parseFloat(item.total_amount_owed.replace(/,/g, "")) || 0), 0);
 
-  const total = calculateTotal(receivables)
+  const total = calculateTotal(filteredReceivables)
 
   const handleViewDetails = (customerId) => {
     navigate(`/customers/${customerId}`);
@@ -408,33 +401,20 @@ function AccountsReceivables() {
       </FormControl>
 
         <Box
-            display={'grid'}
-            gridTemplateColumns={{xs:'repeat(1,1fr)', sm:'repeat(2,1fr)'}}
-            gap="10px"
-            margin="0 10px"
+          sx={{
+            backgroundColor:'purple',
+            borderRadius:'10px',
+            padding:'20px',
+            width:{xs:'300px', md:'400px'},
+            margin:'auto'
+          }}
         >
-            <Box
-                gridColumn="span 3"
-                backgroundColor={colors.primary[400]}
-                borderRadius="10px"
-                display="flex"
-                alignItems="center"
-                justifyContent="center"
-            >
-                <StatBox
-                    title={`${new Intl.NumberFormat('en-KE',{style:'currency', currency:'KES'}).format(total)}`}
-                    subtitle="AMOUNT RECEIVABLE"
-                    icon={
-                        <PointOfSale
-                            sx={{ color: colors.greenAccent[500], fontSize: "26px" }}
-                        />
-                    }
-                />
-            </Box>
+          <Typography fontFamily={"GT Bold"} fontSize={"27px"} color={'white'} textAlign={'center'}>Total</Typography>
+          <Typography fontFamily={"GT Bold"} fontSize={"27px"} color={'white'} textAlign={'center'}>{new Intl.NumberFormat(currencyOptions[selectedCurrency], {style:'currency', currency:selectedCurrency}).format(total)}</Typography>
         </Box>
         {isMobile ? (
                 <Box>
-                    <Typography textAlign={'center'} fontSize={'30px'} fontWeight={'bold'}>ACCOUNT RECEIVABLES</Typography>
+                    <Typography textAlign={'center'} fontFamily={"GT Medium"} fontSize={'25px'} padding={'20px'}>ACCOUNT RECEIVABLES</Typography>
                     <Box
                         display={'grid'}
                         gridTemplateColumns={{xs:'repeat(1,1fr)', sm:'repeat(2,1fr)'}}
@@ -462,13 +442,36 @@ function AccountsReceivables() {
                             >
 
                                 <CardContent>
-                                    <Typography>Customer Name: {item.customer_name}</Typography>
-                                    <Typography>Customer Email: {item.customer_email}</Typography>
-                                    <Typography>Customer Phone: {item.customer_phone}</Typography>
-                                    <Typography>KRA Pin: {item.kra_pin}</Typography>
-                                    <Typography>Currency: {item.currency}</Typography>
-                                    <Typography>Amount Owed: {item.total_amount_owed}</Typography>
-                                    <Typography>Date: {item.date}</Typography>
+
+                                    <Box display={'flex'} gap={'5px'}>
+                                      <Typography fontFamily={"GT Medium"} fontSize={'15px'}>Name:</Typography>
+                                      <Typography fontFamily={"GT Light"} fontSize={'15px'}>{item.customer_name}</Typography>
+                                    </Box>
+
+                                    <Box display={'flex'} gap={'5px'}>
+                                      <Typography fontFamily={"GT Medium"} fontSize={'15px'}>Phone:</Typography>
+                                      <Typography fontFamily={"GT Light"} fontSize={'15px'}>{item.customer_phone}</Typography>
+                                    </Box>
+                                    
+                                    <Box display={'flex'} gap={'5px'}>
+                                      <Typography fontFamily={"GT Medium"} fontSize={'15px'}>Email:</Typography>
+                                      <Typography fontFamily={"GT Light"} fontSize={'15px'}>{item.customer_email}</Typography>
+                                    </Box>
+
+                                    <Box display={'flex'} gap={'5px'}>
+                                      <Typography fontFamily={"GT Medium"} fontSize={'15px'}>Currency:</Typography>
+                                      <Typography fontFamily={"GT Light"} fontSize={'15px'}>{item.currency}</Typography>
+                                    </Box>
+                                    
+                                    <Box display={'flex'} gap={'5px'}>
+                                      <Typography fontFamily={"GT Medium"} fontSize={'15px'}>KRA Pin:</Typography>
+                                      <Typography fontFamily={"GT Light"} fontSize={'15px'}>{item.kra_pin}</Typography>
+                                    </Box>
+
+                                    <Box display={'flex'} gap={'5px'}>
+                                      <Typography fontFamily={"GT Medium"} fontSize={'15px'}>Amount Owed:</Typography>
+                                      <Typography fontFamily={"GT Light"} fontSize={'15px'}>{item.total_amount_owed}</Typography>
+                                    </Box>
                                 </CardContent>
 
                             </Card>

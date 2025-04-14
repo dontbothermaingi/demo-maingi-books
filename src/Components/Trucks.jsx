@@ -1,4 +1,4 @@
-import { Alert, Box,Button,Card,CardContent,CircularProgress,Dialog,DialogContent,FormControl,MenuItem,Pagination,Select,Snackbar,TextField,ToggleButton,ToggleButtonGroup,Typography, useMediaQuery} from "@mui/material";
+import { Box,Button,Card,CardContent,FormControl,MenuItem,Pagination,Select,TextField,ToggleButton,ToggleButtonGroup,Typography, useMediaQuery} from "@mui/material";
 import { DataGrid, GridToolbar } from "@mui/x-data-grid";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -11,10 +11,6 @@ function Trucks(){
   const itemsPerPage = 16;
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const token = localStorage.getItem('access_token')
-  const [loading, setLoading] = useState(false);
-  const [openDialog, setOpenDialog] = useState(false)
-  const [openSnackBar, setOpenSnackbar] = useState(false)
-  const [errorMessage, setErrorMessage] = useState("")
   const [trucks, setTrucks] = useState([]);
   const [formData,setFormData] = useState({
     truck_number:"",
@@ -51,9 +47,6 @@ function Trucks(){
   function handleSubmit(event){
     event.preventDefault()
 
-    setLoading(true)
-    setOpenDialog(true)
-
     const vehicleId = trucks.length + 1
 
     fetch('https://demo-server-757m.onrender.com/trucks', {
@@ -88,14 +81,6 @@ function Trucks(){
         trailer:"",
         contact:"",
       })
-
-      setOpenDialog(false)
-      setLoading(false)
-    })
-    .catch((error) => {
-      console.error("Failed to save vehicle", error)
-      setOpenSnackbar(true)
-      setErrorMessage("Failed to create new vehicle. Please try again!")
     })
   }
 
@@ -113,15 +98,6 @@ function Trucks(){
 
   const handleFitNewTyre = () => {
     navigate(`/fit-new-tyre`);
-  };
-
-  function handleCloseSnackbar(event, reason){
-    if(reason === 'clickaway') return;
-    setOpenDialog(false)
-  }
-
-  const handleCloseDialog = () => {
-    setOpenDialog(false);
   };
 
 
@@ -279,23 +255,6 @@ function Trucks(){
                 <ToggleButton onClick={() => handleRepair()} sx={{fontSize:{xs:"11px", md:'14px'}}}>Repair</ToggleButton>
               </ToggleButtonGroup>
 
-              <Dialog open={openDialog} onClose={handleCloseDialog}>
-                  <DialogContent sx={{display:'flex', alignItems:'center', gap:'20px'}}>
-                      <CircularProgress sx={{fontSize:'10px'}}/>
-                      <Typography fontFamily={'GT Bold'}>Saving...</Typography>
-                  </DialogContent>
-              </Dialog>
-
-
-               <Snackbar
-                  open={openSnackBar} 
-                  autoHideDuration={6000} 
-                  onClose={handleCloseSnackbar} 
-                  anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
-              >
-                  <Alert onClose={handleCloseSnackbar} severity={errorMessage.includes('Please') ? "error" : "success"} sx={{ width: '100%' }}>{errorMessage}</Alert>
-              </Snackbar>
-
               <Box>
               <Typography
                   textAlign='center'
@@ -394,7 +353,7 @@ function Trucks(){
                               sx={{mb:'20px'}}
                           />
 
-                      <Button type="submit" variant="contained" color="secondary" disabled={loading} sx={{fontFamily:"GT Bold", width:'150px', mt:'30px'}}>{loading ? "Saving..." : "Add Vehicle"}</Button>
+                      <Button type="submit" variant="contained" color="secondary" sx={{fontFamily:"GT Bold", width:'150px', mt:'30px'}}>ADD VEHICLE</Button>
                       </FormControl>
                   </form>
                 </Box>
@@ -421,7 +380,6 @@ function Trucks(){
                                 flexDirection: 'column',
                                 height: 'auto', // Adjust height for better flexibility
                                 boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
-                                padding: '10px',
                                 margin: '30px',
                                 backgroundColor: '#fff',
                                 transition: 'transform 0.3s ease-in-out',
@@ -433,33 +391,33 @@ function Trucks(){
                         >
                             <CardContent>
                                   <Box display={'flex'} gap={'7px'}>
-                                    <Typography>Manufacturer:</Typography>
-                                    <Typography fontWeight={'bold'}>{item.manufacturer}</Typography>
+                                    <Typography fontFamily={"GT Medium"} fontSize={'15px'}>Make:</Typography>
+                                    <Typography fontFamily={"GT Light"} fontSize={'15px'}>{item.manufacturer}</Typography>
                                   </Box>
 
                                   <Box display={'flex'} gap={'7px'}>
-                                    <Typography>Truck Number:</Typography>
-                                    <Typography  fontWeight={'bold'}>{item.truck_number}</Typography>
+                                    <Typography fontFamily={"GT Medium"} fontSize={'15px'}>Truck Number:</Typography>
+                                    <Typography  fontFamily={"GT Light"} fontSize={'15px'}>{item.truck_number}</Typography>
                                   </Box>
 
                                   <Box display={'flex'} gap={'7px'}>
-                                    <Typography>Trailer:</Typography>
-                                    <Typography fontWeight={'bold'}>{item.trailer}</Typography>
+                                    <Typography fontFamily={"GT Medium"} fontSize={'15px'}>Trailer:</Typography>
+                                    <Typography fontFamily={"GT Light"} fontSize={'15px'}>{item.trailer}</Typography>
                                   </Box>
 
                                   <Box display={'flex'} gap={'7px'}>
-                                    <Typography>Driver:</Typography>
-                                    <Typography fontWeight={'bold'}>{item.driver}</Typography>
+                                    <Typography fontFamily={"GT Medium"} fontSize={'15px'}>Driver:</Typography>
+                                    <Typography fontFamily={"GT Light"} fontSize={'15px'}>{item.driver}</Typography>
                                   </Box>
 
                                   <Box display={'flex'} gap={'7px'}>
-                                    <Typography>Contact:</Typography>
-                                    <Typography fontWeight={'bold'}>{item.contact}</Typography>
+                                    <Typography fontFamily={"GT Medium"} fontSize={'15px'}>Contact:</Typography>
+                                    <Typography fontFamily={"GT Light"} fontSize={'15px'}>{item.contact}</Typography>
                                   </Box>
 
-                                  <Box display={'flex'} gap={'7px'}>
-                                    <Typography>Vehicle Type:</Typography>
-                                    <Typography fontWeight={'bold'}>{item.vehicle_type}</Typography>
+                                  <Box display={'flex'} gap={'5px'} alignItems={'center'}>
+                                    <Typography fontFamily={"GT Medium"} fontSize={'15px'}>Type:</Typography>
+                                    <Typography fontFamily={"GT Light"} fontSize={'15px'}>{item.vehicle_type}</Typography>
                                   </Box>
 
                             </CardContent>

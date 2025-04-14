@@ -1,13 +1,12 @@
 import { Box, Button, Typography } from "@mui/material";
 import ReactToPrint from 'react-to-print';
 import { useRef, useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import './RepairReport.css'; // Import your CSS file
 
 function RepairReport() {
     const componentRef = useRef();
     const { repairId } = useParams();
-    const navigate = useNavigate();
     const [repairs, setRepairs] = useState([]);
     const [tableItems, setTableItems] = useState([]);
     const token = localStorage.getItem('access_token')
@@ -37,24 +36,13 @@ function RepairReport() {
 
     const cost = tableItems.reduce((total,item) => item.price + total, 0)
 
-    const handleCustomBill = () => {
-        navigate(`/trucks`);
-    };
 
     return (
         <Box>
-            <Button
-                type="button"
-                color="secondary"
-                variant="contained"
-                onClick={() => handleCustomBill()}
-                sx={{ml:'50px', mt:'10px'}}
-            >
-                BACK
-            </Button>
+            
 
             <Box ref={componentRef} padding='20px'>
-                <Box display='flex' justifyContent='space-between' gap='10px' margin='20px'>
+                <Box display='flex' justifyContent={{md:'space-between', xs:'center'}} flexDirection={{md:'row', xs:'column'}} gap='10px' margin='20px'>
                     <Box>
                         <Typography fontFamily={'GT Medium'} fontSize='30px' fontWeight='bold' textAlign="left">
                             {repairs.job_description}

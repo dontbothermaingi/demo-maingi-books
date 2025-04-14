@@ -72,8 +72,8 @@ const BillLayout = ({ items,status,remainder,vendorPin, vendorEmail, paidtotal, 
   const isMobile = useMediaQuery('(max-width: 768px)');
 
   return (
-    <Box>
-      <Typography fontSize={'27px'} fontWeight={'bold'} textAlign={'center'} margin={'5px'}>Bill Number: #{invoiceNumber}</Typography>
+    <Box display={'flex'} flexDirection={'column'} alignItems={'center'}>
+      <Typography fontSize={'27px'} fontFamily={"GT Medium"} mt={'20px'} textAlign={'center'} >Bill Number: #{invoiceNumber}</Typography>
         <Box
             display="grid"
             gridTemplateColumns={{md:"repeat(3, 1fr)", xs:"repeat(1, 1fr)"}}
@@ -88,8 +88,6 @@ const BillLayout = ({ items,status,remainder,vendorPin, vendorEmail, paidtotal, 
             flexDirection: 'column',
             height: 'auto', // Adjust height for better flexibility
             boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
-            padding: '10px',
-            margin: '30px',
             backgroundColor: '#fff',
         }}
         >
@@ -108,8 +106,6 @@ const BillLayout = ({ items,status,remainder,vendorPin, vendorEmail, paidtotal, 
               flexDirection: 'column',
               height: 'auto', // Adjust height for better flexibility
               boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
-              padding: '10px',
-              margin: '30px',
               backgroundColor: '#fff',
           }}
         >
@@ -128,8 +124,6 @@ const BillLayout = ({ items,status,remainder,vendorPin, vendorEmail, paidtotal, 
             flexDirection: 'column',
             height: 'auto', // Adjust height for better flexibility
             boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
-            padding: '10px',
-            margin: '30px',
             backgroundColor: '#fff',
         }}
         >
@@ -144,7 +138,7 @@ const BillLayout = ({ items,status,remainder,vendorPin, vendorEmail, paidtotal, 
 
       {isMobile ? (
         <Box>
-            <Button variant="contained" color="secondary" onClick={handlePrint} sx={{width:'auto'}}>Download Invoice</Button>
+            <Button variant="contained" color="secondary" sx={{fontFamily:'GT Bold'}} onClick={handlePrint}>Download Bill</Button>
 
             <Box ref={componentRef} className="a4-print-mobile" padding='10mm' >
                   {Pages.map((pageItems,pageIndex) => (

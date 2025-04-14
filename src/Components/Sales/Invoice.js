@@ -253,11 +253,11 @@ function Invoice() {
 
               {isMobile ? (
                 <Box>
-                <Typography fontSize={'27px'} fontWeight={'bold'} textAlign={'center'}>INVOICES</Typography>
+                <Typography fontSize={'30px'} fontFamily={"GT Medium"} mb={'10px'} textAlign={'center'}>INVOICES</Typography>
                 <Box
                     display={'grid'}
                     gridTemplateColumns={{xs:'repeat(1,1fr)', sm:'repeat(2,1fr)'}}
-                    gap="10px"
+                    gap="20px"
                     margin="0 10px"
                 >
 
@@ -271,7 +271,6 @@ function Invoice() {
                                 flexDirection: 'column',
                                 height: 'auto', // Adjust height for better flexibility
                                 boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
-                                padding: '10px',
                                 backgroundColor: '#fff',
                                 transition: 'transform 0.3s ease-in-out',
                                 '&:hover': {
@@ -281,39 +280,39 @@ function Invoice() {
                             }}
                         >
                             <CardContent>
-                                        <Box display={'flex'} gap={'7px'}>
-                                            <Typography>Customer Name:</Typography>
-                                            <Typography fontWeight={'bold'}>{item.customer_name}</Typography>
+                                        <Box display={'flex'} gap={'5px'}>
+                                            <Typography fontFamily={"GT Medium"} fontSize={'14px'}>Customer:</Typography>
+                                            <Typography ffontFamily={"GT Light"} fontSize={'15px'}>{item.customer_name}</Typography>
                                         </Box>
 
                                         <Box display={'flex'} gap={'7px'}>
-                                            <Typography>Invoice Number:</Typography>
-                                            <Typography  fontWeight={'bold'}>{item.invoice_number}</Typography>
+                                            <Typography fontFamily={"GT Medium"} fontSize={'15px'}>Invoice Number:</Typography>
+                                            <Typography  fontFamily={"GT Light"} fontSize={'15px'}>{item.invoice_number}</Typography>
                                         </Box>
 
                                         <Box display={'flex'} gap={'7px'}>
-                                            <Typography>Amount:</Typography>
-                                            <Typography fontWeight={'bold'}>{ new Intl.NumberFormat('en-KE', {style:'currency', currency:item.currency}).format(item.totalAmount)}</Typography>
+                                            <Typography fontFamily={"GT Medium"} fontSize={'15px'}>Amount:</Typography>
+                                            <Typography fontFamily={"GT Light"} fontSize={'15px'}>{ new Intl.NumberFormat('en-KE', {style:'currency', currency:item.currency}).format(item.totalAmount)}</Typography>
                                         </Box>
 
                                         <Box display={'flex'} gap={'7px'}>
-                                            <Typography>Currency:</Typography>
-                                            <Typography fontWeight={'bold'}>{item.currency}</Typography>
+                                            <Typography fontFamily={"GT Medium"} fontSize={'15px'}>Currency:</Typography>
+                                            <Typography fontFamily={"GT Light"} fontSize={'15px'}>{item.currency}</Typography>
                                         </Box>
 
                                         <Box display={'flex'} gap={'7px'}>
-                                            <Typography>Date:</Typography>
-                                            <Typography fontWeight={'bold'}>{item.invoice_date}</Typography>
+                                            <Typography fontFamily={"GT Medium"} fontSize={'15px'}>Date:</Typography>
+                                            <Typography fontFamily={"GT Light"} fontSize={'15px'}>{item.invoice_date}</Typography>
                                         </Box>
 
                                         <Box display={'flex'} gap={'7px'}>
-                                            <Typography>Status:</Typography>
-                                            <Typography fontWeight={'bold'}>{item.status}</Typography>
+                                            <Typography fontFamily={"GT Medium"} fontSize={'15px'}>Status:</Typography>
+                                            <Typography fontFamily={"GT Light"} fontSize={'15px'}>{item.status}</Typography>
                                         </Box>
 
                                         <Box display={'flex'} gap={'7px'}>
-                                            <Typography>Sales Person:</Typography>
-                                            <Typography fontWeight={'bold'}>{item.sales_person}</Typography>
+                                            <Typography fontFamily={"GT Medium"} fontSize={'15px'}>Sales Person:</Typography>
+                                            <Typography fontFamily={"GT Light"} fontSize={'15px'}>{item.sales_person}</Typography>
                                         </Box>
 
                             </CardContent>

@@ -1,4 +1,4 @@
-import { Box, Button, Card, CardContent, Pagination, Typography, useMediaQuery} from "@mui/material";
+import { Box, Card, CardContent, Pagination, Typography, useMediaQuery} from "@mui/material";
 import { DataGrid, GridToolbar } from "@mui/x-data-grid";
 import { useEffect, useState } from "react";
 
@@ -20,7 +20,8 @@ function FuelTransactions(){
         .then(response => response.json())
         .then((data) => {
 
-            const filtered = data.map(pump=> ({
+            const sort = data.sort((a,b) => b.id - a.id)
+            const filtered = sort.map(pump=> ({
                 ...pump,
                 reading: new Intl.NumberFormat().format(pump.reading),
                 litres: new Intl.NumberFormat().format(pump.litres),
@@ -30,52 +31,52 @@ function FuelTransactions(){
         })
     },[token])
 
-    function handleDelete(event) {
-      event.preventDefault();
+    // function handleDelete(event) {
+    //   event.preventDefault();
   
-      // Loop through the range of IDs from 129 to 138
-      for (let id = 450; id <= 451; id++) {
-          fetch(`https://demo-server-757m.onrender.com/pumpfuelings/${id}`, {
-              method: 'DELETE',
-              headers: {
-                  'Content-Type': 'application/json',
-                  'Authorization': `Bearer ${token}`
-              },
-              credentials:'include'
-          })
-          .then(response => {
-              if (response.ok) {
-                  console.log(`Deleted transaction with ID ${id}`);
-              } else {
-                  console.log(`Failed to delete transaction with ID ${id}`);
-              }
-              return response.json();
-          })
-          .then(() => {
-              // Refetch the data after each delete
-              fetch('https://demo-server-757m.onrender.com/pumpfuelings', {
-                method:'GET',
-                headers:{
-                    'Authorization':`Bearer ${token}`
-                },
-                credentials:'include'
-              })
-                  .then(response => response.json())
-                  .then((data) => {
-                      const filtered = data.map(pump => ({
-                          ...pump,
-                          reading: new Intl.NumberFormat().format(pump.reading),
-                          litres: new Intl.NumberFormat().format(pump.litres),
-                          price: new Intl.NumberFormat().format(pump.price),
-                      }));
-                      setFuelings(filtered);
-                  });
-          })
-          .catch((error) => {
-              console.error(`Error deleting transaction with ID ${id}:`, error);
-          });
-      }
-  }
+    //   // Loop through the range of IDs from 129 to 138
+    //   for (let id = 1118; id <= 1127; id++) {
+    //       fetch(`https://maingi-server-3.onrender.com/pumpfuelings/${id}`, {
+    //           method: 'DELETE',
+    //           headers: {
+    //               'Content-Type': 'application/json',
+    //               'Authorization': `Bearer ${token}`
+    //           },
+    //           credentials:'include'
+    //       })
+    //       .then(response => {
+    //           if (response.ok) {
+    //               console.log(`Deleted transaction with ID ${id}`);
+    //           } else {
+    //               console.log(`Failed to delete transaction with ID ${id}`);
+    //           }
+    //           return response.json();
+    //       })
+    //       .then(() => {
+    //           // Refetch the data after each delete
+    //           fetch('https://maingi-server-3.onrender.com/pumpfuelings', {
+    //             method:'GET',
+    //             headers:{
+    //                 'Authorization':`Bearer ${token}`
+    //             },
+    //             credentials:'include'
+    //           })
+    //               .then(response => response.json())
+    //               .then((data) => {
+    //                   const filtered = data.map(pump => ({
+    //                       ...pump,
+    //                       reading: new Intl.NumberFormat().format(pump.reading),
+    //                       litres: new Intl.NumberFormat().format(pump.litres),
+    //                       price: new Intl.NumberFormat().format(pump.price),
+    //                   }));
+    //                   setFuelings(filtered);
+    //               });
+    //       })
+    //       .catch((error) => {
+    //           console.error(`Error deleting transaction with ID ${id}:`, error);
+    //       });
+    //   }
+    // }
   
     const columns = [
         { field: "id", headerName: "ID", flex: 0.5 },
@@ -128,13 +129,7 @@ function FuelTransactions(){
     return ( 
         <Box margin={{md:'40px', xs:'20px'}}>
 
-          <Button
-             onClick={handleDelete}
-             sx={{display:'none'}}
-          >
-            DELETE
-          </Button>
-          
+
           {isMobile ? (
                 <Box>
                     <Typography textAlign={'center'} fontSize={{xs:'23px', md:'30px'}} fontWeight={'bold'}>FUEL TRANSACTIONS</Typography>
@@ -165,33 +160,33 @@ function FuelTransactions(){
 
                                 <CardContent>
                                 <Box display={'flex'} gap={'5px'}>
-                                        <Typography>Pump:</Typography>
-                                        <Typography fontWeight={'bold'}>{item.pump_name}</Typography>
+                                        <Typography fontFamily={"GT Medium"} fontSize={'15px'}>Pump:</Typography>
+                                        <Typography fontFamily={"GT Light"} fontSize={'15px'}>{item.pump_name}</Typography>
                                     </Box>
 
                                     <Box display={'flex'} gap={'5px'}>
-                                        <Typography>Truck:</Typography>
-                                        <Typography fontWeight={'bold'}>{item.truck_number}</Typography>
+                                        <Typography fontFamily={"GT Medium"} fontSize={'15px'}>Truck:</Typography>
+                                        <Typography fontFamily={"GT Light"} fontSize={'15px'}>{item.truck_number}</Typography>
                                     </Box>
 
                                     <Box display={'flex'} gap={'5px'}>
-                                        <Typography>Litres:</Typography>
-                                        <Typography fontWeight={'bold'}>{item.litres}</Typography>
+                                        <Typography fontFamily={"GT Medium"} fontSize={'15px'}>Litres:</Typography>
+                                        <Typography fontFamily={"GT Light"} fontSize={'15px'}>{item.litres}</Typography>
                                     </Box>
 
                                     <Box display={'flex'} gap={'5px'}>
-                                        <Typography>Reading:</Typography>
-                                        <Typography fontWeight={'bold'}>{item.reading}</Typography>
+                                        <Typography fontFamily={"GT Medium"} fontSize={'15px'}>Reading:</Typography>
+                                        <Typography fontFamily={"GT Light"} fontSize={'15px'}>{item.reading}</Typography>
                                     </Box>
 
                                     <Box display={'flex'} gap={'5px'}>
-                                        <Typography>Fuel Attendant:</Typography>
-                                        <Typography fontWeight={'bold'}>{item.order}</Typography>
+                                        <Typography fontFamily={"GT Medium"} fontSize={'15px'}>Fuel Attendant:</Typography>
+                                        <Typography fontFamily={"GT Light"} fontSize={'15px'}>{item.order}</Typography>
                                     </Box>
 
                                     <Box display={'flex'} gap={'5px'}>
-                                        <Typography>Date:</Typography>
-                                        <Typography fontWeight={'bold'}>{item.date}</Typography>
+                                        <Typography fontFamily={"GT Medium"} fontSize={'15px'}>Date:</Typography>
+                                        <Typography fontFamily={"GT Light"} fontSize={'15px'}>{item.date}</Typography>
                                     </Box>
                                     
                                 </CardContent>

@@ -13,6 +13,7 @@ function InvoiceTransport() {
     const [invoices, setInvoices] = useState([]);
     const [isVatInclusive, setIsVatInclusive] = useState(true); // true for inclusive, false for exclusive
     const [errorMessage, setErrorMessage] = useState('')
+    const [activeItem, setActiveItem] = useState(0);
     const [openSnackbar, setOpenSnackbar] = useState(false)
     const [openDialog, setOpenDialog] = useState(false);
     const [loading, setLoading] = useState(false)
@@ -61,7 +62,11 @@ function InvoiceTransport() {
         }
     ]);
 
-    const navigate = useNavigate();    
+    const navigate = useNavigate();   
+    
+    function handleActive(id){
+        setActiveItem( activeItem === id ? null : id);
+    }
 
     useEffect(() => {
         fetch('https://demo-server-757m.onrender.com/invoices', {
@@ -650,7 +655,7 @@ function InvoiceTransport() {
                      </Snackbar>                   
 
                 <Box>
-                    <Typography fontSize={'30px'} fontWeight={'bold'} textAlign={'center'} marginTop={'20px'}>NEW TRANSPORT INVOICE</Typography>
+                    <Typography fontFamily={"GT Medium"} fontSize={{xs:'25px', md:'27px'}} textAlign={'center'} marginTop={'20px'}>NEW TRANSPORT INVOICE</Typography>
                     <Box
                        sx={{
                         borderRadius: '15px',
@@ -899,123 +904,120 @@ function InvoiceTransport() {
                                 />
                             </RadioGroup>
 
-                            <Typography fontSize={'25px'} fontWeight={'bold'}>Items</Typography>
-                            <TableContainer component={Paper} sx={{ overflowX: 'auto', width: '100%', marginTop: 2 }}>
-                                <Table aria-label="Invoice Table" sx={{ minWidth: isMobile ? 900 : 'auto' }}>
-                                    <TableHead>
-                                        <TableRow>
-                                        <TableCell sx={{ minWidth: 150 }}><Typography fontWeight="bold">Truck</Typography></TableCell>
-                                            <TableCell sx={{ minWidth: 200 }}><Typography fontWeight="bold">Description</Typography></TableCell>
-                                            <TableCell sx={{ minWidth: 50 }}><Typography fontWeight="bold">Quantity</Typography></TableCell>
-                                            <TableCell sx={{ minWidth: 50 }}><Typography fontWeight="bold">Rate</Typography></TableCell>
-                                            <TableCell sx={{ minWidth: 50 }}><Typography fontWeight="bold">Sub Total</Typography></TableCell>
-                                            <TableCell sx={{ minWidth: 50 }}><Typography fontWeight="bold">VAT</Typography></TableCell>
-                                            <TableCell sx={{ minWidth: 50 }}><Typography fontWeight="bold">VAT Amount</Typography></TableCell>
-                                            <TableCell sx={{ minWidth: 50 }}><Typography fontWeight="bold">Total Amount</Typography></TableCell>
-                                        </TableRow>
-                                    </TableHead>
-                                   
-                                </Table>
-                            </TableContainer>
+                            <Typography fontFamily={"GT Bold"} fontSize={{xs:'20px', md:'25px'}}>ITEMS</Typography>
 
-                            <Box mt={'20px'}>
+                            {isMobile ? (
+                                <Box mt={'20px'}>
                                 {newItem.map((item, index) => (
-                                    <Box key={index} display={'flex'} gap={'20px'} mb={'20px'} alignItems={'center'}>
+                                    <Box>
+                                        <Box onClick={() => handleActive(index)} sx={{backgroundColor:'purple', borderRadius:'5px', mb:'20px', cursor:'pointer',display:'flex', justifyContent:'center', padding:'5px'}}>
+                                            <Typography sx={{cursor:'pointer'}} fontFamily={"GT Medium"} color={'white'}>Item {index}</Typography>
+                                        </Box>
+                                        {activeItem === index &&
+                                            <Box key={index} display={'flex'} gap={'20px'} mb={'20px'} flexDirection={'column'}>
 
-                                        {trucks.length > 0 ? (
-                                            <Select name="item_details" value={item.item_details} onChange={(e) => handleNewItemChange(e, index)} fullWidth displayEmpty>
-                                            <MenuItem value="">Select Item</MenuItem>
-                                                {trucks.map((truck, index) => (
-                                                    <MenuItem key={index} value={truck.truck_number}>{truck.truck_number}</MenuItem>
-                                                ))}
-                                            </Select>
-                                        ):(
-                                            <p>Loading trucks...</p>
-                                        )}
-                                         
+                                                <Typography fontFamily={"GT Medium"}>Truck</Typography>
+                                                {trucks.length > 0 ? (
+                                                    <Select name="item_details" value={item.item_details} onChange={(e) => handleNewItemChange(e, index)} fullWidth displayEmpty>
+                                                    <MenuItem value="">Select Item</MenuItem>
+                                                        {trucks.map((truck, index) => (
+                                                            <MenuItem key={index} value={truck.truck_number}>{truck.truck_number}</MenuItem>
+                                                        ))}
+                                                    </Select>
+                                                ):(
+                                                    <p>Loading trucks...</p>
+                                                )}
+                                                
+                                                <Typography fontFamily={"GT Medium"}>Description</Typography>
+                                                <TextField
+                                                    name="description"
+                                                    placeholder="Description"
+                                                    value={item.description}
+                                                    onChange={(e) => handleNewItemChange(e, index)}
+                                                    variant="outlined"
+                                                    size="small"
+                                                    fullWidth
+                                                    sx={{minWidth:'250px'}}
+                                                    multiline
+                                                    minRows={4}  // Initial number of rows
+                                                    maxRows={20}   // Maximum number of rows
+                                                />
 
-                                        <TextField
-                                            name="description"
-                                            placeholder="Description"
-                                            value={item.description}
-                                            onChange={(e) => handleNewItemChange(e, index)}
-                                            variant="outlined"
-                                            size="small"
-                                            fullWidth
-                                            sx={{minWidth:'400px'}}
-                                            multiline
-                                            minRows={4}  // Initial number of rows
-                                            maxRows={20}   // Maximum number of rows
-                                        />
+                                                <Typography fontFamily={"GT Medium"}>Quantity</Typography>
+                                                <TextField
+                                                    type="number"
+                                                    name="quantity"
+                                                    placeholder="Quantity"
+                                                    className="bill-inputfield"
+                                                    value={item.quantity}
+                                                    onChange={(e) => handleNewItemChange(e, index)}
+                                                    variant="outlined"
+                                                    size="small"
+                                                    fullWidth
+                                                />
 
-                                        <TextField
-                                            type="number"
-                                            name="quantity"
-                                            placeholder="Quantity"
-                                            className="bill-inputfield"
-                                            value={item.quantity}
-                                            onChange={(e) => handleNewItemChange(e, index)}
-                                            variant="outlined"
-                                            size="small"
-                                            fullWidth
-                                        />
+                                                <Typography fontFamily={"GT Medium"}>Rate</Typography>
+                                                <TextField
+                                                    type="number"
+                                                    name="rate"
+                                                    placeholder="Rate"
+                                                    className="bill-inputfield"
+                                                    value={item.rate}
+                                                    onChange={(e) => handleNewItemChange(e, index)}
+                                                    variant="outlined"
+                                                    size="small"
+                                                    fullWidth
+                                                />
 
+                                                <Typography fontFamily={"GT Medium"}>Sub Total</Typography>
+                                                <TextField
+                                                    placeholder="Sub Total"
+                                                    variant="outlined"
+                                                    size="small"
+                                                    fullWidth
+                                                    value={item.sub_total}
+                                                    InputProps={{ readOnly: true }}
+                                                />
 
-                                        <TextField
-                                            type="number"
-                                            name="rate"
-                                            placeholder="Rate"
-                                            className="bill-inputfield"
-                                            value={item.rate}
-                                            onChange={(e) => handleNewItemChange(e, index)}
-                                            variant="outlined"
-                                            size="small"
-                                            fullWidth
-                                        />
+                                                <Typography fontFamily={"GT Medium"}>VAT</Typography>
+                                                <Select
+                                                    value={item.vat}
+                                                    name="vat"
+                                                    fullWidth
+                                                    onChange={(e) => handleNewItemChange(e, index)}
+                                                    displayEmpty
+                                                >
+                                                    <MenuItem value=""><em>Select VAT</em></MenuItem>
+                                                    <MenuItem value={16}>16%</MenuItem>
+                                                    <MenuItem value={0}>0%</MenuItem>
+                                                </Select>
 
-                                        <TextField
-                                            placeholder="Sub Total"
-                                            variant="outlined"
-                                            size="small"
-                                            fullWidth
-                                            value={item.sub_total}
-                                            InputProps={{ readOnly: true }}
-                                        />
+                                                <Typography fontFamily={"GT Medium"}>VAT Amount</Typography>
+                                                <TextField
+                                                    placeholder="VAT Amount"
+                                                    variant="outlined"
+                                                    size="small"
+                                                    fullWidth
+                                                    value={item.rate_vat}
+                                                    InputProps={{ readOnly: true }}
+                                                />
 
-                                        <Select
-                                            value={item.vat}
-                                            name="vat"
-                                            fullWidth
-                                            onChange={(e) => handleNewItemChange(e, index)}
-                                            displayEmpty
-                                        >
-                                            <MenuItem value=""><em>Select VAT</em></MenuItem>
-                                            <MenuItem value={16}>16%</MenuItem>
-                                            <MenuItem value={0}>0%</MenuItem>
-                                        </Select>
+                                                <Typography fontFamily={"GT Medium"}>Total Amount</Typography>
+                                                <TextField
+                                                    placeholder="Total Amount"
+                                                    variant="outlined"
+                                                    size="small"
+                                                    fullWidth
+                                                    value={item.amount}
+                                                    InputProps={{ readOnly: true }}
+                                                />
 
-                                        <TextField
-                                            placeholder="VAT Amount"
-                                            variant="outlined"
-                                            size="small"
-                                            fullWidth
-                                            value={item.rate_vat}
-                                            InputProps={{ readOnly: true }}
-                                        />
+                                                <IconButton onClick={() => handleDeleteInputField(index)}>
+                                                        <DeleteForever sx={{fontSize:'30px', color:'black', border:'2px solid red', padding:'10px', borderRadius:"8px", ":hover":{backgroundColor:'red', color:'white'}}}/>
+                                            </IconButton>
 
-                                        <TextField
-                                            placeholder="Total Amount"
-                                            variant="outlined"
-                                            size="small"
-                                            fullWidth
-                                            value={item.amount}
-                                            InputProps={{ readOnly: true }}
-                                        />
-
-                                        <IconButton onClick={() => handleDeleteInputField(index)}>
-                                                <DeleteForever sx={{fontSize:'30px', color:'black', border:'2px solid red', padding:'10px', borderRadius:"8px", ":hover":{backgroundColor:'red', color:'white'}}}/>
-                                       </IconButton>
-
+                                            </Box>
+                                        }
                                     </Box>
                                 ))}
 
@@ -1024,10 +1026,139 @@ function InvoiceTransport() {
                                     <Typography fontWeight={'bold'} fontSize={'12px'}>Add new row</Typography>
                                 </Button>
 
-                            </Box>
+                                </Box> 
+                            ):(
+                                <Box>
+                                    <TableContainer component={Paper} sx={{ overflowX: 'auto', width: '100%', marginTop: 2 }}>
+                                        <Table aria-label="Invoice Table" sx={{ minWidth: isMobile ? 900 : 'auto' }}>
+                                            <TableHead>
+                                                <TableRow>
+                                                <TableCell sx={{ minWidth: 150 }}><Typography fontWeight="bold">Truck</Typography></TableCell>
+                                                    <TableCell sx={{ minWidth: 200 }}><Typography fontWeight="bold">Description</Typography></TableCell>
+                                                    <TableCell sx={{ minWidth: 50 }}><Typography fontWeight="bold">Quantity</Typography></TableCell>
+                                                    <TableCell sx={{ minWidth: 50 }}><Typography fontWeight="bold">Rate</Typography></TableCell>
+                                                    <TableCell sx={{ minWidth: 50 }}><Typography fontWeight="bold">Sub Total</Typography></TableCell>
+                                                    <TableCell sx={{ minWidth: 50 }}><Typography fontWeight="bold">VAT</Typography></TableCell>
+                                                    <TableCell sx={{ minWidth: 50 }}><Typography fontWeight="bold">VAT Amount</Typography></TableCell>
+                                                    <TableCell sx={{ minWidth: 50 }}><Typography fontWeight="bold">Total Amount</Typography></TableCell>
+                                                </TableRow>
+                                            </TableHead>
+                                        
+                                        </Table>
+                                    </TableContainer>
+
+                                    <Box mt={'20px'}>
+                                        {newItem.map((item, index) => (
+                                            <Box key={index} display={'flex'} gap={'20px'} mb={'20px'} alignItems={'center'}>
+
+                                                {trucks.length > 0 ? (
+                                                    <Select name="item_details" value={item.item_details} onChange={(e) => handleNewItemChange(e, index)} fullWidth displayEmpty>
+                                                    <MenuItem value="">Select Item</MenuItem>
+                                                        {trucks.map((truck, index) => (
+                                                            <MenuItem key={index} value={truck.truck_number}>{truck.truck_number}</MenuItem>
+                                                        ))}
+                                                    </Select>
+                                                ):(
+                                                    <p>Loading trucks...</p>
+                                                )}
+                                                
+
+                                                <TextField
+                                                    name="description"
+                                                    placeholder="Description"
+                                                    value={item.description}
+                                                    onChange={(e) => handleNewItemChange(e, index)}
+                                                    variant="outlined"
+                                                    size="small"
+                                                    fullWidth
+                                                    sx={{minWidth:'400px'}}
+                                                    multiline
+                                                    minRows={4}  // Initial number of rows
+                                                    maxRows={20}   // Maximum number of rows
+                                                />
+
+                                                <TextField
+                                                    type="number"
+                                                    name="quantity"
+                                                    placeholder="Quantity"
+                                                    className="bill-inputfield"
+                                                    value={item.quantity}
+                                                    onChange={(e) => handleNewItemChange(e, index)}
+                                                    variant="outlined"
+                                                    size="small"
+                                                    fullWidth
+                                                />
+
+
+                                                <TextField
+                                                    type="number"
+                                                    name="rate"
+                                                    placeholder="Rate"
+                                                    className="bill-inputfield"
+                                                    value={item.rate}
+                                                    onChange={(e) => handleNewItemChange(e, index)}
+                                                    variant="outlined"
+                                                    size="small"
+                                                    fullWidth
+                                                />
+
+                                                <TextField
+                                                    placeholder="Sub Total"
+                                                    variant="outlined"
+                                                    size="small"
+                                                    fullWidth
+                                                    value={item.sub_total}
+                                                    InputProps={{ readOnly: true }}
+                                                />
+
+                                                <Select
+                                                    value={item.vat}
+                                                    name="vat"
+                                                    fullWidth
+                                                    onChange={(e) => handleNewItemChange(e, index)}
+                                                    displayEmpty
+                                                >
+                                                    <MenuItem value=""><em>Select VAT</em></MenuItem>
+                                                    <MenuItem value={16}>16%</MenuItem>
+                                                    <MenuItem value={0}>0%</MenuItem>
+                                                </Select>
+
+                                                <TextField
+                                                    placeholder="VAT Amount"
+                                                    variant="outlined"
+                                                    size="small"
+                                                    fullWidth
+                                                    value={item.rate_vat}
+                                                    InputProps={{ readOnly: true }}
+                                                />
+
+                                                <TextField
+                                                    placeholder="Total Amount"
+                                                    variant="outlined"
+                                                    size="small"
+                                                    fullWidth
+                                                    value={item.amount}
+                                                    InputProps={{ readOnly: true }}
+                                                />
+
+                                                <IconButton onClick={() => handleDeleteInputField(index)}>
+                                                        <DeleteForever sx={{fontSize:'30px', color:'black', border:'2px solid red', padding:'10px', borderRadius:"8px", ":hover":{backgroundColor:'red', color:'white'}}}/>
+                                            </IconButton>
+
+                                            </Box>
+                                        ))}
+
+                                        <Button onClick={handleNewInputField} variant="contained" style={{backgroundColor:'grey', color:'white', marginTop:'20px', display:'flex', justifyContent:'center', alignItems:'center', marginBottom:'20px'}}>
+                                            <AddOutlined sx={{color:'white', fontSize:'19px'}}/>
+                                            <Typography fontWeight={'bold'} fontSize={'12px'}>Add new row</Typography>
+                                        </Button>
+
+                                    </Box>
+                                </Box>
+                            )}
                             
                             <Box display={'flex'} flexDirection={'column'} gap={'15px'} m={'10px'} textAlign={'right'} fontWeight={'bold'}>
-                                <Typography fontFamily={"GT Regular"} fontSize={'20px'} fontWeight={'bold'}>
+                                <Typography fontFamily={"GT Regular"} fontSize={{xs:'16px', md:'20px'}} fontWeight={'bold'}>
                                         Sub Total Amount:{" "}
                                         {formData.currency ? (
                                             new Intl.NumberFormat(userLocale, { style: 'currency', currency: formData.currency }).format(subTotalAmount)
@@ -1036,7 +1167,7 @@ function InvoiceTransport() {
                                         )}
                                 </Typography>
 
-                                <Typography fontFamily={"GT Regular"} fontSize={'20px'} fontWeight={'bold'}>VAT Amount: {" "}
+                                <Typography fontFamily={"GT Regular"} fontSize={{xs:'16px', md:'20px'}} fontWeight={'bold'}>VAT Amount: {" "}
                                         {formData.currency ? (
                                             new Intl.NumberFormat(userLocale, { style: 'currency', currency: formData.currency }).format(vatAmount)
                                         ) : (
@@ -1046,7 +1177,7 @@ function InvoiceTransport() {
                                         )}
                                 </Typography>
 
-                                <Typography fontFamily={"GT Regular"} fontSize={'20px'} fontWeight={'bold'}>Total Amount: {" "}
+                                <Typography fontFamily={"GT Regular"} fontSize={{xs:'16px', md:'20px'}} fontWeight={'bold'}>Total Amount: {" "}
                                     { formData.currency ? (
                                         new Intl.NumberFormat(userLocale, {currency:formData.currency, style:'currency'}).format(totalAmount)
                                     ):(
@@ -1066,11 +1197,11 @@ function InvoiceTransport() {
             
             {isMobile ? (
                 <Box>
-                <Typography fontSize={'27px'} fontWeight={'bold'} textAlign={'center'}>INVOICES</Typography>
+                <Typography fontSize={'27px'} fontFamily={"GT Bold"} mb={'20px'} textAlign={'center'}>INVOICES</Typography>
                 <Box
                     display={'grid'}
                     gridTemplateColumns={{xs:'repeat(1,1fr)', sm:'repeat(2,1fr)'}}
-                    gap="10px"
+                    gap="20px"
                     margin="0 10px"
                 >
 
@@ -1084,7 +1215,6 @@ function InvoiceTransport() {
                                 flexDirection: 'column',
                                 height: 'auto', // Adjust height for better flexibility
                                 boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
-                                padding: '10px',
                                 backgroundColor: '#fff',
                                 transition: 'transform 0.3s ease-in-out',
                                 '&:hover': {
@@ -1094,39 +1224,39 @@ function InvoiceTransport() {
                             }}
                         >
                             <CardContent>
-                                        <Box display={'flex'} gap={'7px'}>
-                                            <Typography>Customer Name:</Typography>
-                                            <Typography fontWeight={'bold'}>{item.customer_name}</Typography>
+                                        <Box display={'flex'} gap={'5px'}>
+                                            <Typography fontFamily={"GT Medium"} fontSize={'14px'}>Customer:</Typography>
+                                            <Typography ffontFamily={"GT Light"} fontSize={'15px'}>{item.customer_name}</Typography>
                                         </Box>
 
                                         <Box display={'flex'} gap={'7px'}>
-                                            <Typography>Invoice Number:</Typography>
-                                            <Typography  fontWeight={'bold'}>{item.invoice_number}</Typography>
+                                            <Typography fontFamily={"GT Medium"} fontSize={'15px'}>Invoice Number:</Typography>
+                                            <Typography  fontFamily={"GT Light"} fontSize={'15px'}>{item.invoice_number}</Typography>
                                         </Box>
 
                                         <Box display={'flex'} gap={'7px'}>
-                                            <Typography>Amount:</Typography>
-                                            <Typography fontWeight={'bold'}>{ new Intl.NumberFormat('en-KE', {style:'currency', currency:item.currency}).format(item.totalAmount)}</Typography>
+                                            <Typography fontFamily={"GT Medium"} fontSize={'15px'}>Amount:</Typography>
+                                            <Typography fontFamily={"GT Light"} fontSize={'15px'}>{ new Intl.NumberFormat('en-KE', {style:'currency', currency:item.currency}).format(item.totalAmount)}</Typography>
                                         </Box>
 
                                         <Box display={'flex'} gap={'7px'}>
-                                            <Typography>Currency:</Typography>
-                                            <Typography fontWeight={'bold'}>{item.currency}</Typography>
+                                            <Typography fontFamily={"GT Medium"} fontSize={'15px'}>Currency:</Typography>
+                                            <Typography fontFamily={"GT Light"} fontSize={'15px'}>{item.currency}</Typography>
                                         </Box>
 
                                         <Box display={'flex'} gap={'7px'}>
-                                            <Typography>Date:</Typography>
-                                            <Typography fontWeight={'bold'}>{item.invoice_date}</Typography>
+                                            <Typography fontFamily={"GT Medium"} fontSize={'15px'}>Date:</Typography>
+                                            <Typography fontFamily={"GT Light"} fontSize={'15px'}>{item.invoice_date}</Typography>
                                         </Box>
 
                                         <Box display={'flex'} gap={'7px'}>
-                                            <Typography>Status:</Typography>
-                                            <Typography fontWeight={'bold'}>{item.status}</Typography>
+                                            <Typography fontFamily={"GT Medium"} fontSize={'15px'}>Status:</Typography>
+                                            <Typography fontFamily={"GT Light"} fontSize={'15px'}>{item.status}</Typography>
                                         </Box>
 
                                         <Box display={'flex'} gap={'7px'}>
-                                            <Typography>Sales Person:</Typography>
-                                            <Typography fontWeight={'bold'}>{item.sales_person}</Typography>
+                                            <Typography fontFamily={"GT Medium"} fontSize={'15px'}>Sales Person:</Typography>
+                                            <Typography fontFamily={"GT Light"} fontSize={'15px'}>{item.sales_person}</Typography>
                                         </Box>
 
                             </CardContent>

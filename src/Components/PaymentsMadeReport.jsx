@@ -4,8 +4,6 @@ import { DataGrid, GridToolbar } from "@mui/x-data-grid";
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import { LocalizationProvider } from "@mui/x-date-pickers";
-import StatBox from "./StatBox";
-import PointOfSale from "@mui/icons-material/PointOfSale";
 import { useNavigate } from "react-router-dom";
 
 function PaymentsMadeReport(){
@@ -210,7 +208,6 @@ function PaymentsMadeReport(){
             const datefilter = filterByDateRange(data, startDate,endDate)
             const all = datefilter.map((item) => ({
                 ...item,
-                payment_amount:new Intl.NumberFormat().format(item.payment_amount)
             }))
             setPayments(all)
             setTotals(datefilter)
@@ -238,8 +235,6 @@ function PaymentsMadeReport(){
     const handleViewSlip = (madeId) => {
         navigate(`/payment-details/${madeId}`);
     };
-
-    
 
     const columns = [
         { field: "id", headerName: "ID", flex: 0.05 },
@@ -295,11 +290,6 @@ function PaymentsMadeReport(){
             field: "currency",
             headerName: "Currency",
             flex: 0.05,
-        },
-        {
-            field: "bank_name",
-            headerName: "Bank Name",
-            flex: 0.2,
         },
         {
           field: "payment_amount",
@@ -377,23 +367,9 @@ function PaymentsMadeReport(){
     return ( 
         <Box margin={{md:'40px', xs:'10px'}}>
 
-            {/* Currency Selector */}
-            <FormControl width="50px" sx={{margin:'30px'}}>
-                <InputLabel>Select Currency</InputLabel>
-                <Select
-                    value={selectedCurrency}
-                    onChange={handleCurrencyChange}
-                    label="Select Currency"
-                >
-                    {currencyOptions.map((currency) => (
-                    <MenuItem key={currency.code} value={currency.code}>
-                        {currency.label}
-                    </MenuItem>
-                    ))}
-                </Select>
-            </FormControl>
+          <Box display={'flex'} justifyContent={{md:'space-between', xs:''}} flexDirection={{xs:'column', md:'row'}} alignItems={'center'} mb={'20px'}> 
 
-            <Box m='30px'>
+          <Box m='30px'>
                 <LocalizationProvider dateAdapter={AdapterDateFns}>
                 <Typography
                     fontSize='23px'
@@ -417,37 +393,38 @@ function PaymentsMadeReport(){
                     </Box>
                 </LocalizationProvider>
             </Box>
-
-            <Box
-                display={'grid'}
-                gridTemplateColumns={{xs:'repeat(1,1fr)', sm:'repeat(2,1fr)'}}
-                gap="10px"
-                margin="0 10px"
-            >
-                {/* ROW 1 */}
-                <Box
-                gridColumn="span 3"
-                backgroundColor="#f2f0f0"
-                borderRadius='10px'
-                display="flex"
-                alignItems="center"
-                justifyContent="center"
+            {/* Currency Selector */}
+            <FormControl width="50px" sx={{margin:'30px'}}>
+                <InputLabel>Select Currency</InputLabel>
+                <Select
+                    value={selectedCurrency}
+                    onChange={handleCurrencyChange}
+                    label="Select Currency"
                 >
-                <StatBox
-                    title= {total}
-                    subtitle="TOTAL PAYMENTS MADE"
-                    // progress="0.75"
-                    // increase="+14%"
-                    icon={
-                    <PointOfSale
-                        sx={{ color: "#70d8bd", fontSize: "26px" }}
-                    />
-                    }
-                />
-                </Box>
-                
-                </Box>
+                    {currencyOptions.map((currency) => (
+                    <MenuItem key={currency.code} value={currency.code}>
+                        {currency.label}
+                    </MenuItem>
+                    ))}
+                </Select>
+            </FormControl>
 
+          </Box>
+
+           
+                <Box
+                sx={{
+                  backgroundColor:'purple',
+                  borderRadius:'10px',
+                  padding:'20px',
+                  width:{xs:'300px', md:'400px'},
+                  margin:'auto'
+                }}
+              >
+                <Typography fontFamily={"GT Bold"} fontSize={"27px"} color={'white'} textAlign={'center'}>Total Payments Made</Typography>
+                <Typography fontFamily={"GT Bold"} fontSize={"27px"} color={'white'} textAlign={'center'}>{total}</Typography>
+              </Box>
+                
                 {isMobile ? (
                     <Box>
                         <Typography fontSize={'27px'} fontWeight={'bold'} textAlign={'center'} mt={"20px"}>PAYMENTS MADE</Typography>
@@ -477,12 +454,30 @@ function PaymentsMadeReport(){
                                     }}
                                 >
                                     <CardContent>
-                                            <Typography>Vendor Name: {item.vendor_name}</Typography>
-                                            <Typography>Vendor Phone: {item.vendor_name}</Typography>
-                                            <Typography>Vendor Email: {item.vendor_email}</Typography>
-                                            <Typography>Amount: {new Intl.NumberFormat(currencyLocaleMap[item.currency] || 'en-KE', {style:'currency', currency:item.currency}).format(item.payment_amount)}</Typography>
-                                            <Typography>Payment Date: {item.payment_date}</Typography>
-                                            <Typography>Payment Mode: {item.payment_mode}</Typography>
+                                       <Box display={'flex'} gap={'5px'}>
+                                           <Typography fontFamily={"GT Medium"} fontSize={'15px'}>Name:</Typography>
+                                           <Typography fontFamily={"GT Light"} fontSize={'15px'}>{item.vendor_name}</Typography>
+                                       </Box>
+
+                                       <Box display={'flex'} gap={'5px'}>
+                                           <Typography fontFamily={"GT Medium"} fontSize={'15px'}>Vendor Phone:</Typography>
+                                           <Typography fontFamily={"GT Light"} fontSize={'15px'}>{item.vendor_phone}</Typography>
+                                       </Box>
+
+                                       <Box display={'flex'} gap={'5px'}>
+                                           <Typography fontFamily={"GT Medium"} fontSize={'15px'}>Email:</Typography>
+                                           <Typography fontFamily={"GT Light"} fontSize={'15px'}>{item.vendor_email}</Typography>
+                                       </Box>
+
+                                       <Box display={'flex'} gap={'5px'}>
+                                           <Typography fontFamily={"GT Medium"} fontSize={'15px'}>Amount:</Typography>
+                                           <Typography fontFamily={"GT Light"} fontSize={'15px'}>{new Intl.NumberFormat(currencyLocaleMap[item.currency] || 'en-KE', {style:'currency', currency:item.currency}).format(item.payment_amount)}</Typography>
+                                       </Box>
+
+                                       <Box display={'flex'} gap={'5px'}>
+                                           <Typography fontFamily={"GT Medium"} fontSize={'15px'}>Payment Date:</Typography>
+                                           <Typography fontFamily={"GT Light"} fontSize={'15px'}>{item.payment_date}</Typography>
+                                       </Box>
                                     </CardContent>
                                 </Card>
                             ))}

@@ -8,7 +8,7 @@ import { format, parseISO } from 'date-fns';
 import { useNavigate } from "react-router-dom";
 
 
-const ReportLayout = () => {
+const ReportLayout = ({ piechart }) => {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
   const componentRef = useRef();
@@ -230,10 +230,10 @@ const ReportLayout = () => {
 
             <Box
               display="flex"
+              justifyContent={'center'}
               mt="20px"
-              flexDirection={{ xs: "column", sm: "column", md: "row" }}
+              flexDirection={{ xs: "column", md: "row" }}
               gap={2}
-              justifyContent="center" // Center-aligns the content
             >
               {/* Expenses Card */}
               <Card
@@ -273,6 +273,7 @@ const ReportLayout = () => {
                       <Box
                         display="flex"
                         justifyContent="space-between"
+                        gap={'80px'}
                         key={`${account.id}-${name}`}
                         onClick={() => handleNameClick(name)}
                         sx={{ cursor: 'pointer', mb: 1 }}
@@ -352,6 +353,7 @@ const ReportLayout = () => {
                       <Box
                         display="flex"
                         justifyContent="space-between"
+                        gap={'80px'}
                         key={`${account.id}-${name}`}
                         onClick={() => handleNameClick(name)}
                         sx={{ cursor: 'pointer', mb: 1 }}

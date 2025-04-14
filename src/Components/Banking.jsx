@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Button, Card, CardContent,Pagination,TextField, useMediaQuery, } from "@mui/material";
+import { Card, CardContent,Pagination,useMediaQuery, } from "@mui/material";
 import { Box, Typography, Select, MenuItem, FormControl, InputLabel} from "@mui/material";
 import { DataGrid, GridToolbar } from "@mui/x-data-grid";
 import { useNavigate } from "react-router-dom";
@@ -7,12 +7,8 @@ import { useNavigate } from "react-router-dom";
 function Banking() {
     const [customers,setCustomers]=useState([])
     const [payementsreceived, setPaymentsRceived] = useState([])
-    const [banks,setBanks] = useState([])
     const [payments,setPayments] = useState([])
-    const [deposit,setDeposit] = useState([])
-    const [funds,setFunds] = useState([])
     const [vendors,setVendors] = useState([]);
-    const [currentPage, setCurrentPage] = useState(1)
     const [currentInPage, setCurrentInPage] = useState(1)
     const [currentOutPage, setCurrentOutPage] = useState(1)
     const [currentInvoicePage, setCurrentInvoicePage] = useState(1)
@@ -21,155 +17,7 @@ function Banking() {
     const [invoices, setInvoices] = useState([]);
     const [selectedCurrency, setSelectedCurrency] = useState("KES"); 
     const [filteredReceivables, setFilteredReceivables] = useState([]);
-    const [bankAccounts, setBankAccounts] = useState([])
     const token = localStorage.getItem('access_token')
-    const [newItem, setNewItem] = useState({
-      bank_name: "",
-      bank_details: "",
-      currency:"",
-      amount:"",
-  })
-
-    const [formDepositData, setFormDepositData] = useState({
-      bank_name: "",
-      bank_details: "",
-      deposit_from:"",
-      currency : "",
-      amount : "",
-      bank_charges:"",
-      date : "",
-  })
-
-    function handleNewItemChange(event) {
-      const { name, value } = event.target;
-      const upperCasedValue = name === 'bank_name' ? value.toUpperCase() : value;
-      setNewItem(prevNewItem => ({
-          ...prevNewItem,
-          [name]: upperCasedValue
-      }));
-  }
-    
-    function handleDepositChange(event) {
-      const { name, value } = event.target;
-      const upperCasedValue = name === 'bank_name' ? value.toUpperCase() : value;
-      setFormDepositData(prevFormData => ({
-          ...prevFormData,
-          [name]: upperCasedValue
-      }));
-  }
-
-    function handleSubmit(event){
-        event.preventDefault()
-
-        fetch('https://demo-server-757m.onrender.com/bankaccounts',{
-            method:"POST",
-            headers:{
-                'Content-Type':'application/json',
-                'Authorization':`Bearer ${token}`
-            },
-            body:JSON.stringify(newItem),
-            credentials:'include'
-        })
-        .then(response => response.json())
-        .then( (data) => {
-            console.log(data)
-
-            fetch('https://demo-server-757m.onrender.com/bankaccounts', {
-              method:'GET',
-              headers:{
-                  'Authorization':`Bearer ${token}`
-              },
-              credentials:'include'
-            })
-            .then(response => response.json())
-            .then(data => {
-              const formattedPayment = data.map((payments) => ({
-                ...payments,
-                amount: new Intl.NumberFormat().format(payments.amount)
-            }))
-                setBankAccounts(formattedPayment);
-            })
-
-            setNewItem({
-                bank_name: "",
-                bank_details: "",
-                currency:"",
-                amount:"",
-            })
-        })
-    }
-
-    function handleDepositSubmit(event) {
-      event.preventDefault();
-  
-      console.log('Submitting deposit data:', formDepositData);
-      fetch('https://demo-server-757m.onrender.com/deposits', {
-          method: "POST",
-          headers: {
-              'Content-Type': 'application/json',
-              'Authorization':`Bearer ${token}`
-          },
-          body: JSON.stringify(formDepositData),
-          credentials:'include'
-      })
-      .then(response => response.json())
-      .then(data => {
-
-        fetch('https://demo-server-757m.onrender.com/bankaccounts', {
-          method:'GET',
-          headers:{
-            'Authorization':`Bearer ${token}`
-          },
-          credentials:'include'
-        })
-        .then(response => response.json())
-        .then(data => {
-          const formattedPayment = data.map((payments) => ({
-            ...payments,
-            amount: new Intl.NumberFormat().format(payments.amount)
-          }))
-              setBankAccounts(formattedPayment);
-        })
-        
-          console.log('Deposit data response:', data);
-  
-          if (formDepositData.bank_details) {
-              const selectedBank = banks.find(bank => bank.bank_details === formDepositData.bank_details);
-              if (selectedBank) {
-                  const updatedAmount = parseFloat(selectedBank.amount) - (parseFloat(formDepositData.amount) + parseFloat(formDepositData.bank_charges || 0));
-                  console.log('Updating bank with amount:', updatedAmount);
-  
-                  fetch(`https://demo-server-757m.onrender.com/bankaccounts/${selectedBank.id}`, {
-                      method: "PATCH",
-                      headers: {
-                          "Content-Type": "application/json",
-                          'Authorization':`Bearer ${token}`
-                      },
-                      body: JSON.stringify({
-                          amount: updatedAmount
-                      }),
-                      credentials:'include'
-                  })
-                  .then(response => response.json())
-                  .then(updatedBank => {
-                      console.log('Bank updated successfully:', updatedBank);
-                  })
-                  .catch(error => console.error('Error updating bank:', error));
-              }
-          }
-  
-          setFormDepositData({
-              bank_name: "",
-              deposit_from: "",
-              currency: "",
-              bank_charges: "",
-              amount: "",
-              date: "",
-          });
-      })
-      .catch(error => console.error('Error submitting deposit:', error));
-  }
-
     const navigate = useNavigate()
 
     useEffect(() => {
@@ -206,26 +54,11 @@ function Banking() {
           .then((data) => {
               const formattedPayment = data.map((payments) => ({
                   ...payments,
-                  payment_amount: new Intl.NumberFormat().format(payments.payment_amount)
+                  payment_amount: payments.payment_amount
               }))
               setPayments(formattedPayment)})
   }, [token]);
 
-
-    useEffect(() => {
-      fetch('https://demo-server-757m.onrender.com/bankaccounts',{
-          method:'GET',
-          headers:{
-            'Authorization':`Bearer ${token}`
-          },
-          credentials:'include'
-      })
-          .then(response => response.json())
-          .then(data => {
-              setBanks(data);
-          })
-          .catch(error => console.error('Error fetching bills:', error));
-  }, [token]);
 
   useEffect(() => {
     fetch('https://demo-server-757m.onrender.com/customers',{
@@ -268,28 +101,8 @@ useEffect(() => {
 }, [token]);
 
 
-  
   useEffect(() => {
-    fetch('https://demo-server-757m.onrender.com/bankaccounts',{
-          method:'GET',
-          headers:{
-            'Authorization':`Bearer ${token}`
-          },
-          credentials:'include'
-    })
-        .then(response => response.json())
-        .then(data => {
-          const formattedPayment = data.map((payments) => ({
-            ...payments,
-            amount: new Intl.NumberFormat().format(payments.amount)
-        }))
-            setBankAccounts(formattedPayment);
-        })
-        .catch(error => console.error('Error fetching bills:', error));
-}, [token]);
-
-  useEffect(() => {
-    fetch('https://demo-server-757m.onrender.compaymentsreceived',{
+    fetch('https://demo-server-757m.onrender.com/paymentsreceived',{
           method:'GET',
           headers:{
             'Authorization':`Bearer ${token}`
@@ -302,44 +115,6 @@ useEffect(() => {
         })
         .catch(error => console.error('Error fetching bills:', error));
 }, [token]);
-
-  useEffect(() => {
-    fetch('https://demo-server-757m.onrender.com/funds',{
-          method:'GET',
-          headers:{
-            'Authorization':`Bearer ${token}`
-          },
-          credentials:'include'
-    })
-        .then(response => response.json())
-        .then(data => {
-            setDeposit(data);
-        })
-        .catch(error => console.error('Error fetching funds:', error));
-  }, [token]);
-
-  useEffect(() => {
-    fetch('https://demo-server-757m.onrender.com/funds',{
-          method:'GET',
-          headers:{
-            'Authorization':`Bearer ${token}`
-          },
-          credentials:'include'
-    })
-      .then(response => response.json())
-      .then(data => {
-        console.log(data); // Check the structure of the fetched data
-        const pettycash = data.filter(cash => cash.fund_name === 'Petty Cash');
-        setFunds(pettycash);
-      })
-      .catch(error => console.error('Error fetching funds:', error));
-  }, [token]);
-
-    // Ensure funds is not empty before accessing its elements
-    const fund = funds[0] || {};
-
-    const pettyFund = new Intl.NumberFormat().format(fund.amount || 0);
-    const pettyName = (fund.fund_name || '').toUpperCase();
 
     //Calculate Paid Revenue
     const calculatePaidCustomerAmount = (items) => items.reduce((total, item) => total + (item.amount_paid || 0), 0);
@@ -524,44 +299,6 @@ useEffect(() => {
     const handleViewDetails = (invoiceId) => {
         navigate(`/invoices/${invoiceId}`);
       };
-
-    function handleSelectBank(event) {
-      const selectedValue = event.target.value;
-      
-      const selectedCustomer = banks.find(customer => customer.bank_details === selectedValue);
-      
-      if (selectedCustomer) {
-          setFormDepositData(prevFormDepositData => ({
-              ...prevFormDepositData,
-              bank_name: selectedCustomer.bank_name,
-              bank_details: selectedCustomer.bank_details,
-              currency: selectedCustomer.currency,
-          }));
-      }
-  }
-    
-    const bankcolumns = [
-      {
-        field: "bank_name",
-        headerName: "Bank Name",
-        flex: 0.5,
-      },
-      {
-        field: "bank_details",
-        headerName: "Bank Details",
-        flex: 0.5,
-      },
-      {
-        field: "amount",
-        headerName: "Amount",
-        flex: 0.2,
-      },
-      {
-        field: "currency",
-        headerName: "Currency",
-        flex: 0.2,
-      }
-    ]
     
     const columns = [
         { field: "id", headerName: "ID", flex: 0.2 },
@@ -694,7 +431,12 @@ useEffect(() => {
         },
     ]
 
-    const transactioncolumns = [
+    function handlePayment(madeId){
+      navigate(`/payment-report/${madeId}`)
+  }
+
+  const transactioncolumns = [
+      { field: "id", headerName: "ID", flex: 0.05 },
       {
         field: "customer_name",
         headerName: "CUSTOMER NAME",
@@ -702,79 +444,186 @@ useEffect(() => {
         cellClassName: "name-column--cell",
         flex: 0.3,
         align: "left",
+        renderCell: (params) => (
+          <Box 
+          sx={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            cursor: 'pointer', 
+          }}
+          onClick={() => handlePayment(params.row.id)}
+        >
+          <Typography
+              variant="h7"
+          >
+            {params.value}
+          </Typography>
+        </Box>
+        ),
+      },
+      {
+          field: "customer_email",
+          headerName: "Customer Email",
+          flex: 0.3,
+          renderCell: (params) => (
+              <Box 
+              sx={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                cursor: 'pointer', 
+              }}
+              onClick={() => handlePayment(params.row.id)}
+            >
+              <Typography
+                  variant="h7"
+              >
+                {params.value}
+              </Typography>
+            </Box>
+            ),
+      },
+      {
+          field: "customer_phone",
+          headerName: "Customer Phone",
+          flex: 0.2,
+          renderCell: (params) => (
+              <Box 
+              sx={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                cursor: 'pointer', 
+              }}
+              onClick={() => handlePayment(params.row.id)}
+            >
+              <Typography
+                  variant="h7"
+              >
+                {params.value}
+              </Typography>
+            </Box>
+            ),
+      },
+      {
+          field: "currency",
+          headerName: "Currency",
+          flex: 0.15,
+          renderCell: (params) => (
+              <Box 
+              sx={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                cursor: 'pointer', 
+              }}
+              onClick={() => handlePayment(params.row.id)}
+            >
+              <Typography
+                  variant="h7"
+              >
+                {params.value}
+              </Typography>
+            </Box>
+            ),
       },
       {
         field: "amount_received",
         headerName: "AMOUNT RECEIVED",
-        flex: 0.17,
-      },
-      {
-        field: "bank_charges",
-        headerName: "BANK CHARGES",
-        flex: 0.12,
+        flex: 0.2,
+        renderCell: (params) => {
+          // Use Intl.NumberFormat for currency formatting
+          const formattedAmount = new Intl.NumberFormat(currencyLocaleMap[params.row.currency] || 'en-KE', {
+            style: 'currency',
+            currency: params.row.currency, // Replace with your desired currency
+          }).format(params.value);
+      
+          return (
+            <Box 
+              sx={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                cursor: 'pointer', 
+              }}
+            >
+              <Typography variant="h7">
+                {formattedAmount}  {/* Display formatted amount */}
+              </Typography>
+            </Box>
+          );
+        },
       },
       {
         field: "payment_date",
         headerName: "PAYMENT DATE",
-        flex: 0.12,
-      },
-      {
-        field: "deposit_to",
-        headerName: "DEPOSIT",
-        flex: 0.1,
+        flex: 0.15,
       },
       {
         field: "payment_mode",
         headerName: "PAYMENT MODE",
-        flex: 0.15,
-      },
-      {
-        field: "bank_name",
-        headerName: "Bank Name",
         flex: 0.2,
-      },
-      {
-        field: "bank_details",
-        headerName: "Bank Name",
-        flex: 0.25,
       },
     ];
 
-    const transactionoutcolumns = [
-      // { field: "id", headerName: "ID", flex: 0.2 },
-      {
-        field: "vendor_name",
-        headerName: "Vendor Name",
-        flex: 0.35,
-        cellClassName: "name-column--cell",
-      },
-      {
-        field: "payment_amount",
-        headerName: "Amount Paid",
-        flex: 0.15,
-      },
-      {
-        field: "deposit_to",
-        headerName: "PAID WITH",
+  const transactionoutcolumns = [
+    { field: "id", headerName: "ID", flex: 0.05 },
+    {
+      field: "vendor_name",
+      headerName: "VENDOR NAME",
+      headerAlign: "left",
+      cellClassName: "name-column--cell",
+      flex: 0.3,
+      align: "left",
+    },
+    {
+        field: "vendor_email",
+        headerName: "VENDOR EMAIL",
+        flex: 0.3,
+    },
+    {
+        field: "vendor_phone",
+        headerName: "VENDOR PHONE",
         flex: 0.2,
-      },
-      {
-        field: "bank_name",
-        headerName: "Bank Name",
-        flex: 0.25,
-      },
-      {
-        field: "payment_date",
-        headerName: "Date",
+    },
+    {
+        field: "currency",
+        headerName: "CURRENCY",
         flex: 0.15,
+    },
+    {
+      field: "payment_amount",
+      headerName: "AMOUNT RECEIVED",
+      flex: 0.2,
+      renderCell: (params) => {
+        // Use Intl.NumberFormat for currency formatting
+        const formattedAmount = new Intl.NumberFormat(currencyLocaleMap[params.row.currency] || 'en-KE', {
+          style: 'currency',
+          currency: params.row.currency, // Replace with your desired currency
+        }).format(params.value);
+    
+        return (
+          <Box 
+            sx={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              cursor: 'pointer', 
+            }}
+          >
+            <Typography variant="h7">
+              {formattedAmount}  {/* Display formatted amount */}
+            </Typography>
+          </Box>
+        );
       },
-      {
-          field: "payment_mode",
-          headerName: "Payment Mode",
-          flex: 0.2,
-      },
-      
-  ]
+    },
+    {
+      field: "payment_date",
+      headerName: "PAYMENT DATE",
+      flex: 0.15,
+    },
+    {
+      field: "payment_mode",
+      headerName: "PAYMENT MODE",
+      flex: 0.2,
+    },
+  ];
 
   const currencyLocaleMap = {
     AED: "en-AE", // United Arab Emirates Dirham
@@ -800,9 +649,6 @@ useEffect(() => {
     BRL: "pt-BR", // Brazilian Real
   };
 
-  const totalPages = Math.ceil(bankAccounts.length / itemsPerPage)
-  const displayedItems = bankAccounts.slice((currentPage - 1)*itemsPerPage, currentPage * itemsPerPage)
-
   const totalInPages = Math.ceil(payementsreceived.length / itemsPerPage)
   const displayedInItems = payementsreceived.slice((currentInPage - 1)*itemsPerPage, currentInPage * itemsPerPage)
 
@@ -815,10 +661,6 @@ useEffect(() => {
 
   const handleInPageChange = (event, value) => {
       setCurrentInPage(value);
-  };
-
-  const handlePageChange = (event, value) => {
-    setCurrentPage(value);
   };
 
   const handleOutPageChange = (event, value) => {
@@ -927,272 +769,15 @@ useEffect(() => {
 
             </Card>
 
-            <Card
-                sx={{
-                  borderRadius: '15px',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  height: 'auto', // Adjust height for better flexibility
-                  boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
-                  padding: '10px',
-                  margin: '30px',
-                  backgroundColor: '#fff',
-                  transition: 'transform 0.3s ease-in-out',
-                  '&:hover': {
-                      transform: 'scale(1.03)',
-                      boxShadow: '0 8px 30px rgba(0,0,0,0.15)',
-                  },
-                }}
-            >
-
-                <CardContent sx={{display:'flex', flexDirection:'column'}}>
-                  <Typography fontWeight={'bold'} textAlign={'center'}>{pettyName}</Typography>
-                  <Typography textAlign={'center'}>{pettyFund}</Typography>
-                </CardContent>
-
-            </Card>
-
           </Box>
-
-          <Box
-            display={'grid'}
-            gridTemplateColumns={{xs:'repeat(1,1fr)', sm:'repeat(2,1fr)'}}
-            gap="10px"
-            margin="0 10px"
-          >
-        
-            <Card
-                sx={{
-                  borderRadius: '15px',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  height: 'auto', // Adjust height for better flexibility
-                  boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
-                  padding: '10px',
-                  margin: '30px',
-                  backgroundColor: '#fff',
-                  transition: 'transform 0.3s ease-in-out',
-                  '&:hover': {
-                      transform: 'scale(1.03)',
-                      boxShadow: '0 8px 30px rgba(0,0,0,0.15)',
-                  },
-                }}
-            >
-                <Typography  variant="h6" color="black" fontWeight="bold" mt="30px" textAlign={'center'}>
-                    CREATE NEW ACCOUNT
-                </Typography>
-
-                <Box
-                   sx={{
-                    borderRadius: '15px',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    height: 'auto', // Adjust height for better flexibility
-                    padding: '10px',
-                    backgroundColor: '#fff',
-                    // Media queries for responsive design
-                    '@media (max-width: 600px)': {
-                    padding: '5px', // Adjust padding for smaller screens
-                    },
-                    '@media (min-width: 600px)': {
-                    padding: '10px', // Keep padding for medium screens and above
-                    },
-                }}
-                >
-                    <form style={{display:'flex', flexDirection:'column', margin:'20px'}} onSubmit={handleSubmit}>
-
-                          <TextField
-                            type="text"
-                            name="bank_name"
-                            value={newItem.bank_name}
-                            label="Bank Name"
-                            onChange={handleNewItemChange}
-                            variant="outlined"
-                            sx={{marginBottom:'20px'}}
-                          />
-
-                        <TextField
-                          type="text"
-                          name="bank_details"
-                          value={newItem.bank_details}
-                          label="Account Name"
-                          onChange={handleNewItemChange}
-                          variant="outlined"
-                          sx={{marginBottom:'20px'}}
-                        />
-
-                      <FormControl>
-                        <Typography fontWeight={'bold'}>CURRENCY</Typography>
-                        <Select
-                          value={newItem.currency}
-                          name="currency"
-                          onChange={handleNewItemChange}
-                          className="bill-inputfield"
-                          sx={{mb:'20px'}}
-                        >
-                          <MenuItem value="">Select Currency</MenuItem>
-                          {currencyOptions.map((option) => (
-                            <MenuItem key={option.code} value={option.code}>
-                              {option.label}
-                            </MenuItem>
-                          ))}
-                        </Select>
-                        
-                      </FormControl>
-
-                        <TextField
-                          type="text"
-                          name="amount"
-                          value={newItem.amount}
-                          placeholder="Amount"
-                          className="bill-inputfield"
-                          onChange={handleNewItemChange}
-                          variant="outlined"
-                          sx={{mb:'20px'}}
-                        />
-
-                      <Button type="submit" variant="contained" color="secondary">Create Bank Account</Button>
-                    </form>
-                </Box>
-
-            </Card>
-
-            <Card
-              sx={{
-                borderRadius: '15px',
-                display: 'flex',
-                flexDirection: 'column',
-                height: 'auto', // Adjust height for better flexibility
-                boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
-                padding: '10px',
-                margin: '30px',
-                backgroundColor: '#fff',
-                
-              }}
-            >
-              {isMobile ? (
-                 <Box>
-                 <Typography fontSize={'27px'} fontWeight={'bold'} textAlign={'center'}>BANKS</Typography>
-                 <Box
-                     display={'grid'}
-                     gridTemplateColumns={{xs:'repeat(1,1fr)', sm:'repeat(2,1fr)'}}
-                     gap="10px"
-                     margin="0 10px"
-                 >
- 
-                     {displayedItems.map((item) => (
-                         <Card
-                             key={item.id}
-                             onClick={() => handleViewDetails(item.invoice_number)}
-                             sx={{
-                                 borderRadius: '15px',
-                                 display: 'flex',
-                                 flexDirection: 'column',
-                                 height: 'auto', // Adjust height for better flexibility
-                                 boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
-                                 padding: '10px',
-                                 backgroundColor: '#fff',
-                                 transition: 'transform 0.3s ease-in-out',
-                                 '&:hover': {
-                                     transform: 'scale(1.03)',
-                                     boxShadow: '0 8px 30px rgba(0,0,0,0.15)',
-                                 },
-                             }}
-                         >
-                             <CardContent>
-                                         <Box display={'flex'} gap={'7px'}>
-                                             <Typography>Bank Name:</Typography>
-                                             <Typography fontWeight={'bold'}>{item.bank_name}</Typography>
-                                         </Box>
- 
-                                         <Box display={'flex'} gap={'7px'}>
-                                             <Typography>Account Name:</Typography>
-                                             <Typography  fontWeight={'bold'}>{item.bank_details}</Typography>
-                                         </Box>
- 
-                                         <Box display={'flex'} gap={'7px'}>
-                                             <Typography>Amount:</Typography>
-                                             <Typography fontWeight={'bold'}>{ new Intl.NumberFormat(currencyLocaleMap[item.currency], {style:'currency', currency:item.currency}).format(item.amount)}</Typography>
-                                         </Box>
- 
-                                         <Box display={'flex'} gap={'7px'}>
-                                             <Typography>Currency:</Typography>
-                                             <Typography fontWeight={'bold'}>{item.currency}</Typography>
-                                         </Box>
- 
-                             </CardContent>
-                         </Card>
-                     ))}
-                     <Box display="flex" justifyContent="center" mt="20px">
-                             <Pagination count={totalPages} page={currentPage} onChange={handlePageChange} color="secondary" />
-                     </Box>
-                 </Box>
-                 </Box>
-              ):(
-
-                <Box>
-                  <Typography fontSize={'20px'} fontWeight={'bold'} textAlign={'center'}>BANKS</Typography>
-                  <Box m="20px">
-                        <Typography 
-                            fontSize='30px'
-                            fontWeight='bold'
-                            textAlign='center'
-                            mt='30px'
-                        >
-                        </Typography>
-                        <Box
-                            // m="40px 0 0 0"
-                            height="52vh"
-                            sx={{
-                            "& .MuiDataGrid-root": {
-                                border: "none",
-                            },
-                            "& .MuiDataGrid-cell": {
-                                borderBottom: "none",
-                                // fontSize: "16px",
-                            },
-                            "& .name-column--cell": {
-                                // color: colors.greenAccent[300],
-                            },
-                            "& .MuiDataGrid-columnHeaders": {
-                                // backgroundColor: colors.blueAccent[700],
-                                borderBottom: "none",
-                                // fontSize: "16px",
-                            },
-                            "& .MuiDataGrid-virtualScroller": {
-                                // backgroundColor: colors.primary[400],
-                            },
-                            "& .MuiDataGrid-footerContainer": {
-                                borderTop: "none",
-                                // backgroundColor: colors.blueAccent[700],
-                            },
-                            "& .MuiCheckbox-root": {
-                                // color: `${colors.greenAccent[200]} !important`,
-                            },
-                            "& .MuiDataGrid-toolbarContainer .MuiButton-text": {
-                                // color: `${colors.grey[100]} !important`,
-                            },
-                            }}
-                        >
-                            <DataGrid
-                            rows={bankAccounts}
-                            columns={bankcolumns}
-                            components={{ Toolbar: GridToolbar }}
-                            getRowId={(row) => row.id}
-                            />
-                        </Box>
-                  </Box>
-                </Box>
-              )}
-            </Card>
-
-            </Box>
 
             <Box
               display={'grid'}
               gridTemplateColumns={{xs:'repeat(1,1fr)', sm:'repeat(1,1fr)'}}
               gap="10px"
               margin="0 10px"
+              paddingBottom={'30px'}
+
             >
             <Card
                 sx={{
@@ -1202,8 +787,9 @@ useEffect(() => {
                   height: 'auto', // Adjust height for better flexibility
                   boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
                   padding: '10px',
-                  margin: '30px',
+                  margin: {xs:"0px", md:'30px'},
                   backgroundColor: '#fff',
+                  paddingBottom:'30px'
                   
                 }}
               >
@@ -1226,7 +812,6 @@ useEffect(() => {
                                                   flexDirection: 'column',
                                                   height: 'auto', // Adjust height for better flexibility
                                                   boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
-                                                  padding: '10px',
                                                   backgroundColor: '#fff',
                                                   transition: 'transform 0.3s ease-in-out',
                                                   '&:hover': {
@@ -1237,38 +822,38 @@ useEffect(() => {
                                           >
                                               <CardContent>
                                                       <Box display={'flex'} gap={'5px'}>
-                                                          <Typography>Customer Name:</Typography>
-                                                          <Typography fontWeight={'bold'}>{item.customer_name}</Typography>
+                                                          <Typography fontFamily={"GT Medium"} fontSize={'15px'}>Name:</Typography>
+                                                          <Typography fontFamily={"GT Light"} fontSize={'15px'}>{item.customer_name}</Typography>
                                                       </Box>
 
                                                       <Box display={'flex'} gap={'5px'}>
-                                                          <Typography>Customer Phone:</Typography>
-                                                          <Typography fontWeight={'bold'}>{item.customer_phone}</Typography>
+                                                          <Typography fontFamily={"GT Medium"} fontSize={'15px'}>Phone No:</Typography>
+                                                          <Typography fontFamily={"GT Light"} fontSize={'15px'}>{item.customer_phone}</Typography>
                                                       </Box>
 
                                                       <Box display={'flex'} gap={'5px'}>
-                                                          <Typography>Customer Email:</Typography>
-                                                          <Typography fontWeight={'bold'}>{item.customer_email}</Typography>
+                                                          <Typography fontFamily={"GT Medium"} fontSize={'15px'}>Email:</Typography>
+                                                          <Typography fontFamily={"GT Light"} fontSize={'15px'}>{item.customer_email}</Typography>
                                                       </Box>
 
                                                       <Box display={'flex'} gap={'5px'}>
-                                                          <Typography>Amount Received:</Typography>
-                                                          <Typography fontWeight={'bold'}>{new Intl.NumberFormat(currencyLocaleMap[item.currency] || 'en-KE', {style:'currency', currency:item.currency}).format(item.amount_received)}</Typography>
+                                                          <Typography fontFamily={"GT Medium"} fontSize={'15px'}>Amount Received:</Typography>
+                                                          <Typography fontFamily={"GT Light"} fontSize={'15px'}>{new Intl.NumberFormat(currencyLocaleMap[item.currency] || 'en-KE', {style:'currency', currency:item.currency}).format(item.amount_received)}</Typography>
                                                       </Box>
 
                                                       <Box display={'flex'} gap={'5px'}>
-                                                          <Typography>Bank Charges:</Typography>
-                                                          <Typography fontWeight={'bold'}>{item.bank_charges}</Typography>
+                                                          <Typography fontFamily={"GT Medium"} fontSize={'15px'}>Bank Charges:</Typography>
+                                                          <Typography fontFamily={"GT Light"} fontSize={'15px'}>{item.bank_charges}</Typography>
                                                       </Box>
 
                                                       <Box display={'flex'} gap={'5px'}>
-                                                          <Typography>Payment Date:</Typography>
-                                                          <Typography fontWeight={'bold'}>{item.payment_date}</Typography>
+                                                          <Typography fontFamily={"GT Medium"} fontSize={'15px'}>Payment Date:</Typography>
+                                                          <Typography fontFamily={"GT Light"} fontSize={'15px'}>{item.payment_date}</Typography>
                                                       </Box>
 
                                                       <Box display={'flex'} gap={'5px'}>
-                                                          <Typography>Payment Mode:</Typography>
-                                                          <Typography fontWeight={'bold'}>{item.payment_mode}</Typography>
+                                                          <Typography fontFamily={"GT Medium"} fontSize={'15px'}>Payment Mode:</Typography>
+                                                          <Typography fontFamily={"GT Light"} fontSize={'15px'}>{item.payment_mode}</Typography>
                                                       </Box>
                                               </CardContent>
                                           </Card>
@@ -1278,72 +863,39 @@ useEffect(() => {
                                       </Box>
                                   </Box>
                                 </Box>
-                ):(
-                  <Box>
-                  <Typography fontSize={'25px'} fontWeight={'bold'} textAlign={'center'}>TRANSACTIONS IN</Typography>
-                  <Box m="20px">
-                        <Typography 
-                            fontSize='30px'
-                            fontWeight='bold'
-                            textAlign='center'
-                            mt='30px'
-                        >
-                        </Typography>
-                        <Box
-                            // m="40px 0 0 0"
-                            height="68vh"
-                            sx={{
-                            "& .MuiDataGrid-root": {
-                                border: "none",
-                            },
-                            "& .MuiDataGrid-cell": {
-                                borderBottom: "none",
-                                // fontSize: "16px",
-                            },
-                            "& .name-column--cell": {
-                                // color: colors.greenAccent[300],
-                            },
-                            "& .MuiDataGrid-columnHeaders": {
-                                // backgroundColor: colors.blueAccent[700],
-                                borderBottom: "none",
-                                // fontSize: "16px",
-                            },
-                            "& .MuiDataGrid-virtualScroller": {
-                                // backgroundColor: colors.primary[400],
-                            },
-                            "& .MuiDataGrid-footerContainer": {
-                                borderTop: "none",
-                                // backgroundColor: colors.blueAccent[700],
-                            },
-                            "& .MuiCheckbox-root": {
-                                // color: `${colors.greenAccent[200]} !important`,
-                            },
-                            "& .MuiDataGrid-toolbarContainer .MuiButton-text": {
-                                // color: `${colors.grey[100]} !important`,
-                            },
-                            }}
-                        >
-                            <DataGrid
-                            rows={payementsreceived}
-                            columns={transactioncolumns}
-                            components={{ Toolbar: GridToolbar }}
-                            getRowId={(row) => row.id}
-                            />
-                        </Box>
-                  </Box>
-                  </Box>
-                )}
-               
-        
-            </Card>
+
+                                ):(
+                                  <Box>
+                                  <Typography fontSize={'25px'} fontWeight={'bold'} textAlign={'center'}>TRANSACTIONS IN</Typography>
+                                  <Box m="20px">
+                                        <Typography 
+                                            fontSize='30px'
+                                            fontWeight='bold'
+                                            textAlign='center'
+                                            mt='30px'
+                                        >
+                                        </Typography>
+                                      <Box>
+                                          <DataGrid
+                                            rows={payementsreceived}
+                                            columns={transactioncolumns}
+                                            components={{ Toolbar: GridToolbar }}
+                                            getRowId={(row) => row.id}
+                                        />
+                                      </Box>
+                                  </Box>
+                                  </Box>
+                                )}
+                    </Card>
 
             </Box>
 
             <Box
               display={'grid'}
-              gridTemplateColumns={{xs:'repeat(1,1fr)', sm:'repeat(2,1fr)'}}
+              gridTemplateColumns={{xs:'repeat(1,1fr)', sm:'repeat(1,1fr)'}}
               gap="10px"
               margin="0 10px"
+              paddingBottom={'30px'}
             >
             
             <Card
@@ -1354,122 +906,10 @@ useEffect(() => {
                   height: 'auto', // Adjust height for better flexibility
                   boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
                   padding: '10px',
-                  margin: '30px',
+                  margin: {xs:"0px", md:'30px'},
                   backgroundColor: '#fff',
-                }}
-            >
-                <Typography  variant="h6" color="black" fontWeight="bold" mt="20px" textAlign={'center'}>
-                    WITHDRAW FROM BANK
-                </Typography>
-
-                <Box
-                   sx={{
-                    borderRadius: '15px',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    height: 'auto', // Adjust height for better flexibility
-                    padding: '10px',
-                    backgroundColor: '#fff',
-                    // Media queries for responsive design
-                    '@media (max-width: 600px)': {
-                    padding: '5px', // Adjust padding for smaller screens
-                    },
-                    '@media (min-width: 600px)': {
-                    padding: '10px', // Keep padding for medium screens and above
-                    },
-                }}
-                >
-                <form style={{display:'flex', flexDirection:'column', margin:'20px'}} onSubmit={handleDepositSubmit}>
-
-
-                  <FormControl>
-                        <Typography fontWeight={'bold'}>BANK ACCOUNT</Typography>
-                        <Select name="bank_details" value={formDepositData.bank_details} sx={{mb:'20px'}} onChange={handleSelectBank}>
-                          <MenuItem value="">Select Bank Account</MenuItem>
-                          {banks.map((bank,index) => (
-                          <MenuItem key={index} value={bank.bank_details}>{bank.bank_details}</MenuItem>
-                          ))}
-                        </Select>
-                    </FormControl>
-
-                        <TextField
-                            type="text"
-                            name="bank_name"
-                            value={formDepositData.bank_name}
-                            label="Bank Name"
-                            onChange={handleDepositChange}
-                            inputProps={{readOnly:true}}
-                            variant="outlined"
-                            sx={{mb:'20px'}}
-                        />
-
-                    {/* {formDepositData.bank_name.id === formDepositData.} */}
-                    <FormControl>
-                        <Typography fontWeight={'bold'}>DEPOSIT TO</Typography>
-                        <Select name="deposit_from" value={formDepositData.deposit_from} sx={{mb:'20px'}} onChange={handleDepositChange}>
-                          <MenuItem value="">Select</MenuItem>
-                          {deposit.map((bank,index) => (
-                          <MenuItem key={index} value={bank.fund_name}>{bank.fund_name}</MenuItem>
-                          ))}
-                        </Select>
-                    </FormControl>
-
-                        <TextField
-                            type="text"
-                            name="currency"
-                            value={formDepositData.currency}
-                            label="Currency"
-                            onChange={handleDepositChange}
-                            inputProps={{readOnly:true}}
-                            variant="outlined"
-                            sx={{mb:'20px'}}
-                        />
-
-                        <TextField
-                            type="number"
-                            name="bank_charges"
-                            value={formDepositData.bank_charges}
-                            label="Bank Charges"
-                            onChange={handleDepositChange}
-                            variant="outlined"
-                            sx={{mb:'20px'}}
-                        />
-
-                        <TextField
-                            type="number"
-                            name="amount"
-                            value={formDepositData.amount}
-                            label="Amount"
-                            onChange={handleDepositChange}
-                            variant="outlined"
-                            sx={{mb:'20px'}}
-                        />
-
-                        <Typography>DATE</Typography>
-                        <TextField
-                            type="date"
-                            name="date"
-                            value={formDepositData.date}
-                            onChange={handleDepositChange}
-                            variant="outlined"
-                            sx={{mb:'20px'}}
-                        />
-
-                    <Button type="submit" color="secondary" variant="contained">DEPOSIT MONEY</Button>
-                </form>
-                </Box>
-            </Card>
-            
-            <Card
-                sx={{
-                  borderRadius: '15px',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  height: 'auto', // Adjust height for better flexibility
-                  boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
-                  padding: '10px',
-                  margin: '30px',
-                  backgroundColor: '#fff',
+                  paddingBottom:'20px'
+                  
                 }}
               >
 
@@ -1503,33 +943,33 @@ useEffect(() => {
                            >
                                <CardContent>
                                        <Box display={'flex'} gap={'5px'}>
-                                           <Typography>Vendor Name:</Typography>
-                                           <Typography fontWeight={'bold'}>{item.vendor_name}</Typography>
+                                           <Typography fontFamily={"GT Medium"} fontSize={'15px'}>Name:</Typography>
+                                           <Typography fontFamily={"GT Light"} fontSize={'15px'}>{item.vendor_name}</Typography>
                                        </Box>
 
                                        <Box display={'flex'} gap={'5px'}>
-                                           <Typography>Vendor Phone:</Typography>
-                                           <Typography fontWeight={'bold'}>{item.vendor_phone}</Typography>
+                                           <Typography fontFamily={"GT Medium"} fontSize={'15px'}>Vendor Phone:</Typography>
+                                           <Typography fontFamily={"GT Light"} fontSize={'15px'}>{item.vendor_phone}</Typography>
                                        </Box>
 
                                        <Box display={'flex'} gap={'5px'}>
-                                           <Typography>Vendor Email:</Typography>
-                                           <Typography fontWeight={'bold'}>{item.vendor_email}</Typography>
+                                           <Typography fontFamily={"GT Medium"} fontSize={'15px'}>Email:</Typography>
+                                           <Typography fontFamily={"GT Light"} fontSize={'15px'}>{item.vendor_email}</Typography>
                                        </Box>
 
                                        <Box display={'flex'} gap={'5px'}>
-                                           <Typography>Amount:</Typography>
-                                           <Typography fontWeight={'bold'}>{new Intl.NumberFormat(currencyLocaleMap[item.currency] || 'en-KE', {style:'currency', currency:item.currency}).format(item.payment_amount)}</Typography>
+                                           <Typography fontFamily={"GT Medium"} fontSize={'15px'}>Amount:</Typography>
+                                           <Typography fontFamily={"GT Light"} fontSize={'15px'}>{new Intl.NumberFormat(currencyLocaleMap[item.currency] || 'en-KE', {style:'currency', currency:item.currency}).format(item.payment_amount)}</Typography>
                                        </Box>
 
                                        <Box display={'flex'} gap={'5px'}>
-                                           <Typography>Payment Date:</Typography>
-                                           <Typography fontWeight={'bold'}>{item.payment_date}</Typography>
+                                           <Typography fontFamily={"GT Medium"} fontSize={'15px'}>Payment Date:</Typography>
+                                           <Typography fontFamily={"GT Light"} fontSize={'15px'}>{item.payment_date}</Typography>
                                        </Box>
 
                                        <Box display={'flex'} gap={'5px'}>
-                                           <Typography>Payment Mode:</Typography>
-                                           <Typography fontWeight={'bold'}>{item.payment_mode}</Typography>
+                                           <Typography fontFamily={"GT Medium"} fontSize={'15px'}>Payment Mode:</Typography>
+                                           <Typography fontFamily={"GT Light"} fontSize={'15px'}>{item.payment_mode}</Typography>
                                        </Box>
                                </CardContent>
                            </Card>
@@ -1550,45 +990,15 @@ useEffect(() => {
                             mt='30px'
                         >
                         </Typography>
+                        
                         <Box
-                            // m="40px 0 0 0"
-                            height="82vh"
-                            sx={{
-                            "& .MuiDataGrid-root": {
-                                border: "none",
-                            },
-                            "& .MuiDataGrid-cell": {
-                                borderBottom: "none",
-                                // fontSize: "16px",
-                            },
-                            "& .name-column--cell": {
-                                // color: colors.greenAccent[300],
-                            },
-                            "& .MuiDataGrid-columnHeaders": {
-                                // backgroundColor: colors.blueAccent[700],
-                                borderBottom: "none",
-                                // fontSize: "16px",
-                            },
-                            "& .MuiDataGrid-virtualScroller": {
-                                // backgroundColor: colors.primary[400],
-                            },
-                            "& .MuiDataGrid-footerContainer": {
-                                borderTop: "none",
-                                // backgroundColor: colors.blueAccent[700],
-                            },
-                            "& .MuiCheckbox-root": {
-                                // color: `${colors.greenAccent[200]} !important`,
-                            },
-                            "& .MuiDataGrid-toolbarContainer .MuiButton-text": {
-                                // color: `${colors.grey[100]} !important`,
-                            },
-                            }}
+                            height="75vh"
                         >
                             <DataGrid
-                            rows={payments}
-                            columns={transactionoutcolumns}
-                            components={{ Toolbar: GridToolbar }}
-                            getRowId={(row) => row.id}
+                              rows={payments}
+                              columns={transactionoutcolumns}
+                              components={{ Toolbar: GridToolbar }}
+                              getRowId={(row) => row.id}
                             />
                         </Box>
                   </Box>
@@ -1608,6 +1018,7 @@ useEffect(() => {
                   gridTemplateColumns={{xs:'repeat(1,1fr)', sm:'repeat(2,1fr)'}}
                   gap="10px"
                   margin="0 10px"
+                  paddingBottom={'30px'}
               >
 
                   {displayedInvoiceItems.map((item) => (
@@ -1631,38 +1042,38 @@ useEffect(() => {
                       >
                           <CardContent>
                                       <Box display={'flex'} gap={'7px'}>
-                                          <Typography>Customer Name:</Typography>
-                                          <Typography fontWeight={'bold'}>{item.customer_name}</Typography>
+                                          <Typography fontFamily={"GT Medium"} fontSize={'15px'}>Name:</Typography>
+                                          <Typography fontFamily={"GT Light"} fontSize={'15px'}>{item.customer_name}</Typography>
                                       </Box>
 
                                       <Box display={'flex'} gap={'7px'}>
-                                          <Typography>Invoice Number:</Typography>
-                                          <Typography  fontWeight={'bold'}>{item.invoice_number}</Typography>
+                                          <Typography fontFamily={"GT Medium"} fontSize={'15px'}>Invoice Number:</Typography>
+                                          <Typography fontFamily={"GT Light"} fontSize={'15px'}>{item.invoice_number}</Typography>
                                       </Box>
 
                                       <Box display={'flex'} gap={'7px'}>
-                                          <Typography>Amount:</Typography>
-                                          <Typography fontWeight={'bold'}>{ new Intl.NumberFormat('en-KE', {style:'currency', currency:item.currency}).format(item.totalAmount)}</Typography>
+                                          <Typography fontFamily={"GT Medium"} fontSize={'15px'}>Amount:</Typography>
+                                          <Typography fontFamily={"GT Light"} fontSize={'15px'}>{ new Intl.NumberFormat('en-KE', {style:'currency', currency:item.currency}).format(item.totalAmount)}</Typography>
                                       </Box>
 
                                       <Box display={'flex'} gap={'7px'}>
-                                          <Typography>Currency:</Typography>
-                                          <Typography fontWeight={'bold'}>{item.currency}</Typography>
+                                          <Typography fontFamily={"GT Medium"} fontSize={'15px'}>Currency:</Typography>
+                                          <Typography fontFamily={"GT Light"} fontSize={'15px'}>{item.currency}</Typography>
                                       </Box>
 
                                       <Box display={'flex'} gap={'7px'}>
-                                          <Typography>Date:</Typography>
-                                          <Typography fontWeight={'bold'}>{item.invoice_date}</Typography>
+                                          <Typography fontFamily={"GT Medium"} fontSize={'15px'}>Date:</Typography>
+                                          <Typography fontFamily={"GT Light"} fontSize={'15px'}>{item.invoice_date}</Typography>
                                       </Box>
 
                                       <Box display={'flex'} gap={'7px'}>
-                                          <Typography>Status:</Typography>
-                                          <Typography fontWeight={'bold'}>{item.status}</Typography>
+                                          <Typography fontFamily={"GT Medium"} fontSize={'15px'}>Status:</Typography>
+                                          <Typography fontFamily={"GT Light"} fontSize={'15px'}>{item.status}</Typography>
                                       </Box>
 
                                       <Box display={'flex'} gap={'7px'}>
-                                          <Typography>Sales Person:</Typography>
-                                          <Typography fontWeight={'bold'}>{item.sales_person}</Typography>
+                                          <Typography fontFamily={"GT Medium"} fontSize={'15px'}>Sales Person:</Typography>
+                                          <Typography fontFamily={"GT Light"} fontSize={'15px'}>{item.sales_person}</Typography>
                                       </Box>
                           </CardContent>
                       </Card>

@@ -23,7 +23,7 @@ function RetreadTyre(){
     })
 
     useEffect(()=>{
-        fetch('https://demo-server-757m.onrender.com/retreadtyres', {
+        fetch('https://demo-server-757m.onrender.com/usedtyres', {
             method:'GET',
             headers:{
                 'Authorization':`Bearer ${token}`
@@ -32,7 +32,7 @@ function RetreadTyre(){
         })
         .then(response => response.json())
         .then((data) => {
-            const filter = data.filter(item => item.status === 'AVAILABLE')
+            const filter = data.filter(item => item.retread_status === 'AVAILABLE')
             setRetreadTyres(data)
             setAvailableRetreadTyres(filter)
         })
@@ -78,7 +78,7 @@ function RetreadTyre(){
         .then(response => response.json())
         .then((data) => {
 
-            fetch('https://demo-server-757m.onrender.com/retreadtyres', {
+            fetch('https://demo-server-757m.onrender.com/usedtyres', {
                 method:'GET',
                 headers:{
                     'Authorization':`Bearer ${token}`
@@ -87,7 +87,7 @@ function RetreadTyre(){
             })
             .then(response => response.json())
             .then((data) => {
-                const filter = data.filter(item => item.status === 'AVAILABLE')
+                const filter = data.filter(item => item.retread_status === 'AVAILABLE')
                 setRetreadTyres(data)
                 setAvailableRetreadTyres(filter)
             })
@@ -115,7 +115,7 @@ function RetreadTyre(){
             ...prevFormData,
             serial_number : selectedTyre.serial_number,
             size : selectedTyre.size,
-            name : selectedTyre.name,
+            name : selectedTyre.item_details,
         }))
     }
 
@@ -146,7 +146,7 @@ function RetreadTyre(){
 
     const columns = [
         {
-          field: "name",
+          field: "item_details",
           headerName: "ITEM DETAILS",
           flex: 0.2,
           cellClassName: "name-column--cell",
@@ -356,7 +356,7 @@ function RetreadTyre(){
                                     <CardContent>
                                             <Box display={'flex'} gap={'4px'}>
                                                 <Typography>Tyre Name:</Typography>
-                                                <Typography fontWeight={'bold'}>{item.name}</Typography>
+                                                <Typography fontWeight={'bold'}>{item.item_details}</Typography>
                                             </Box>
 
                                             <Box display={'flex'} gap={'4px'}>

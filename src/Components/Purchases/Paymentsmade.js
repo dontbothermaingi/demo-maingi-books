@@ -557,6 +557,7 @@ function PaymentsMade (){
                     {displayedItems.map((item) => (
                         <Card
                             key={item.id}
+                            onClick={() => handlePayment(item.id)}
                             sx={{
                                 borderRadius: '15px',
                                 display: 'flex',
@@ -574,33 +575,33 @@ function PaymentsMade (){
                         >
                             <CardContent>
                                     <Box display={'flex'} gap={'5px'}>
-                                        <Typography>Vendor Name:</Typography>
-                                        <Typography fontWeight={'bold'}>{item.vendor_name}</Typography>
+                                        <Typography fontFamily={"GT Medium"} fontSize={'14px'}>Name:</Typography>
+                                        <Typography fontFamily={"GT Light"} fontSize={'15px'}>{item.vendor_name}</Typography>
                                     </Box>
 
                                     <Box display={'flex'} gap={'5px'}>
-                                        <Typography>Vendor Phone:</Typography>
-                                        <Typography fontWeight={'bold'}>{item.vendor_phone}</Typography>
+                                        <Typography fontFamily={"GT Medium"} fontSize={'15px'}>Phone No:</Typography>
+                                        <Typography fontFamily={"GT Light"} fontSize={'15px'}>{item.vendor_phone}</Typography>
                                     </Box>
 
                                     <Box display={'flex'} gap={'5px'}>
-                                        <Typography>Vendor Email:</Typography>
-                                        <Typography fontWeight={'bold'}>{item.vendor_email}</Typography>
+                                        <Typography fontFamily={"GT Medium"} fontSize={'15px'}>Email:</Typography>
+                                        <Typography fontFamily={"GT Light"} fontSize={'15px'}>{item.vendor_email}</Typography>
                                     </Box>
 
                                     <Box display={'flex'} gap={'5px'}>
-                                        <Typography>Amount:</Typography>
-                                        <Typography fontWeight={'bold'}>{new Intl.NumberFormat(currencyLocaleMap[item.currency] || 'en-KE', {style:'currency', currency:item.currency}).format(item.payment_amount)}</Typography>
+                                        <Typography fontFamily={"GT Medium"} fontSize={'15px'}>Amount:</Typography>
+                                        <Typography fontFamily={"GT Light"} fontSize={'15px'}>{new Intl.NumberFormat(currencyLocaleMap[item.currency] || 'en-KE', {style:'currency', currency:item.currency}).format(item.payment_amount)}</Typography>
                                     </Box>
 
                                     <Box display={'flex'} gap={'5px'}>
-                                        <Typography>Payment Date:</Typography>
-                                        <Typography fontWeight={'bold'}>{item.payment_date}</Typography>
+                                        <Typography fontFamily={"GT Medium"} fontSize={'15px'}>Payment Date:</Typography>
+                                        <Typography fontFamily={"GT Light"} fontSize={'15px'}>{item.payment_date}</Typography>
                                     </Box>
 
                                     <Box display={'flex'} gap={'5px'}>
-                                        <Typography>Payment Mode:</Typography>
-                                        <Typography fontWeight={'bold'}>{item.payment_mode}</Typography>
+                                        <Typography fontFamily={"GT Medium"} fontSize={'15px'}>Payment Mode:</Typography>
+                                        <Typography fontFamily={"GT Light"} fontSize={'15px'}>{item.payment_mode}</Typography>
                                     </Box>
                             </CardContent>
                         </Card>

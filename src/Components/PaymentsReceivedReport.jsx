@@ -4,8 +4,6 @@ import { DataGrid, GridToolbar } from "@mui/x-data-grid";
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import { LocalizationProvider } from "@mui/x-date-pickers";
-import StatBox from "./StatBox";
-import PointOfSale from "@mui/icons-material/PointOfSale";
 import { useNavigate } from "react-router-dom";
 
 
@@ -361,23 +359,7 @@ function PaymentsRececivedReport(){
 
     return ( 
         <Box margin={{md:'40px', xs:'10px'}}>
-
-            {/* Currency Selector */}
-            <FormControl>
-              <InputLabel id="currency-label">Currency</InputLabel>
-              <Select
-                   value={selectedCurrency}
-                   onChange={handleCurrencyChange}
-                   label="Select Currency"
-              >
-                  {currencyOptions.map((currency) => (
-                    <MenuItem key={currency.code} value={currency.code}>
-                        {currency.label}
-                    </MenuItem>
-                  ))}
-              </Select>
-            </FormControl>
-
+          <Box display={'flex'} justifyContent={{md:'space-between', xs:''}} flexDirection={{xs:'column', md:'row'}} alignItems={'center'} mb={'20px'}>
 
             <Box m='30px'>
                 <LocalizationProvider dateAdapter={AdapterDateFns}>
@@ -406,35 +388,35 @@ function PaymentsRececivedReport(){
                 
             </Box>
 
+            {/* Currency Selector */}
+            <FormControl>
+              <InputLabel id="currency-label">Currency</InputLabel>
+              <Select
+                   value={selectedCurrency}
+                   onChange={handleCurrencyChange}
+                   label="Select Currency"
+              >
+                  {currencyOptions.map((currency) => (
+                    <MenuItem key={currency.code} value={currency.code}>
+                        {currency.label}
+                    </MenuItem>
+                  ))}
+              </Select>
+            </FormControl>
+          </Box>
+
             <Box
-                display={'grid'}
-                gridTemplateColumns={{xs:'repeat(1,1fr)', sm:'repeat(12,1fr)'}}
-                gap="10px"
-                margin="0 10px"
-            >
-                {/* ROW 1 */}
-                <Box
-                gridColumn="span 3"
-                backgroundColor="#f2f0f0"
-                borderRadius='10px'
-                display="flex"
-                alignItems="center"
-                justifyContent="center"
-                >
-                <StatBox
-                    title= {total}
-                    subtitle="TOTAL PAYMENTS RECEIVED"
-                    // progress="0.75"
-                    // increase="+14%"
-                    icon={
-                    <PointOfSale
-                        sx={{ color: "#70d8bd", fontSize: "26px" }}
-                    />
-                    }
-                />
-                </Box>
-                
-            </Box>
+            sx={{
+              backgroundColor:'purple',
+              borderRadius:'10px',
+              padding:'20px',
+              width:{xs:'300px', md:'400px'},
+              margin:'auto'
+            }}
+          >
+            <Typography fontFamily={"GT Bold"} fontSize={"27px"} color={'white'} textAlign={'center'}>Payments Received</Typography>
+            <Typography fontFamily={"GT Bold"} fontSize={"27px"} color={'white'} textAlign={'center'}>{total}</Typography>
+          </Box>
 
 
             {isMobile ? (
@@ -461,13 +443,35 @@ function PaymentsRececivedReport(){
                             }}
                         >
                             <CardContent>
-                                    <Typography>Customer Name: {item.customer_name}</Typography>
-                                    <Typography>Customer Phone: {item.customer_name}</Typography>
-                                    <Typography>Customer Email: {item.customer_email}</Typography>
-                                    <Typography>Amount Received: {new Intl.NumberFormat(currencyLocaleMap[item.currency] || 'en-KE', {style:'currency', currency:item.currency}).format(item.amount_received)}</Typography>
-                                    <Typography>Bank Charges: {item.bank_charges}</Typography>
-                                    <Typography>Payment Date: {item.payment_date}</Typography>
-                                    <Typography>Payment Mode: {item.payment_mode}</Typography>
+                                                      <Box display={'flex'} gap={'5px'}>
+                                                          <Typography fontFamily={"GT Medium"} fontSize={'15px'}>Name:</Typography>
+                                                          <Typography fontFamily={"GT Light"} fontSize={'15px'}>{item.customer_name}</Typography>
+                                                      </Box>
+
+                                                      <Box display={'flex'} gap={'5px'}>
+                                                          <Typography fontFamily={"GT Medium"} fontSize={'15px'}>Phone No:</Typography>
+                                                          <Typography fontFamily={"GT Light"} fontSize={'15px'}>{item.customer_phone}</Typography>
+                                                      </Box>
+
+                                                      <Box display={'flex'} gap={'5px'}>
+                                                          <Typography fontFamily={"GT Medium"} fontSize={'15px'}>Email:</Typography>
+                                                          <Typography fontFamily={"GT Light"} fontSize={'15px'}>{item.customer_email}</Typography>
+                                                      </Box>
+
+                                                      <Box display={'flex'} gap={'5px'}>
+                                                          <Typography fontFamily={"GT Medium"} fontSize={'15px'}>Amount Received:</Typography>
+                                                          <Typography fontFamily={"GT Light"} fontSize={'15px'}>{new Intl.NumberFormat(currencyLocaleMap[item.currency] || 'en-KE', {style:'currency', currency:item.currency}).format(item.amount_received)}</Typography>
+                                                      </Box>
+
+                                                      <Box display={'flex'} gap={'5px'}>
+                                                          <Typography fontFamily={"GT Medium"} fontSize={'15px'}>Payment Date:</Typography>
+                                                          <Typography fontFamily={"GT Light"} fontSize={'15px'}>{item.payment_date}</Typography>
+                                                      </Box>
+
+                                                      <Box display={'flex'} gap={'5px'}>
+                                                          <Typography fontFamily={"GT Medium"} fontSize={'15px'}>Payment Mode:</Typography>
+                                                          <Typography fontFamily={"GT Light"} fontSize={'15px'}>{item.payment_mode}</Typography>
+                                                      </Box>
                             </CardContent>
                         </Card>
                     ))}

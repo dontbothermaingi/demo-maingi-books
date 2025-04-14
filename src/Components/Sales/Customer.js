@@ -601,11 +601,11 @@ function Customer() {
 
             {isMobile ? (
                 <Box>
-                    <Typography fontSize={'27px'} fontWeight={'bold'} textAlign={'center'}>CUSTOMERS</Typography>
+                    <Typography fontSize={'30px'} fontFamily={"GT Medium"} fontWeight={'bold'} textAlign={'center'} mb={'20px'}>CUSTOMERS</Typography>
                     <Box
                         display={'grid'}
                         gridTemplateColumns={{xs:'repeat(1,1fr)', sm:'repeat(2,1fr)'}}
-                        gap="10px"
+                        gap="20px"
                         margin="0 10px"
                     >
 
@@ -618,8 +618,6 @@ function Customer() {
                                     flexDirection: 'column',
                                     height: 'auto', // Adjust height for better flexibility
                                     boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
-                                    padding: '10px',
-                                    margin: '30px',
                                     backgroundColor: '#fff',
                                     transition: 'transform 0.3s ease-in-out',
                                     '&:hover': {
@@ -629,29 +627,29 @@ function Customer() {
                                 }}
                             >
                                 <CardContent>
-                                        <Box display={'flex'} gap={'7px'}>
-                                            <Typography>Customer Name:</Typography>
-                                            <Typography fontWeight={'bold'}>{item.customer_name}</Typography>
+                                        <Box display={'flex'} gap={'4px'}>
+                                            <Typography fontFamily={"GT Medium"} fontSize={'14px'}>Name:</Typography>
+                                            <Typography fontFamily={"GT Light"} fontSize={'15px'}>{item.customer_name}</Typography>
                                         </Box>
 
                                         <Box display={'flex'} gap={'7px'}>
-                                            <Typography>Phone Number:</Typography>
-                                            <Typography  fontWeight={'bold'}>{item.customer_phone}</Typography>
+                                            <Typography fontFamily={"GT Medium"} fontSize={'15px'}>Phone Number:</Typography>
+                                            <Typography fontFamily={"GT Light"} fontSize={'15px'}>{item.customer_phone}</Typography>
                                         </Box>
 
                                         <Box display={'flex'} gap={'7px'}>
-                                            <Typography>Email:</Typography>
-                                            <Typography fontWeight={'bold'}>{item.customer_email}</Typography>
+                                            <Typography fontFamily={"GT Medium"} fontSize={'15px'}>Email:</Typography>
+                                            <Typography fontFamily={"GT Light"} fontSize={'15px'}>{item.customer_email}</Typography>
                                         </Box>
 
                                         <Box display={'flex'} gap={'7px'}>
-                                            <Typography>KRA Pin:</Typography>
-                                            <Typography fontWeight={'bold'}>{item.vendor_pin}</Typography>
+                                            <Typography fontFamily={"GT Medium"} fontSize={'15px'}>KRA Pin:</Typography>
+                                            <Typography fontFamily={"GT Light"} fontSize={'15px'}>{item.vendor_pin}</Typography>
                                         </Box>
 
                                         <Box display={'flex'} gap={'7px'}>
-                                            <Typography>Currency:</Typography>
-                                            <Typography fontWeight={'bold'}>{item.currency}</Typography>
+                                            <Typography fontFamily={"GT Medium"} fontSize={'15px'}>Currency:</Typography>
+                                            <Typography fontFamily={"GT Light"} fontSize={'15px'}>{item.currency}</Typography>
                                         </Box>
 
                                 </CardContent>

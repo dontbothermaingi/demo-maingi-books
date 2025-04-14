@@ -589,33 +589,33 @@ function PaymentsReceived (){
                         >
                             <CardContent>
                                     <Box display={'flex'} gap={'5px'}>
-                                        <Typography>Customer Name:</Typography>
-                                        <Typography fontWeight={'bold'}>{item.customer_name}</Typography>
+                                        <Typography fontFamily={"GT Medium"} fontSize={'14px'}>Customer Name:</Typography>
+                                        <Typography fontFamily={"GT Light"} fontSize={'14px'}>{item.customer_name}</Typography>
                                     </Box>
 
                                     <Box display={'flex'} gap={'5px'}>
-                                        <Typography>Customer Phone:</Typography>
-                                        <Typography fontWeight={'bold'}>{item.customer_phone}</Typography>
+                                        <Typography fontFamily={"GT Medium"} fontSize={'14px'}>Customer Phone:</Typography>
+                                        <Typography fontFamily={"GT Light"} fontSize={'14px'}>{item.customer_phone}</Typography>
                                     </Box>
 
                                     <Box display={'flex'} gap={'5px'}>
-                                        <Typography>Customer Email:</Typography>
-                                        <Typography fontWeight={'bold'}>{item.customer_email}</Typography>
+                                        <Typography fontFamily={"GT Medium"} fontSize={'14px'}>Customer Email:</Typography>
+                                        <Typography fontFamily={"GT Light"} fontSize={'14px'}>{item.customer_email}</Typography>
                                     </Box>
 
                                     <Box display={'flex'} gap={'5px'}>
-                                        <Typography>Amount:</Typography>
-                                        <Typography fontWeight={'bold'}>{new Intl.NumberFormat(currencyLocaleMap[item.currency] || 'en-KE', {style:'currency', currency:item.currency}).format(item.amount_received)}</Typography>
+                                        <Typography fontFamily={"GT Medium"} fontSize={'14px'}>Amount:</Typography>
+                                        <Typography fontFamily={"GT Light"} fontSize={'14px'}>{new Intl.NumberFormat(currencyLocaleMap[item.currency] || 'en-KE', {style:'currency', currency:item.currency}).format(item.amount_received)}</Typography>
                                     </Box>
 
                                     <Box display={'flex'} gap={'5px'}>
-                                        <Typography>Payment Date:</Typography>
-                                        <Typography fontWeight={'bold'}>{item.payment_date}</Typography>
+                                        <Typography fontFamily={"GT Medium"} fontSize={'14px'}>Payment Date:</Typography>
+                                        <Typography fontFamily={"GT Light"} fontSize={'14px'}>{item.payment_date}</Typography>
                                     </Box>
 
                                     <Box display={'flex'} gap={'5px'}>
-                                        <Typography>Payment Mode:</Typography>
-                                        <Typography fontWeight={'bold'}>{item.payment_mode}</Typography>
+                                        <Typography fontFamily={"GT Medium"} fontSize={'14px'}>Payment Mode:</Typography>
+                                        <Typography fontFamily={"GT Light"} fontSize={'14px'}>{item.payment_mode}</Typography>
                                     </Box>
                             </CardContent>
                         </Card>

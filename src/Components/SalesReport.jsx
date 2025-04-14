@@ -2,8 +2,6 @@ import { Box, TextField, Typography,  Select, MenuItem, FormControl, InputLabel,
 import { DataGrid, GridToolbar } from "@mui/x-data-grid";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import StatBox from "./StatBox";
-import PointOfSale from "@mui/icons-material/PointOfSale";
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import { LocalizationProvider } from "@mui/x-date-pickers";
@@ -418,75 +416,63 @@ function SalesReport (){
   return ( 
     <Box margin={{md:'40px', xs:'20px'}}>
 
+        <Box display={'flex'} justifyContent={{md:'space-between', xs:''}} flexDirection={{xs:'column', md:'row'}} alignItems={'center'} mb={'20px'}>
 
-            {/* Currency Selector */}
-            <FormControl width="50px" margin="normal">
-                <InputLabel>Select Currency</InputLabel>
-                <Select
-                    value={selectedCurrency}
-                    onChange={handleCurrencyChange}
-                    label="Select Currency"
-                >
-                    {currencyOptions.map((currency) => (
-                    <MenuItem key={currency.code} value={currency.code}>
-                        {currency.label}
-                    </MenuItem>
-                    ))}
-                </Select>
-            </FormControl>
-
-          <Box mb='20px'>
-                <LocalizationProvider dateAdapter={AdapterDateFns}>
-                <Typography
-                    fontSize='23px'
-                    fontWeight='Bold'
-                >
-                  FILTER BY DATE
-                </Typography>
-                  <Box display={'flex'} gap={'20px'}>
-                    <DatePicker
-                        label="Start Date"
-                        value={startDate}
-                        onChange={(date) => setStartDate(date)}
-                        renderInput={(params) => <TextField {...params} />}
-                    />
-                    <DatePicker
-                        label="End Date"
-                        value={endDate}
-                        onChange={(date) => setEndDate(date)}
-                        renderInput={(params) => <TextField {...params} />}
-                    />
-                  </Box>
-                </LocalizationProvider>
+            <Box mb='20px'>
+                  <LocalizationProvider dateAdapter={AdapterDateFns}>
+                  <Typography
+                      fontSize='23px'
+                      fontWeight='Bold'
+                  >
+                    FILTER BY DATE
+                  </Typography>
+                    <Box display={'flex'} gap={'20px'}>
+                      <DatePicker
+                          label="Start Date"
+                          value={startDate}
+                          onChange={(date) => setStartDate(date)}
+                          renderInput={(params) => <TextField {...params} />}
+                      />
+                      <DatePicker
+                          label="End Date"
+                          value={endDate}
+                          onChange={(date) => setEndDate(date)}
+                          renderInput={(params) => <TextField {...params} />}
+                      />
+                    </Box>
+                  </LocalizationProvider>
             </Box>
-      <Box
-        display="grid"
-        gridTemplateColumns={{ xs:"repeat(1, 1fr)", md:"repeat(12, 1fr)"}}
-        gap="20px"
-        margin='0 10px'
-      >
-        {/* ROW 1 */}
-        <Box
-          gridColumn="span 3"
-          backgroundColor="#f2f0f0"
-          borderRadius='10px'
-          display="flex"
-          alignItems="center"
-          justifyContent="center"
-        >
-          <StatBox
-            title= {filter}
-            subtitle="TOTAL SALES"
-            // progress="0.75"
-            // increase="+14%"
-            icon={
-              <PointOfSale
-                sx={{ color: "#70d8bd", fontSize: "26px" }}
-              />
-            }
-          />
+
+            <Box>
+              {/* Currency Selector */}
+              <FormControl width="50px" margin="normal">
+                  <InputLabel>Select Currency</InputLabel>
+                  <Select
+                      value={selectedCurrency}
+                      onChange={handleCurrencyChange}
+                      label="Select Currency"
+                  >
+                      {currencyOptions.map((currency) => (
+                      <MenuItem key={currency.code} value={currency.code}>
+                          {currency.label}
+                      </MenuItem>
+                      ))}
+                  </Select>
+              </FormControl>
+            </Box>
         </Box>
-        
+
+        <Box
+          sx={{
+            backgroundColor:'purple',
+            borderRadius:'10px',
+            padding:'20px',
+            width:{xs:'300px', md:'400px'},
+            margin:'auto'
+          }}
+        >
+          <Typography fontFamily={"GT Bold"} fontSize={"27px"} color={'white'} textAlign={'center'}>Total Sales</Typography>
+          <Typography fontFamily={"GT Bold"} fontSize={"27px"} color={'white'} textAlign={'center'}>{filter}</Typography>
         </Box>
 
         {isMobile ? (
@@ -509,7 +495,6 @@ function SalesReport (){
                                 flexDirection: 'column',
                                 height: 'auto', // Adjust height for better flexibility
                                 boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
-                                padding: '10px',
                                 backgroundColor: '#fff',
                                 transition: 'transform 0.3s ease-in-out',
                                 '&:hover': {
@@ -520,38 +505,38 @@ function SalesReport (){
                         >
                             <CardContent>
                                         <Box display={'flex'} gap={'4px'}>
-                                            <Typography>Name:</Typography>
-                                            <Typography fontWeight={'bold'}>{item.customer_name}</Typography>
+                                            <Typography fontFamily={"GT Medium"} fontSize={'15px'}>Name:</Typography>
+                                            <Typography fontFamily={"GT Light"} fontSize={'15px'}>{item.customer_name}</Typography>
                                         </Box>
 
                                         <Box display={'flex'} gap={'4px'}>
-                                            <Typography>Invoice Number:</Typography>
-                                            <Typography  fontWeight={'bold'}>{item.invoice_number}</Typography>
+                                            <Typography fontFamily={"GT Medium"} fontSize={'15px'}>Invoice Number:</Typography>
+                                            <Typography fontFamily={"GT Light"} fontSize={'15px'}>{item.invoice_number}</Typography>
                                         </Box>
 
                                         <Box display={'flex'} gap={'4px'}>
-                                            <Typography>Amount:</Typography>
-                                            <Typography fontWeight={'bold'}>{ new Intl.NumberFormat('en-KE', {style:'currency', currency:item.currency}).format(item.totalAmount)}</Typography>
+                                            <Typography fontFamily={"GT Medium"} fontSize={'15px'}>Amount:</Typography>
+                                            <Typography fontFamily={"GT Light"} fontSize={'15px'}>{ new Intl.NumberFormat('en-KE', {style:'currency', currency:item.currency}).format(item.totalAmount)}</Typography>
                                         </Box>
 
                                         <Box display={'flex'} gap={'4px'}>
-                                            <Typography>Currency:</Typography>
-                                            <Typography fontWeight={'bold'}>{item.currency}</Typography>
+                                            <Typography fontFamily={"GT Medium"} fontSize={'15px'}>Currency:</Typography>
+                                            <Typography fontFamily={"GT Light"} fontSize={'15px'}>{item.currency}</Typography>
                                         </Box>
 
                                         <Box display={'flex'} gap={'4px'}>
-                                            <Typography>Date:</Typography>
-                                            <Typography fontWeight={'bold'}>{item.invoice_date}</Typography>
+                                            <Typography fontFamily={"GT Medium"} fontSize={'15px'}>Date:</Typography>
+                                            <Typography fontFamily={"GT Light"} fontSize={'15px'}>{item.invoice_date}</Typography>
                                         </Box>
 
                                         <Box display={'flex'} gap={'4px'}>
-                                            <Typography>Status:</Typography>
-                                            <Typography fontWeight={'bold'}>{item.status}</Typography>
+                                            <Typography fontFamily={"GT Medium"} fontSize={'15px'}>Status:</Typography>
+                                            <Typography fontFamily={"GT Light"} fontSize={'15px'}>{item.status}</Typography>
                                         </Box>
 
                                         <Box display={'flex'} gap={'4px'}>
-                                            <Typography>Sales Person:</Typography>
-                                            <Typography fontWeight={'bold'}>{item.sales_person}</Typography>
+                                            <Typography fontFamily={"GT Medium"} fontSize={'15px'}>Sales Person:</Typography>
+                                            <Typography fontFamily={"GT Light"} fontSize={'15px'}>{item.sales_person}</Typography>
                                         </Box>
                             </CardContent>
                         </Card>
