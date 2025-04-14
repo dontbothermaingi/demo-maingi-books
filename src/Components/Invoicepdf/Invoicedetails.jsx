@@ -78,8 +78,7 @@ const InvoiceDetails = () => {
       // Calculate total amount based on VAT type
       if (invoice.type_vat === "Exclusive VAT") {
         const calculateTotal = subtotalAmount + vatAmount
-        const displayTotal = new Intl.NumberFormat().format(calculateTotal)
-        setTotal(displayTotal);
+        setTotal(calculateTotal);
       } else {
         const calculateTotal = subtotalAmount + vatAmount
         setTotal(calculateTotal);
