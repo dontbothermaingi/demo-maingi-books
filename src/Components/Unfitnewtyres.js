@@ -56,6 +56,12 @@ function OldTyres() {
     }
 
     useEffect(()=>{
+
+        if (selectedTYre.trim() === "") {
+            setSuggestions([]);
+            return;
+        }
+        
         const filteredTyres = fittedTyres.filter(tyre => tyre.serial_number.toLowerCase().includes(selectedTYre.toLowerCase()));
         setSuggestions(filteredTyres);
     },[selectedTYre,fittedTyres])
@@ -106,7 +112,7 @@ function OldTyres() {
             })
                 .then(response => {
                     if (response.ok) {
-                        alert("Inventory updated successfully.");
+                        // alert("Inventory updated successfully.");
                         return response.json();
                     }
                     throw new Error('Failed to add inventory');
@@ -129,7 +135,7 @@ function OldTyres() {
                     })
                     .then(response => {
                         if (response.ok) {
-                            alert("Inventory updated successfully.");
+                            // alert("Inventory updated successfully.");
                             return response.json();
                         } else {
                             throw new Error('Failed to update tyre status');
