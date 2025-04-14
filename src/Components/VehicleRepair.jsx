@@ -12,7 +12,7 @@ function VehicleRepair(){
     const [loading, setIsLoading] = useState(false)
     const [openDialog, setOpenDialog] =useState(false)
     const [openSnackBar, setOpenSnackbar] = useState(false)
-    const [errorMessage, setErrorMessage] = useState(false)
+    const [errorMessage, setErrorMessage] = useState("")
     const [spareOptions, setSpareOptions] = useState([]);
     const [trucks, setTrucks] = useState([]);
     const [selectedSpare, setSelecetedSpare] = useState("");

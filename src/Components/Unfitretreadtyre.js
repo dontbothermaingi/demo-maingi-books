@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Box, Button, Card, CardContent, FormControl, List, ListItem, ListItemText, MenuItem, Pagination, Select, TextField, Typography, useMediaQuery } from "@mui/material";
+import { Alert, Box, Button, Card, CardContent, CircularProgress, Dialog, DialogContent, FormControl, List, ListItem, ListItemText, MenuItem, Pagination, Select, Snackbar, TextField, Typography, useMediaQuery } from "@mui/material";
 import { DataGrid, GridToolbar } from "@mui/x-data-grid";
 import { useNavigate } from "react-router-dom";
 
@@ -7,6 +7,10 @@ function UnfitRetreadTyres() {
     const [fittedTyres, setFittedTyres] = useState([]);
     const [items, setItems] = useState([]);
     const [serialNumberInput, setSerialNumberInput] = useState("");
+    const [loading, setIsLoading] = useState(false)
+    const [openDialog, setOpenDialog] =useState(false)
+    const [openSnackBar, setOpenSnackbar] = useState(false)
+    const [errorMessage, setErrorMessage] = useState("")
     const [currentPage, setCurrentPage] = useState(1)
     const itemsPerPage = 16;
     const isMobile = useMediaQuery('(max-width: 768px)');
@@ -73,24 +77,11 @@ function UnfitRetreadTyres() {
         }));
     }
 
-    function resetForm() {
-        setFormData({
-            name: "",
-            serial_number: "",
-            starting_mileage: "",
-            size: "",
-            truck_number: "",
-            reason: "",
-            final_mileage: "",
-            tyre_mileage: "",
-            condition:"",
-            position: "",
-            date: "",
-        });
-    }
-
     function handleOldSubmit(event) {
         event.preventDefault();
+
+        setIsLoading(true);
+        setOpenDialog(true);
     
         const { starting_mileage, final_mileage } = formData;
         const starting = parseFloat(starting_mileage);
@@ -138,7 +129,12 @@ function UnfitRetreadTyres() {
                 }
             })
             .then(data => {
+
                 event.target.reset();
+
+                setIsLoading(false);
+                setOpenDialog(false);
+
                 fetch('https://demo-server-757m.onrender.com/retreadtyresremove',{
                     method: 'GET',
                     credentials: 'include',
@@ -151,10 +147,27 @@ function UnfitRetreadTyres() {
                     const fittedTyre = data.filter((tyre) => tyre.status === 'FITTED');
                     setItems(fittedTyre);
                 });
-                resetForm();
+                
+                setFormData({
+                    name: "",
+                    serial_number: "",
+                    starting_mileage: "",
+                    size: "",
+                    truck_number: "",
+                    reason: "",
+                    final_mileage: "",
+                    tyre_mileage: "",
+                    condition:"",
+                    position: "",
+                    date: "",
+                })
             })
             .catch(error => {
                 console.error('Error:', error);
+                setIsLoading(false);
+                setOpenDialog(false);
+                setOpenSnackbar(true);
+                setErrorMessage("Failed to remove tyre. Please try again!")
             });
         } else {
             alert("Please enter valid starting and final mileage values.");
@@ -184,6 +197,15 @@ function UnfitRetreadTyres() {
             setCurrentPage(value);
         };
 
+        function handleCloseDialog(){
+            setOpenDialog(!openDialog)
+        }
+    
+        function handleCloseSnackbar(event, reason){
+            if(reason === 'clickaway') return;
+            setOpenDialog(false)
+        }
+
     return (
         <Box margin={{md:'40px', xs:'20px'}}>
             <Button
@@ -195,6 +217,22 @@ function UnfitRetreadTyres() {
             >
                 BACK
             </Button>
+
+            <Dialog open={openDialog} onClose={handleCloseDialog}>
+                    <DialogContent sx={{display:'flex', alignItems:'center', gap:'20px'}}>
+                        <CircularProgress sx={{fontSize:'10px'}}/>
+                        <Typography fontFamily={"GT Bold"}>Saving...</Typography>
+                    </DialogContent>
+                </Dialog>
+                
+                <Snackbar
+                    open={openSnackBar} 
+                    autoHideDuration={6000} 
+                    onClose={handleCloseSnackbar} 
+                    anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+                >
+                    <Alert onClose={handleCloseSnackbar} severity={errorMessage.includes('Please') ? "error" : "success"} sx={{ width: '100%' }}>{errorMessage}</Alert>
+                </Snackbar>
 
             <Box>
                 <Typography fontSize={'27px'} fontWeight={'bold'} textAlign={'center'}>UNFIT RETREAD TYRE</Typography>
@@ -341,7 +379,7 @@ function UnfitRetreadTyres() {
                                         sx={{mb:'20px'}}
                                     />
 
-                        <Button type="submit" variant="contained" color="secondary">UNFIT</Button>
+                        <Button disabled={loading} type="submit" variant="contained" color="secondary" sx={{fontFamily:'GT Bold'}} >{loading ? 'Unfitting...':'Unfit'}</Button>
                     </form>
                 </Box>
             </Box>
@@ -372,40 +410,40 @@ function UnfitRetreadTyres() {
                                         >
                                             <CardContent>
                                                     <Box display={'flex'} gap={'4px'}>
-                                                        <Typography>Tyre Name:</Typography>
-                                                        <Typography fontWeight={'bold'}>{item.name}</Typography>
+                                                        <Typography fontFamily={"GT Medium"} fontSize={'15px'}>Tyre Name:</Typography>
+                                                        <Typography fontFamily={"GT Light"} fontSize={'15px'}>{item.name}</Typography>
                                                     </Box>
 
                                                     <Box display={'flex'} gap={'4px'}>
-                                                        <Typography>Size:</Typography>
-                                                        <Typography fontWeight={'bold'}>{item.size}</Typography>
+                                                        <Typography fontFamily={"GT Medium"} fontSize={'15px'}>Size:</Typography>
+                                                        <Typography fontFamily={"GT Light"} fontSize={'15px'}>{item.size}</Typography>
                                                     </Box>
                                                     
                                                     <Box display={'flex'} gap={'4px'}>
-                                                        <Typography>Truck Number:</Typography>
-                                                        <Typography fontWeight={'bold'}>{item.truck_number}</Typography>
+                                                        <Typography fontFamily={"GT Medium"} fontSize={'15px'}>Truck Number:</Typography>
+                                                        <Typography fontFamily={"GT Light"} fontSize={'15px'}>{item.truck_number}</Typography>
                                                     </Box>
                                                     
                                                     <Box display={'flex'} gap={'4px'}>
-                                                        <Typography>Serial Number:</Typography>
-                                                        <Typography fontWeight={'bold'}>{item.serial_number}</Typography>
+                                                        <Typography fontFamily={"GT Medium"} fontSize={'15px'}>Serial Number:</Typography>
+                                                        <Typography fontFamily={"GT Medium"} fontSize={'15px'}>{item.serial_number}</Typography>
                                                     </Box>
                                                         
                                                     
                                                     <Box display={'flex'} gap={'4px'}>
-                                                        <Typography>Position:</Typography>
-                                                        <Typography fontWeight={'bold'}>{item.position}</Typography>
+                                                        <Typography fontFamily={"GT Medium"} fontSize={'15px'}>Position:</Typography>
+                                                        <Typography fontFamily={"GT Light"} fontSize={'15px'}>{item.position}</Typography>
                                                     </Box>
                                                     
                                                     <Box display={'flex'} gap={'4px'}>
-                                                        <Typography>Status:</Typography>
-                                                        <Typography fontWeight={'bold'}>{item.status}</Typography>
+                                                        <Typography fontFamily={"GT Medium"} fontSize={'15px'}>Status:</Typography>
+                                                        <Typography fontFamily={"GT Light"} fontSize={'15px'}>{item.status}</Typography>
                                                     </Box>
                                                     
 
                                                     <Box display={'flex'} gap={'4px'}>
-                                                        <Typography>Date:</Typography>
-                                                        <Typography fontWeight={'bold'}>{item.date}</Typography>
+                                                        <Typography fontFamily={"GT Medium"} fontSize={'15px'}>Date:</Typography>
+                                                        <Typography fontFamily={"GT Light"} fontSize={'15px'}>{item.date}</Typography>
                                                     </Box>
                                             </CardContent>
                                         </Card>

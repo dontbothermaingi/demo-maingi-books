@@ -11,7 +11,7 @@ function Tyre() {
     const [loading, setIsLoading] = useState(false)
     const [openDialog, setOpenDialog] =useState(false)
     const [openSnackBar, setOpenSnackbar] = useState(false)
-    const [errorMessage, setErrorMessage] = useState(false)
+    const [errorMessage, setErrorMessage] = useState("")
     const [currentPage, setCurrentPage] = useState(1)
     const itemsPerPage = 16;
     const isMobile = useMediaQuery('(max-width: 768px)');

@@ -133,34 +133,34 @@ function CheckUsedTyre() {
                                         >
                                             <CardContent>
                                                     <Box display={'flex'} gap={'7px'}>
-                                                        <Typography>Tyre Name:</Typography>
-                                                        <Typography fontWeight={'bold'}>{item.item_details}</Typography>
+                                                        <Typography fontFamily={"GT Medium"} fontSize={'15px'}>Tyre Name:</Typography>
+                                                        <Typography fontFamily={"GT Light"} fontSize={'15px'}>{item.item_details}</Typography>
                                                     </Box>
 
                                                     <Box display={'flex'} gap={'7px'}>
-                                                        <Typography>Size:</Typography>
-                                                        <Typography fontWeight={'bold'}>{item.size}</Typography>
+                                                        <Typography fontFamily={"GT Medium"} fontSize={'15px'}>Size:</Typography>
+                                                        <Typography fontFamily={"GT Light"} fontSize={'15px'}>{item.size}</Typography>
                                                     </Box>
                                                     
                                                     <Box display={'flex'} gap={'7px'}>
-                                                        <Typography>Truck Number:</Typography>
-                                                        <Typography fontWeight={'bold'}>{item.truck_number}</Typography>
+                                                        <Typography fontFamily={"GT Medium"} fontSize={'15px'}>Truck Number:</Typography>
+                                                        <Typography fontFamily={"GT Light"} fontSize={'15px'}>{item.truck_number}</Typography>
                                                     </Box>
                                                     
                                                     <Box display={'flex'} gap={'7px'}>
-                                                        <Typography>Serial Number:</Typography>
-                                                        <Typography fontWeight={'bold'}>{item.serial_number}</Typography>
+                                                        <Typography fontFamily={"GT Medium"} fontSize={'15px'}>Serial Number:</Typography>
+                                                        <Typography fontFamily={"GT Light"} fontSize={'15px'}>{item.serial_number}</Typography>
                                                     </Box>
                                                         
                                                     
                                                     <Box display={'flex'} gap={'7px'}>
-                                                        <Typography>Retread Counter:</Typography>
-                                                        <Typography fontWeight={'bold'}>{item.retread_counter}</Typography>
+                                                        <Typography fontFamily={"GT Medium"} fontSize={'15px'}>Retread Counter:</Typography>
+                                                        <Typography fontFamily={"GT Light"} fontSize={'15px'}>{item.retread_counter}</Typography>
                                                     </Box>
 
                                                     <Box display={'flex'} gap={'7px'}>
-                                                        <Typography>Position:</Typography>
-                                                        <Typography fontWeight={'bold'}>{item.position}</Typography>
+                                                        <Typography fontFamily={"GT Medium"} fontSize={'15px'}>Position:</Typography>
+                                                        <Typography fontFamily={"GT Light"} fontSize={'15px'}>{item.position}</Typography>
                                                     </Box>
                                                     
                                                     <Box display={'flex'} gap={'7px'}>

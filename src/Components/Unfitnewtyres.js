@@ -9,7 +9,7 @@ function OldTyres() {
     const [loading, setIsLoading] = useState(false)
     const [openDialog, setOpenDialog] =useState(false)
     const [openSnackBar, setOpenSnackbar] = useState(false)
-    const [errorMessage, setErrorMessage] = useState(false)
+    const [errorMessage, setErrorMessage] = useState("")
     const [currentPage, setCurrentPage] = useState(1)
     const itemsPerPage = 16;
     const isMobile = useMediaQuery('(max-width: 768px)');
@@ -137,8 +137,8 @@ function OldTyres() {
                     })
                     .then(data => {
 
-                        setIsLoading(true);
-                        setOpenDialog(true);
+                        setIsLoading(false);
+                        setOpenDialog(false);
 
                         fetch('https://demo-server-757m.onrender.com/removetyres',{
                             method: 'GET',
