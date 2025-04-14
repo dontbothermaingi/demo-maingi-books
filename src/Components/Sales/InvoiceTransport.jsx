@@ -86,7 +86,7 @@ function InvoiceTransport() {
                 setInvoices(invoiceTotal);
 
                 const sortedInvoices = data.sort((a,b) => b.id - a.id)
-                const lastInvoiceNumber = sortedInvoices.length > 0 ? sortedInvoices[0].invoice_number : 1;
+                const lastInvoiceNumber = sortedInvoices.length > 0 ? sortedInvoices[0].invoice_number : 0;
     
                 console.log("Last Invoice Number:", lastInvoiceNumber);
                 setLastInvoiceNumber(lastInvoiceNumber)
@@ -384,6 +384,7 @@ function InvoiceTransport() {
             console.error('There was a problem with the fetch operation:', error);
             setOpenSnackbar(true)
             setErrorMessage("Failed to save the invoice. Please try again.")
+            setLoading(false)
         });
     }
     
@@ -742,7 +743,7 @@ function InvoiceTransport() {
                                 className="bill-inputfield"
                                 value={invoiceNumber}
                                 onChange={handleChange}
-                                readOnly
+                                // readOnly
                                 variant="outlined"
                                 sx={{mb:'20px'}}
                             />
