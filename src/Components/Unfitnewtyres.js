@@ -58,7 +58,7 @@ function OldTyres() {
     useEffect(()=>{
         const filteredTyres = fittedTyres.filter(tyre => tyre.serial_number.toLowerCase().includes(selectedTYre.toLowerCase()));
         setSuggestions(filteredTyres);
-    },[selectedTYre])
+    },[selectedTYre,fittedTyres])
 
     function handleSelectTyre(tyre) {
         setSelectedTYre(tyre.serial_number);
