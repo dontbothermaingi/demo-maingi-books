@@ -241,7 +241,7 @@ function TradingProfitLossAccount() {
             </Box>
             <Box sx={{ padding: 2, backgroundColor: '#f5f5f5' }} ref={componentRef}>
             <Typography variant="h4" fontWeight="bold" textAlign="center" mb={2}>
-                EKATI HAULIERS
+                MAINGI LOGISTICS LTD
             </Typography>
             <Typography variant="h5" fontWeight="bold" textAlign="center" mb={2}>
                 TRADING, PROFIT AND LOSS ACCOUNT

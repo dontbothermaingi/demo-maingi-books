@@ -101,7 +101,7 @@ function BalanceSheet() {
             </Box>
 
             <Paper ref={componentRef} sx={{ padding: 2, backgroundColor: '#f5f5f5' }}>
-                <Typography variant="h5" fontWeight="bold" textAlign="center">EKATI HAULIERS</Typography>
+                <Typography variant="h5" fontWeight="bold" textAlign="center">MAINGI LOGISTICS</Typography>
                 <Typography variant="h5" fontWeight="bold" textAlign="center" sx={{ mb: 1 }}>Balance Sheet</Typography>
                 <Typography variant="h6" textAlign="center" mb={3}>
                     As of {endDate ? new Intl.DateTimeFormat('en-US').format(new Date(endDate)) : new Intl.DateTimeFormat('en-US').format(todayDateOnly)}

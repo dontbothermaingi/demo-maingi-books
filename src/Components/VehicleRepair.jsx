@@ -41,6 +41,7 @@ function VehicleRepair(){
             position : "",
             quantity : "",
             mechanic : "",
+            manufacturer:"",
         }
     ])
 
@@ -186,6 +187,7 @@ function VehicleRepair(){
             position : "",
             quantity : "",
             mechanic : "",
+            manufacturer:"",
         }])
 
         setSelecetedSpare("")

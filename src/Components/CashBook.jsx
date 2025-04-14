@@ -96,7 +96,7 @@ function CashBook() {
         }}
       >
         <Typography variant="h5" fontWeight="bold" color="primary" gutterBottom>
-          EKATI HAULIERS
+          MAINGI BOOKS
         </Typography>
         <Typography variant="h6" color="textSecondary">
           Cash Book
