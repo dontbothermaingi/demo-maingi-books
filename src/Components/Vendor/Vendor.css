@@ -1,0 +1,92 @@
+.a4-print {
+    width: 210mm;
+    height: 297mm;
+    box-sizing: border-box;
+    margin: auto;
+  }
+  
+  .a4-print-mobile {
+    width: 210mm;
+    height: 297mm;
+    box-sizing: border-box;
+    margin: auto;
+    display: none;
+  }
+  
+  .table-container {
+    overflow-x: auto;
+  }
+  
+  .table-container table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  .table-container th, .table-container td {
+    border: 1px solid #ddd;
+    padding: 5px;
+    text-align: left;
+  }
+  
+  .table-container th {
+    background-color: #f4f4f4;
+  }
+  
+  @media print {
+    .a4-print {
+        width: 210mm;
+        height: 297mm;
+        padding: 5mm;
+    }
+  
+    .a4-print-mobile {
+      width: 210mm;
+      height: 297mm;
+      padding: 5mm;
+      display: block !important; 
+    }
+    
+  
+    .invoice-page{
+      page-break-after: always;
+      margin-top: 25px;
+    }
+  
+    .table-container{
+      page-break-inside: avoid;
+    }
+  
+    .table-container {
+      overflow-x: auto;
+    }
+    
+    .table-container table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+  
+    .INVOICE{
+      font-size: 35px;
+      font-weight: bold;
+    }
+    
+    .table-container th, .table-container td {
+      border: 1px solid #ddd;
+      padding: 5px;
+      text-align: left;
+      font-size: 13px;
+    }
+    
+    .table-container th {
+      background-color: #f4f4f4;
+    }
+  
+    .HEADER{
+      font-size: 20px;
+      font-weight: bold;
+    }
+  
+    .Info{
+      font-size: 14px;
+    }
+  }

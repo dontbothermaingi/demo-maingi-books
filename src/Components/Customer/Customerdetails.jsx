@@ -1,4 +1,4 @@
-import { Box, Button, TextField, Typography } from "@mui/material";
+import { Box, Button, TextField, Typography, useMediaQuery } from "@mui/material";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import CustomerLayout from "./CustomerLayout";
@@ -28,6 +28,7 @@ const CustomerDetails = () => {
   const navigate = useNavigate()
   const [startDate, setStartDate] = useState(null);
   const [endDate, setEndDate] = useState(null)
+  const isMobile = useMediaQuery("(max-width:768px)");
 
   const filterByDateRange = (items, startDate, endDate) => {
     if (!startDate || !endDate) return items; // No filter if dates are not set
@@ -149,7 +150,40 @@ const CustomerDetails = () => {
   return (
     <Box m="30px">
 
-      <Box display={'flex'} justifyContent={'space-between'}>
+      {isMobile ? (
+          <Box display={'flex'} flexDirection={'column'} gap={'20px'}>
+
+          <Box>
+              <LocalizationProvider dateAdapter={AdapterDateFns}>
+              <Typography fontSize='23px' fontWeight='Bold'>FILTER BY DATE</Typography>
+              <Box display={'flex'} gap={'5px'} flexDirection={{xs:'row', md:'row'}}>
+                  <DatePicker
+                      label="Start Date"
+                      value={startDate}
+                      onChange={(date) => setStartDate(date)}
+                      renderInput={(params) => <TextField {...params} />}
+                  />
+                  <DatePicker
+                      label="End Date"
+                      value={endDate}
+                      onChange={(date) => setEndDate(date)}
+                      renderInput={(params) => <TextField {...params} />}
+                  />
+                </Box>
+              </LocalizationProvider>
+          </Box>
+
+        <Button 
+          onClick={handleEdit}
+          variant="contained"
+          color="secondary"
+          sx={{width:'150px', fontFamily:'GT Bold'}}
+        >
+          EDIT
+        </Button>
+          </Box>
+      ):(
+        <Box display={'flex'} justifyContent={'space-between'}>
 
             <Box>
                 <LocalizationProvider dateAdapter={AdapterDateFns}>
@@ -178,7 +212,10 @@ const CustomerDetails = () => {
           >
             EDIT
           </Button>
-      </Box>
+        </Box>
+      )}
+
+      
 
 
       <CustomerLayout

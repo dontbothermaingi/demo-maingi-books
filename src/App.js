@@ -17,6 +17,7 @@ import TradingEdit from './Components/TradingProfitAndLossAccountEdit';
 import VendorEdit from './Components/VendorEdit';
 import EditSpare from './Components/SpareEdit';
 import VehicleReport from './Components/VehicleReport';
+import ReportForPaymentsMade from './Components/ReportForPaymentsMade';
 
 const Customer = lazy(() => import('./Components/Sales/Customer'));
 const Invoice = lazy(() => import('./Components/Sales/Invoice'));
@@ -299,6 +300,7 @@ function App() {
                             <Route path="/vendor-edit/:vendorId" element={<VendorEdit />} />
                             <Route path="/edit-spare/:spareId" element={<EditSpare />} />
                             <Route path="/truck-invoices" element={<VehicleReport />} />
+                            <Route path='/report-for-payments-made/:paymentId' element={<ReportForPaymentsMade />} />
                         </Route>
                     </Routes>
                     </Box>

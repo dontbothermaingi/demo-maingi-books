@@ -1,250 +1,201 @@
-import { Typography, Box, useTheme, Button, useMediaQuery, CardContent, Card, Pagination } from "@mui/material";
-import { tokens } from "../../theme";
-import { DataGrid, GridToolbar } from "@mui/x-data-grid";
-import { useEffect, useRef, useState } from "react";
-import ReactToPrint from 'react-to-print';
+import { Typography, Box,Button,Divider, TableContainer, Table, TableHead, TableRow, TableCell, TableBody, useMediaQuery } from "@mui/material";
+import { useRef} from "react";
+import { useReactToPrint } from 'react-to-print';
 import { useNavigate } from "react-router-dom";
+import './Vendor.css'
 
 const VendorLayout = ({
   billItems = [],
   Totalamount,
   amountOwed,
   amountPaid,
-  billTotal,
+  vendorPhone,
+  vendorPin,
+  currency,
+  vendorEmail,
   title,
+  endDate,
+  startDate,
 }) => {
-  const [formattedItems, setFormattedItems] = useState([]);
-  const theme = useTheme();
-  const colors = tokens(theme.palette.mode);
   const componentRef = useRef();
-  const [currentPage, setCurrentPage] = useState(1)
-  const itemsPerPage = 16;
-  const isMobile = useMediaQuery('(max-width: 768px)');
-  const [anotherItems, setAnotherItems] = useState([]);
 
-  const formatted = new Intl.NumberFormat().format(billTotal);
+  const isMobile = useMediaQuery("(max-width:768px)");
 
-  useEffect(() => {
-    const formatted = billItems.map(item => ({
-        ...item,
-        rate: new Intl.NumberFormat().format(item.rate),
-        amount: new Intl.NumberFormat().format(item.amount),
-        rate_vat: new Intl.NumberFormat().format(item.rate_vat),
-        sub_total: new Intl.NumberFormat().format(item.sub_total)
-      }));
-
-      const another = billItems.map(item => ({
-        ...item,
-        rate: new Intl.NumberFormat().format(item.rate),
-        rate_vat: new Intl.NumberFormat().format(item.rate_vat),
-        sub_total: new Intl.NumberFormat().format(item.sub_total)
-      }));
-
-      setAnotherItems(another)
-      setFormattedItems(formatted)
-  },[billItems])
-
+  const columns = [
+    {
+      field: "vendor_name",
+      headerName: "VENDOR NAME",
+      flex: 0.7,
+      cellClassName: "name-column--cell",
+      renderCell: (params) => (
+        <Box 
+        sx={{ 
+          display: 'flex', 
+          alignItems: 'center', 
+          cursor: 'pointer', 
+        }}
+        onClick={() => handleViewDetails(params.row.id)}
+      >
+        <Typography
+            variant="h7"
+        >
+          {params.value}
+        </Typography>
+      </Box>
+      ),
+    },
+    {
+      field: "bill_number",
+      headerName: "BILL NUMBER",
+      flex: 0.2,
+      renderCell: (params) => (
+        <Box 
+        sx={{ 
+          display: 'flex', 
+          alignItems: 'center', 
+          cursor: 'pointer', 
+        }}
+        onClick={() => handleViewDetails(params.row.id)}
+      >
+        <Typography
+            variant="h7"
+        >
+          {params.value}
+        </Typography>
+      </Box>
+      ),
+    },
+    {
+      field: "bill_date",
+      headerName: "BILL DATE",
+      flex: 0.25,
+      renderCell: (params) => (
+        <Box 
+        sx={{ 
+          display: 'flex', 
+          alignItems: 'center', 
+          cursor: 'pointer', 
+        }}
+        onClick={() => handleViewDetails(params.row.id)}
+      >
+        <Typography
+            variant="h7"
+        >
+          {params.value}
+        </Typography>
+      </Box>
+      ),
+    },
+    {
+        field: "status",
+        headerName: "STATUS",
+        flex: 0.2,
+        renderCell: (params) => (
+            <Box 
+            sx={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              cursor: 'pointer', 
+            }}
+            onClick={() => handleViewDetails(params.row.id)}
+          >
+            <Typography
+                variant="h7"
+            >
+              {params.value}
+            </Typography>
+          </Box>
+          ),
+      },
+      {
+        field: "totalAmount",
+        headerName: "Total Amount",
+        flex: 0.4,
+        renderCell: (params) => {
+          // Use Intl.NumberFormat for currency formatting
+          const formattedAmount = new Intl.NumberFormat(currencyLocaleMap[params.row.currency] || 'en-KE', {
+            style: 'currency',
+            currency: 'KES', // Replace with your desired currency
+          }).format(params.value);
+      
+          return (
+            <Box 
+              sx={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                cursor: 'pointer', 
+              }}
+            >
+              <Typography variant="h7">
+                {formattedAmount}  {/* Display formatted amount */}
+              </Typography>
+            </Box>
+          );
+        },
+      },
+      {
+        field: "amount_owed",
+        headerName: "AMOUNT OWED",
+        flex: 0.4,
+        renderCell: (params) => {
+          // Use Intl.NumberFormat for currency formatting
+          const formattedAmount = new Intl.NumberFormat(currencyLocaleMap[params.row.currency] || 'en-KE', {
+            style: 'currency',
+            currency: 'KES', // Replace with your desired currency
+          }).format(params.value);
+      
+          return (
+            <Box 
+              sx={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                cursor: 'pointer', 
+              }}
+            >
+              <Typography variant="h7">
+                {formattedAmount}  {/* Display formatted amount */}
+              </Typography>
+            </Box>
+          );
+        },
+      },
+      {
+        field: "amount_paid",
+        headerName: "AMOUNT PAID",
+        flex: 0.4,
+        renderCell: (params) => {
+          // Use Intl.NumberFormat for currency formatting
+          const formattedAmount = new Intl.NumberFormat(currencyLocaleMap[params.row.currency] || 'en-KE', {
+            style: 'currency',
+            currency: 'KES', // Replace with your desired currency
+          }).format(params.value);
+      
+          return (
+            <Box 
+              sx={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                cursor: 'pointer', 
+              }}
+            >
+              <Typography variant="h7">
+                {formattedAmount}  {/* Display formatted amount */}
+              </Typography>
+            </Box>
+          );
+        },
+      },
+]
   const navigate = useNavigate()
 
   const handleViewDetails = (billId) => {
     navigate(`/newbills/${billId}`);
   };
 
-  const bills = [
-    { field: "id", headerName: "ID", flex: 0.1,renderCell: (params) => (
-      <Box 
-      sx={{ 
-        display: 'flex', 
-        alignItems: 'center', 
-        cursor: 'pointer', 
-      }}
-      onClick={() => handleViewDetails(params.row.bill_number)}
-    >
-      <Typography
-          variant="h7"
-      >
-        {params.value}
-      </Typography>
-    </Box>
-    ), },
-    { field: "vendor_name", headerName: "Vendor Name", flex: 0.2, renderCell: (params) => (
-      <Box 
-      sx={{ 
-        display: 'flex', 
-        alignItems: 'center', 
-        cursor: 'pointer', 
-      }}
-      onClick={() => handleViewDetails(params.row.bill_number)}
-    >
-      <Typography
-          variant="h7"
-      >
-        {params.value}
-      </Typography>
-    </Box>
-    ),},
-    { field: "bill_number", headerName: "Bill Number", flex: 0.2, renderCell: (params) => (
-      <Box 
-      sx={{ 
-        display: 'flex', 
-        alignItems: 'center', 
-        cursor: 'pointer', 
-      }}
-      onClick={() => handleViewDetails(params.row.bill_number)}
-    >
-      <Typography
-          variant="h7"
-      >
-        {params.value}
-      </Typography>
-    </Box>
-    ),},
-    { field: "status", headerName: "Status", flex: 0.2, renderCell: (params) => (
-      <Box 
-      sx={{ 
-        display: 'flex', 
-        alignItems: 'center', 
-        cursor: 'pointer', 
-      }}
-      onClick={() => handleViewDetails(params.row.bill_number)}
-    >
-      <Typography
-          variant="h7"
-      >
-        {params.value}
-      </Typography>
-    </Box>
-    ),},
-    { field: "bill_date", headerName: "Bill Date", flex: 0.2, renderCell: (params) => (
-      <Box 
-      sx={{ 
-        display: 'flex', 
-        alignItems: 'center', 
-        cursor: 'pointer', 
-      }}
-      onClick={() => handleViewDetails(params.row.bill_number)}
-    >
-      <Typography
-          variant="h7"
-      >
-        {params.value}
-      </Typography>
-    </Box>
-    ),},
-    { field: "item_details", headerName: "ITEM", flex: 0.3, renderCell: (params) => (
-      <Box 
-      sx={{ 
-        display: 'flex', 
-        alignItems: 'center', 
-        cursor: 'pointer', 
-      }}
-      onClick={() => handleViewDetails(params.row.bill_number)}
-    >
-      <Typography
-          variant="h7"
-      >
-        {params.value}
-      </Typography>
-    </Box>
-    ), },
-    { field: "quantity", headerName: "QUANTITY", flex: 0.2, renderCell: (params) => (
-      <Box 
-      sx={{ 
-        display: 'flex', 
-        alignItems: 'center', 
-        cursor: 'pointer', 
-      }}
-      onClick={() => handleViewDetails(params.row.bill_number)}
-    >
-      <Typography
-          variant="h7"
-      >
-        {params.value}
-      </Typography>
-    </Box>
-    ), },
-    { field: "rate", headerName: "RATE", flex: 0.2, renderCell: (params) => (
-      <Box 
-      sx={{ 
-        display: 'flex', 
-        alignItems: 'center', 
-        cursor: 'pointer', 
-      }}
-      onClick={() => handleViewDetails(params.row.bill_number)}
-    >
-      <Typography
-          variant="h7"
-      >
-        {params.value}
-      </Typography>
-    </Box>
-    ), },
-    { field: "sub_total", headerName: "SUB TOTAL", flex: 0.2, renderCell: (params) => (
-      <Box 
-      sx={{ 
-        display: 'flex', 
-        alignItems: 'center', 
-        cursor: 'pointer', 
-      }}
-      onClick={() => handleViewDetails(params.row.bill_number)}
-    >
-      <Typography
-          variant="h7"
-      >
-        {params.value}
-      </Typography>
-    </Box>
-    ), },
-    { field: "vat", headerName: "VAT", flex: 0.2, renderCell: (params) => (
-      <Box 
-      sx={{ 
-        display: 'flex', 
-        alignItems: 'center', 
-        cursor: 'pointer', 
-      }}
-      onClick={() => handleViewDetails(params.row.bill_number)}
-    >
-      <Typography
-          variant="h7"
-      >
-        {params.value}
-      </Typography>
-    </Box>
-    ), },
-    { field: "rate_vat", headerName: "VAT AMOUNT", flex: 0.2, renderCell: (params) => (
-      <Box 
-      sx={{ 
-        display: 'flex', 
-        alignItems: 'center', 
-        cursor: 'pointer', 
-      }}
-      onClick={() => handleViewDetails(params.row.bill_number)}
-    >
-      <Typography
-          variant="h7"
-      >
-        {params.value}
-      </Typography>
-    </Box>
-    ), },
-    { field: "amount", headerName: "AMOUNT", flex: 0.2, renderCell: (params) => (
-      <Box 
-      sx={{ 
-        display: 'flex', 
-        alignItems: 'center', 
-        cursor: 'pointer', 
-      }}
-      onClick={() => handleViewDetails(params.row.bill_number)}
-    >
-      <Typography
-          variant="h7"
-      >
-        {params.value}
-      </Typography>
-    </Box>
-    ), },
-  ];
-
+  const handlePrint = useReactToPrint({
+    content: () => componentRef.current,
+    documentTitle: 'VENDOR SUMMARY',
+  });
 
   const currencyLocaleMap = {
     AED: "en-AE", // United Arab Emirates Dirham
@@ -270,206 +221,348 @@ const VendorLayout = ({
     BRL: "pt-BR", // Brazilian Real
   };
 
-  const totalPages = Math.ceil(anotherItems.length / itemsPerPage)
-  const displayedItems = anotherItems.slice((currentPage - 1)*itemsPerPage, currentPage * itemsPerPage)
-    
-
-  const handlePageChange = (event, value) => {
-        setCurrentPage(value);
-  };
-
   return (
     <Box>
-      <Box ref={componentRef} backgroundColor="white" borderRadius="10px">
-        <Box display="flex" justifyContent="space-between">
-          <Box>
-            <Typography fontSize="32px" color="black" ml="23px" mt="9px" fontWeight="bold">
-              {title}
-            </Typography>
-          </Box>
+
+      <Button variant="contained" color="secondary" onClick={handlePrint}  sx={{fontFamily:'GT Bold', display:'flex', justifyContent:'right', marginTop:'20px'}}>Print Vendor Summary</Button>
+
+      {isMobile ? (
+        <Box sx={{ padding: 2, fontFamily: 'Arial, sans-serif' }}>
+        {/* Header Section */}
+            <Box textAlign="center" sx={{ marginBottom: 4 }}>
+              <Typography fontSize="22px" fontWeight="bold">MAINGI LOGISTICS LTD</Typography>
+              <Typography>Somewhere, County</Typography>
+              <Typography>Country</Typography>
+            </Box>
+
+            <Divider sx={{mb:'30px', mt:'30px'}}/>
+
+            {/* Vendor Details and Account Summary */}
+            <Box display="flex" flexDirection={'column'} alignItems={'center'} sx={{ borderBottom: '2px solid #000', paddingBottom: 3, marginBottom: 4 }}>
+              {/* Vendor Details */}
+              <Box sx={{ width: '100%' }}>
+                <Typography textAlign={'center'} fontSize="18px" fontWeight="bold" gutterBottom>
+                  Vendor Information
+                </Typography>
+                <Box sx={{ padding: '8px', backgroundColor: '#f8f8f8', borderRadius: 2 }}>
+                  <Typography>
+                    <strong>Name:</strong> {title}
+                  </Typography>
+                  <Typography>
+                    <strong>Phone:</strong> {vendorPhone}
+                  </Typography>
+                  <Typography>
+                    <strong>Email:</strong> {vendorEmail}
+                  </Typography>
+                  <Typography>
+                    <strong>PIN:</strong> {vendorPin}
+                  </Typography>
+                </Box>
+              </Box>
+
+              <Divider sx={{mb:'30px', mt:'30px'}}/>
+              
+              {/* Account Summary */}
+              <Box sx={{ width: '100%' }}>
+                <Typography fontSize="18px" fontWeight="bold" textAlign="center" gutterBottom>
+                  Statement of Accounts
+                </Typography>
+                <Divider sx={{ marginY: 2 }} />
+                <Box sx={{ textAlign: 'center', marginBottom: 2 }}>
+                  <Typography><strong>Date:</strong> {new Date().toLocaleDateString()}</Typography>
+                </Box>
+                <Divider sx={{ marginY: 2 }} />
+                <Typography fontWeight="bold" gutterBottom>
+                  Account Summary
+                </Typography>
+                <Box display="flex" justifyContent="space-between" sx={{ padding: '8px 0' }}>
+                  <Typography>Billed Amount:</Typography>
+                  <Typography sx={{ fontWeight: 'bold' }}>{Totalamount}</Typography>
+                </Box>
+                <Box display="flex" justifyContent="space-between" sx={{ padding: '8px 0' }}>
+                  <Typography>Amount Paid:</Typography>
+                  <Typography sx={{ fontWeight: 'bold' }}>{amountPaid}</Typography>
+                </Box>
+                <Divider sx={{ marginY: 1 }} />
+                <Box display="flex" justifyContent="space-between" sx={{ padding: '8px 0', backgroundColor: '#fef6f6', borderRadius: 2 }}>
+                  <Typography>Balance Due:</Typography>
+                  <Typography sx={{ fontWeight: 'bold', color: 'red' }}>{amountOwed}</Typography>
+                </Box>
+              </Box>
+            </Box>
+
+            {/* Bill Table */}
+            <Typography fontSize="18px" fontWeight="bold" sx={{ marginBottom: 2 }}>Detailed Bill Information</Typography>
+            <TableContainer>
+              <Table sx={{ border: '1px solid #ccc' }}>
+                <TableHead>
+                  <TableRow sx={{ backgroundColor: '#f1f1f1' }}>
+                    {columns.map((column) => (
+                      <TableCell key={column.field} sx={{ fontWeight: 'bold', fontSize: '14px', textAlign: 'center' }}>
+                        {column.headerName}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {billItems &&
+                    billItems.map((item) => (
+                      <TableRow key={item.id} hover>
+                        <TableCell sx={{ textAlign: 'center', cursor: 'pointer' }} onClick={() => handleViewDetails(item.id)}>
+                          {item.vendor_name}
+                        </TableCell>
+                        <TableCell sx={{ textAlign: 'center', cursor: 'pointer' }} onClick={() => handleViewDetails(item.id)}>
+                          {item.bill_number}
+                        </TableCell>
+                        <TableCell sx={{ textAlign: 'center', cursor: 'pointer' }} onClick={() => handleViewDetails(item.id)}>
+                          {item.bill_date}
+                        </TableCell>
+                        <TableCell sx={{ textAlign: 'center', cursor: 'pointer' }} onClick={() => handleViewDetails(item.id)}>
+                          {item.status}
+                        </TableCell>
+                        <TableCell sx={{ textAlign: 'center', cursor: 'pointer' }} onClick={() => handleViewDetails(item.id)}>
+                          {new Intl.NumberFormat(currencyLocaleMap.currency || 'en-KE', { style: 'currency', currency }).format(
+                            item.totalAmount
+                          )}
+                        </TableCell>
+                        <TableCell sx={{ textAlign: 'center', cursor: 'pointer' }} onClick={() => handleViewDetails(item.id)}>
+                          {new Intl.NumberFormat(currencyLocaleMap.currency || 'en-KE', { style: 'currency', currency }).format(
+                            item.amount_owed
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
         </Box>
+      ):(
+        <Box sx={{ padding: 2, fontFamily: 'Arial, sans-serif' }}>
+            {/* Header Section */}
+            <Box textAlign="right" sx={{ marginBottom: 4 }}>
+              <Typography fontSize="22px" fontWeight="bold">MAINGI LOGISTICS LTD</Typography>
+              <Typography>Somewhere, County</Typography>
+              <Typography>Country</Typography>
+            </Box>
 
-        {billItems.length > 0 && (
-              <Box>
-                
-
-                <Box
-                    display="grid"
-                    gridTemplateColumns={{md:"repeat(4, 1fr)", xs:"repeat(1, 1fr)"}}
-                    gap="5px"
-                >
-                <Card
-                    sx={{
-                      borderRadius: '15px',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      height: 'auto', // Adjust height for better flexibility
-                      boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
-                      padding: '10px',
-                      margin: '30px',
-                      backgroundColor: '#fff',
-                  }}
-                >
-
-                  <CardContent sx={{display:'flex', flexDirection:'column', justifyContent:'center', alignItems:'center'}}>
-                    <Typography fontSize={'23px'} fontWeight={'bold'}>{Totalamount}</Typography>
-                    <Typography color={'#70d8bd'} fontSize={'25px'} fontWeight={'bold'}>TOTAL PURCHASES</Typography>
-                  </CardContent>
-
-                </Card>
-
-                <Card
-                    sx={{
-                      borderRadius: '15px',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      height: 'auto', // Adjust height for better flexibility
-                      boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
-                      padding: '10px',
-                      margin: '30px',
-                      backgroundColor: '#fff',
-                  }}
-                >
-
-                  <CardContent sx={{display:'flex', flexDirection:'column', justifyContent:'center', alignItems:'center'}}>
-                    <Typography fontSize={'23px'} fontWeight={'bold'}>{amountOwed}</Typography>
-                    <Typography color={'#70d8bd'} fontSize={'27px'} fontWeight={'bold'}>AMOUNT OWED</Typography>
-                  </CardContent>
-                  
-                </Card>
-
-                <Card
-                    sx={{
-                      borderRadius: '15px',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      height: 'auto', // Adjust height for better flexibility
-                      boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
-                      padding: '10px',
-                      margin: '30px',
-                      backgroundColor: '#fff',
-                  }}
-                >
-
-                  <CardContent sx={{display:'flex', flexDirection:'column', justifyContent:'center', alignItems:'center'}}>
-                    <Typography fontSize={'23px'} fontWeight={'bold'}>{amountPaid}</Typography>
-                    <Typography color={'#70d8bd'} fontSize={'27px'} fontWeight={'bold'}>AMOUNT PAID</Typography>
-                  </CardContent>
-                </Card>
-
+            {/* Vendor Details and Account Summary */}
+            <Box display="flex" justifyContent="space-between" sx={{ borderBottom: '2px solid #000', paddingBottom: 3, marginBottom: 4 }}>
+              {/* Vendor Details */}
+              <Box sx={{ width: '45%' }}>
+                <Typography fontSize="18px" fontWeight="bold" gutterBottom>
+                  Vendor Information
+                </Typography>
+                <Box sx={{ padding: '8px', backgroundColor: '#f8f8f8', borderRadius: 2 }}>
+                  <Typography>
+                    <strong>Name:</strong> {title}
+                  </Typography>
+                  <Typography>
+                    <strong>Phone:</strong> {vendorPhone}
+                  </Typography>
+                  <Typography>
+                    <strong>Email:</strong> {vendorEmail}
+                  </Typography>
+                  <Typography>
+                    <strong>PIN:</strong> {vendorPin}
+                  </Typography>
                 </Box>
+              </Box>
 
-                {isMobile ? (
-                  <Box>
-                  <Typography fontSize={'27px'} fontWeight={'bold'} textAlign={'center'}>BILLS</Typography>
-                  <Box
-                      display={'grid'}
-                      gridTemplateColumns={{xs:'repeat(1,1fr)', sm:'repeat(2,1fr)'}}
-                      gap="10px"
-                      margin="0 10px"
-                  >
+              {/* Account Summary */}
+              <Box sx={{ width: '50%' }}>
+                <Typography fontSize="18px" fontWeight="bold" textAlign="center" gutterBottom>
+                  Statement of Accounts
+                </Typography>
+                <Divider sx={{ marginY: 2 }} />
+                <Box sx={{ textAlign: 'center', marginBottom: 2 }}>
+                  <Typography><strong>Date:</strong> {new Date().toLocaleDateString()}</Typography>
+                </Box>
+                <Divider sx={{ marginY: 2 }} />
+                <Typography fontWeight="bold" gutterBottom>
+                  Account Summary
+                </Typography>
+                <Box display="flex" justifyContent="space-between" sx={{ padding: '8px 0' }}>
+                  <Typography>Billed Amount:</Typography>
+                  <Typography sx={{ fontWeight: 'bold' }}>{Totalamount}</Typography>
+                </Box>
+                <Box display="flex" justifyContent="space-between" sx={{ padding: '8px 0' }}>
+                  <Typography>Amount Paid:</Typography>
+                  <Typography sx={{ fontWeight: 'bold' }}>{amountPaid}</Typography>
+                </Box>
+                <Divider sx={{ marginY: 1 }} />
+                <Box display="flex" justifyContent="space-between" sx={{ padding: '8px 0', backgroundColor: '#fef6f6', borderRadius: 2 }}>
+                  <Typography>Balance Due:</Typography>
+                  <Typography sx={{ fontWeight: 'bold', color: 'red' }}>{amountOwed}</Typography>
+                </Box>
+              </Box>
+            </Box>
 
-                      {displayedItems.map((item) => (
-                          <Card
-                              key={item.id}
-                              onClick={() => handleViewDetails(item.bill_number)}
-                              sx={{
-                                  borderRadius: '15px',
-                                  display: 'flex',
-                                  flexDirection: 'column',
-                                  height: 'auto', // Adjust height for better flexibility
-                                  boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
-                                  padding: '10px',
-                                  backgroundColor: '#fff',
-                                  
-                              }}
-                          >
-                                <CardContent>
-                                      <Box display={'flex'} gap={'3px'}>
-                                        <Typography>Vendor:</Typography>
-                                        <Typography fontWeight={'bold'}>{item.vendor_name}</Typography>
-                                      </Box>
+            {/* Bill Table */}
+            <Typography fontSize="18px" fontWeight="bold" sx={{ marginBottom: 2 }}>Detailed Bill Information</Typography>
+            <TableContainer>
+              <Table sx={{ border: '1px solid #ccc' }}>
+                <TableHead>
+                  <TableRow sx={{ backgroundColor: '#f1f1f1' }}>
+                    {columns.map((column) => (
+                      <TableCell key={column.field} sx={{ fontWeight: 'bold', fontSize: '14px', textAlign: 'center' }}>
+                        {column.headerName}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {billItems &&
+                    billItems.map((item) => (
+                      <TableRow key={item.id} hover>
+                        <TableCell sx={{ textAlign: 'center', cursor: 'pointer' }} onClick={() => handleViewDetails(item.id)}>
+                          {item.vendor_name}
+                        </TableCell>
+                        <TableCell sx={{ textAlign: 'center', cursor: 'pointer' }} onClick={() => handleViewDetails(item.id)}>
+                          {item.bill_number}
+                        </TableCell>
+                        <TableCell sx={{ textAlign: 'center', cursor: 'pointer' }} onClick={() => handleViewDetails(item.id)}>
+                          {item.bill_date}
+                        </TableCell>
+                        <TableCell sx={{ textAlign: 'center', cursor: 'pointer' }} onClick={() => handleViewDetails(item.id)}>
+                          {item.status}
+                        </TableCell>
+                        <TableCell sx={{ textAlign: 'center', cursor: 'pointer' }} onClick={() => handleViewDetails(item.id)}>
+                          {new Intl.NumberFormat(currencyLocaleMap.currency || 'en-KE', { style: 'currency', currency }).format(
+                            item.totalAmount
+                          )}
+                        </TableCell>
+                        <TableCell sx={{ textAlign: 'center', cursor: 'pointer' }} onClick={() => handleViewDetails(item.id)}>
+                          {new Intl.NumberFormat(currencyLocaleMap.currency || 'en-KE', { style: 'currency', currency }).format(
+                            item.amount_owed
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+        </Box>
+      )}
+      
 
-                                      <Box display={'flex'} gap={'5px'}>
-                                        <Typography>Bill Number:</Typography>
-                                        <Typography fontWeight={'bold'}>{item.bill_number}</Typography>
-                                      </Box>
+      <Box ref={componentRef} className="a4-print-mobile" sx={{ padding: 2, fontFamily: 'Arial, sans-serif' }}>
+            {/* Header Section */}
+            <Box textAlign="right" sx={{ marginBottom: 4 }}>
+              <Typography fontSize="22px" fontWeight="bold">MAINGI LOGISTICS LTD</Typography>
+              <Typography>Somewhere, County</Typography>
+              <Typography>Country</Typography>
+            </Box>
 
-                                      <Box display={'flex'} gap={'2px'}>
-                                        <Typography>Item:</Typography>
-                                        <Typography fontWeight={'bold'}>{item.item_details}</Typography>
-                                      </Box>
+            {/* Vendor Details and Account Summary */}
+            <Box display="flex" justifyContent="space-between" sx={{ borderBottom: '2px solid #000', paddingBottom: 3, marginBottom: 4 }}>
+              {/* Vendor Details */}
+              <Box sx={{ width: '45%' }}>
+                <Typography fontSize="18px" fontWeight="bold" gutterBottom>
+                  Vendor Information
+                </Typography>
+                <Box sx={{ padding: '8px', backgroundColor: '#f8f8f8', borderRadius: 2 }}>
+                  <Typography>
+                    <strong>Name:</strong> {title}
+                  </Typography>
+                  <Typography>
+                    <strong>Phone:</strong> {vendorPhone}
+                  </Typography>
+                  <Typography>
+                    <strong>Email:</strong> {vendorEmail}
+                  </Typography>
+                  <Typography>
+                    <strong>PIN:</strong> {vendorPin}
+                  </Typography>
+                </Box>
+              </Box>
 
-                                      <Box display={'flex'} gap={'5px'}>
-                                        <Typography>Quantity:</Typography>
-                                        <Typography fontWeight={'bold'}>{item.quantity}</Typography>
-                                      </Box>
-
-                                      <Box display={'flex'} gap={'5px'}>
-                                        <Typography>Rate:</Typography>
-                                        <Typography fontWeight={'bold'}>{item.rate}</Typography>
-                                      </Box>
-
-                                      <Box display={'flex'} gap={'5px'}>
-                                        <Typography>VAT:</Typography>
-                                        <Typography fontWeight={'bold'}>{item.vat}</Typography>
-                                      </Box>
-
-                                      <Box display={'flex'} gap={'5px'}>
-                                        <Typography>VAT Amount:</Typography>
-                                        <Typography fontWeight={'bold'}>{item.rate_vat}</Typography>
-                                      </Box>
-
-                                      <Box display={'flex'} gap={'5px'}>
-                                        <Typography>Total Amount:</Typography>
-                                        <Typography fontWeight={'bold'}>{new Intl.NumberFormat(currencyLocaleMap[item.currency] ||'en-KE', {style:'currency', currency:'KES'}).format(item.amount)}</Typography>
-                                      </Box>
-                              </CardContent>
-                          </Card>
-                      ))}
-                      <Box display="flex" justifyContent="center" mt="20px">
-                              <Pagination count={totalPages} page={currentPage} onChange={handlePageChange} color="secondary" />
-                      </Box>
-                  </Box>
-                  </Box>
+              {/* Account Summary */}
+              <Box sx={{ width: '50%' }}>
+                <Typography fontSize="18px" fontWeight="bold" textAlign="center" gutterBottom>
+                  Statement of Accounts
+                </Typography>
+                <Divider sx={{ marginY: 2 }} />
+                {startDate & endDate ? (
+                     <Box sx={{ textAlign: 'center', marginBottom: 2 }}>
+                     <Typography><strong>Date:</strong>{startDate.toLocaleDateString()} to {endDate.toLocaleDateString()}</Typography>
+                   </Box>
                 ):(
-                  <Box>
-                    <Box>
-                      <DataGrid rows={formattedItems} columns={bills} components={{ Toolbar: GridToolbar }} getRowId={(row) => row.id} />
-                    </Box>
-                    <Typography variant="h6" color="black" fontWeight="bold" mb="30px">
-                      Total: {formatted}
-                    </Typography>
-                    <Box display="flex" justifyContent="center">
-                      <ReactToPrint
-                        trigger={() => (
-                          <Button
-                            variant="contained"
-                            color="primary"
-                            sx={{
-                              backgroundColor: colors.blueAccent[700],
-                              color: colors.grey[100],
-                              '&:hover': {
-                                backgroundColor: colors.blueAccent[500],
-                              },
-                              padding: "10px 20px",
-                              fontSize: "16px",
-                              fontWeight: "bold",
-                            }}
-                          >
-                            Print
-                          </Button>
-                        )}
-                        content={() => componentRef.current}
-                      />
-                    </Box>
-                  </Box>
+                     <Box sx={{ textAlign: 'center', marginBottom: 2 }}>
+                     <Typography><strong>Date:</strong> {new Date().toLocaleDateString()}</Typography>
+                   </Box>
                 )}
-                  
+               
+                <Divider sx={{ marginY: 2 }} />
+                <Typography fontWeight="bold" gutterBottom>
+                  Account Summary
+                </Typography>
+                <Box display="flex" justifyContent="space-between" sx={{ padding: '8px 0' }}>
+                  <Typography>Billed Amount:</Typography>
+                  <Typography sx={{ fontWeight: 'bold' }}>{Totalamount}</Typography>
                 </Box>
-                )}
-        
+                <Box display="flex" justifyContent="space-between" sx={{ padding: '8px 0' }}>
+                  <Typography>Amount Paid:</Typography>
+                  <Typography sx={{ fontWeight: 'bold' }}>{amountPaid}</Typography>
+                </Box>
+                <Divider sx={{ marginY: 1 }} />
+                <Box display="flex" justifyContent="space-between" sx={{ padding: '8px 0', backgroundColor: '#fef6f6', borderRadius: 2 }}>
+                  <Typography>Balance Due:</Typography>
+                  <Typography sx={{ fontWeight: 'bold', color: 'red' }}>{amountOwed}</Typography>
+                </Box>
+              </Box>
+            </Box>
+
+            {/* Bill Table */}
+            <Typography fontSize="18px" fontWeight="bold" sx={{ marginBottom: 2 }}>Detailed Bill Information</Typography>
+            <TableContainer>
+              <Table sx={{ border: '1px solid #ccc' }}>
+                <TableHead>
+                  <TableRow sx={{ backgroundColor: '#f1f1f1' }}>
+                    {columns.map((column) => (
+                      <TableCell key={column.field} sx={{ fontWeight: 'bold', fontSize: '14px', textAlign: 'center' }}>
+                        {column.headerName}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {billItems &&
+                    billItems.map((item) => (
+                      <TableRow key={item.id} hover>
+                        <TableCell sx={{ textAlign: 'center', cursor: 'pointer' }} onClick={() => handleViewDetails(item.id)}>
+                          {item.vendor_name}
+                        </TableCell>
+                        <TableCell sx={{ textAlign: 'center', cursor: 'pointer' }} onClick={() => handleViewDetails(item.id)}>
+                          {item.bill_number}
+                        </TableCell>
+                        <TableCell sx={{ textAlign: 'center', cursor: 'pointer' }} onClick={() => handleViewDetails(item.id)}>
+                          {item.bill_date}
+                        </TableCell>
+                        <TableCell sx={{ textAlign: 'center', cursor: 'pointer' }} onClick={() => handleViewDetails(item.id)}>
+                          {item.status}
+                        </TableCell>
+                        <TableCell sx={{ textAlign: 'center', cursor: 'pointer' }} onClick={() => handleViewDetails(item.id)}>
+                          {new Intl.NumberFormat(currencyLocaleMap.currency || 'en-KE', { style: 'currency', currency }).format(
+                            item.totalAmount
+                          )}
+                        </TableCell>
+                        <TableCell sx={{ textAlign: 'center', cursor: 'pointer' }} onClick={() => handleViewDetails(item.id)}>
+                          {new Intl.NumberFormat(currencyLocaleMap.currency || 'en-KE', { style: 'currency', currency }).format(
+                            item.amount_owed
+                          )}
+                        </TableCell>
+                        <TableCell sx={{ textAlign: 'center', cursor: 'pointer' }} onClick={() => handleViewDetails(item.id)}>
+                          {new Intl.NumberFormat(currencyLocaleMap.currency || 'en-KE', { style: 'currency', currency }).format(
+                            item.amount_paid
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
       </Box>
+
 
       
     </Box>
