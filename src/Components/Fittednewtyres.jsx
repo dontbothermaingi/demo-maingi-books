@@ -95,7 +95,7 @@ const FittedNewTyres = () => {
                                 <Box
                                     display={'grid'}
                                     gridTemplateColumns={{xs:'repeat(1,1fr)', sm:'repeat(2,1fr)'}}
-                                    gap="10px"
+                                    gap="20px"
                                     margin="0 10px"
                                 >
 
@@ -108,7 +108,6 @@ const FittedNewTyres = () => {
                                                 flexDirection: 'column',
                                                 height: 'auto', // Adjust height for better flexibility
                                                 boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
-                                                padding: '10px',
                                                 backgroundColor: '#fff',
                                                 transition: 'transform 0.3s ease-in-out',
                                                 '&:hover': {
@@ -119,34 +118,34 @@ const FittedNewTyres = () => {
                                         >
                                             <CardContent>
                                                     <Box display={'flex'} gap={'4px'}>
-                                                        <Typography>Tyre Name:</Typography>
-                                                        <Typography fontWeight={'bold'}>{item.item_details}</Typography>
+                                                        <Typography fontFamily={"GT Medium"} fontSize={'15px'}>Tyre Name:</Typography>
+                                                        <Typography fontFamily={"GT Light"} fontSize={'15px'}>{item.item_details}</Typography>
                                                     </Box>
 
                                                     <Box display={'flex'} gap={'4px'}>
-                                                        <Typography>Size:</Typography>
-                                                        <Typography fontWeight={'bold'}>{item.size}</Typography>
+                                                        <Typography fontFamily={"GT Medium"} fontSize={'15px'}>Size:</Typography>
+                                                        <Typography fontFamily={"GT Light"} fontSize={'15px'}>{item.size}</Typography>
                                                     </Box>
                                                     
                                                     <Box display={'flex'} gap={'4px'}>
-                                                        <Typography>Truck Number:</Typography>
-                                                        <Typography fontWeight={'bold'}>{item.truck_number}</Typography>
+                                                        <Typography fontFamily={"GT Medium"} fontSize={'15px'}>Truck Number:</Typography>
+                                                        <Typography fontFamily={"GT Light"} fontSize={'15px'}>{item.truck_number}</Typography>
                                                     </Box>
                                                     
                                                     <Box display={'flex'} gap={'4px'}>
-                                                        <Typography>Serial Number:</Typography>
-                                                        <Typography fontWeight={'bold'}>{item.serial_number}</Typography>
+                                                        <Typography fontFamily={"GT Medium"} fontSize={'15px'}>Serial Number:</Typography>
+                                                        <Typography fontFamily={"GT Light"} fontSize={'15px'}>{item.serial_number}</Typography>
                                                     </Box>
                                                         
                                                     
                                                     <Box display={'flex'} gap={'7px'}>
-                                                        <Typography>Position:</Typography>
-                                                        <Typography fontWeight={'bold'}>{item.position}</Typography>
+                                                        <Typography fontFamily={"GT Medium"} fontSize={'15px'}>Position:</Typography>
+                                                        <Typography fontFamily={"GT Light"} fontSize={'15px'}>{item.position}</Typography>
                                                     </Box>
                                                     
                                                     <Box display={'flex'} gap={'4px'}>
-                                                        <Typography>Status:</Typography>
-                                                        <Typography fontWeight={'bold'}>{item.status}</Typography>
+                                                        <Typography fontFamily={"GT Medium"} fontSize={'15px'}>Status:</Typography>
+                                                        <Typography fontFamily={"GT Light"} fontSize={'15px'}>{item.status}</Typography>
                                                     </Box>
                                                     
 

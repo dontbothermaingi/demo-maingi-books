@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Box, Button, Card, CardContent, FormControl, MenuItem, Pagination, Select, TextField, Typography, useMediaQuery } from "@mui/material";
+import { Alert, Box, Button, Card, CardContent, CircularProgress, Dialog, DialogContent, FormControl, MenuItem, Pagination, Select, Snackbar, TextField, Typography, useMediaQuery } from "@mui/material";
 import { DataGrid, GridToolbar } from "@mui/x-data-grid";
 import { useNavigate } from "react-router-dom";
 
@@ -8,6 +8,10 @@ function Tyre() {
     const [items, setItems] = useState([]);
     const [filteredBanks, setFilteredBanks] = useState([]);
     const [tyreInventory, setTyreInventory] = useState([]);
+    const [loading, setIsLoading] = useState(false)
+    const [openDialog, setOpenDialog] =useState(false)
+    const [openSnackBar, setOpenSnackbar] = useState(false)
+    const [errorMessage, setErrorMessage] = useState(false)
     const [currentPage, setCurrentPage] = useState(1)
     const itemsPerPage = 16;
     const isMobile = useMediaQuery('(max-width: 768px)');
@@ -112,6 +116,9 @@ function Tyre() {
         
         event.preventDefault();
 
+        setIsLoading(true);
+        setOpenDialog(true);
+
         fetch('https://demo-server-757m.onrender.com/removetyres', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'Authorization':`Bearer ${token}` },
@@ -120,6 +127,9 @@ function Tyre() {
         })
             .then(response => response.json())
             .then(() => {
+
+                setIsLoading(false);
+                setOpenDialog(false);
 
                 fetch('https://demo-server-757m.onrender.com/tyres', {
                     method:'GET',
@@ -148,7 +158,13 @@ function Tyre() {
                     date: ""
                 });
             })
-            .catch(error => console.error('Error updating history:', error));
+            .catch((error) => {
+                console.error('Error updating history:', error)
+                setIsLoading(false);
+                setOpenDialog(false);
+                setOpenSnackbar(true);
+                setErrorMessage("Failed to fit tyre. Please try again!")
+            });
     }
 
     const navigate = useNavigate();
@@ -157,6 +173,15 @@ function Tyre() {
     const handleTyreContol = () => {
         navigate('/tyre-control');
     };
+
+    function handleCloseDialog(){
+        setOpenDialog(!openDialog)
+    }
+
+    function handleCloseSnackbar(event, reason){
+        if(reason === 'clickaway') return;
+        setOpenDialog(false)
+    }
 
     const columns = [
         { field: "item_details", headerName: "ITEM DETAILS", flex: 0.5 },
@@ -195,6 +220,23 @@ function Tyre() {
                 <Button type="button" variant="contained" color="secondary" onClick={handleTyreContol} sx={{margin:'30px'}}>
                     BACK
                 </Button>
+
+                <Dialog open={openDialog} onClose={handleCloseDialog}>
+                    <DialogContent sx={{display:'flex', alignItems:'center', gap:'20px'}}>
+                        <CircularProgress sx={{fontSize:'10px'}}/>
+                        <Typography fontFamily={"GT Bold"}>Saving...</Typography>
+                    </DialogContent>
+                </Dialog>
+                
+                <Snackbar
+                    open={openSnackBar} 
+                    autoHideDuration={6000} 
+                    onClose={handleCloseSnackbar} 
+                    anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+                >
+                    <Alert onClose={handleCloseSnackbar} severity={errorMessage.includes('Please') ? "error" : "success"} sx={{ width: '100%' }}>{errorMessage}</Alert>
+                </Snackbar>
+
                 <Box>
                     <Typography fontSize={'27px'} fontWeight={'bold'} textAlign={'center'}>FIT TYRE</Typography>
                 
@@ -310,7 +352,7 @@ function Tyre() {
                                 />
 
                             {selectedTyreItem && selectedTyreItem.quantity === 0 && <p>Tyre is out of stock.</p>}
-                            <Button type="submit" variant="contained" color="secondary">FIT NEW TYRE</Button>
+                            <Button disabled={loading} type="submit" variant="contained" color="secondary" sx={{fontFamily:'GT Bold'}}>{loading ? "Fitting..." : "FIT"}</Button>
                         </form>
                     </Box>
                 </Box>
@@ -321,7 +363,7 @@ function Tyre() {
                 <Box
                     display={'grid'}
                     gridTemplateColumns={{xs:'repeat(1,1fr)', sm:'repeat(2,1fr)'}}
-                    gap="10px"
+                    gap="20px"
                     margin="0 10px"
                 >
 
@@ -334,7 +376,6 @@ function Tyre() {
                                 flexDirection: 'column',
                                 height: 'auto', // Adjust height for better flexibility
                                 boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
-                                padding: '10px',
                                 backgroundColor: '#fff',
                                 transition: 'transform 0.3s ease-in-out',
                                 '&:hover': {
@@ -345,18 +386,18 @@ function Tyre() {
                         >
                             <CardContent>
                                     <Box display={'flex'} gap={'5px'}>
-                                        <Typography>Tyre Name:</Typography>
-                                        <Typography fontWeight={'bold'}>{item.item_details}</Typography>
+                                        <Typography  fontFamily={"GT Medium"} fontSize={'15px'}>Tyre Name:</Typography>
+                                        <Typography  fontFamily={"GT Light"} fontSize={'15px'}>{item.item_details}</Typography>
                                     </Box>
 
                                     <Box display={'flex'} gap={'5px'}>
-                                        <Typography>Quantity:</Typography>
-                                        <Typography fontWeight={'bold'}>{item.quantity}</Typography>
+                                        <Typography  fontFamily={"GT Medium"} fontSize={'15px'}>Quantity:</Typography>
+                                        <Typography  fontFamily={"GT Light"} fontSize={'15px'}>{item.quantity}</Typography>
                                     </Box>
 
                                     <Box display={'flex'} gap={'5px'}>
-                                        <Typography>Size:</Typography>
-                                        <Typography fontWeight={'bold'}>{item.size}</Typography>
+                                        <Typography  fontFamily={"GT Medium"} fontSize={'15px'}>Size:</Typography>
+                                        <Typography  fontFamily={"GT Light"} fontSize={'15px'}>{item.size}</Typography>
                                     </Box>
                             </CardContent>
                         </Card>

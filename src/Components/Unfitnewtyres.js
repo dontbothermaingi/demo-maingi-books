@@ -1,11 +1,15 @@
 import { useEffect, useState } from "react";
-import { Box, Button, Card, CardContent, FormControl, List, ListItem, ListItemText, MenuItem, Pagination, Select, TextField, Typography, useMediaQuery } from "@mui/material";
+import { Alert, Box, Button, Card, CardContent, CircularProgress, Dialog, DialogContent, FormControl, List, ListItem, ListItemText, MenuItem, Pagination, Select, Snackbar, TextField, Typography, useMediaQuery } from "@mui/material";
 import { DataGrid, GridToolbar } from "@mui/x-data-grid";
 import { useNavigate } from "react-router-dom";
 
 function OldTyres() {
     const [fittedTyres, setFittedTyres] = useState([]);
     const [serialNumberInput, setSerialNumberInput] = useState("");
+    const [loading, setIsLoading] = useState(false)
+    const [openDialog, setOpenDialog] =useState(false)
+    const [openSnackBar, setOpenSnackbar] = useState(false)
+    const [errorMessage, setErrorMessage] = useState(false)
     const [currentPage, setCurrentPage] = useState(1)
     const itemsPerPage = 16;
     const isMobile = useMediaQuery('(max-width: 768px)');
@@ -23,7 +27,9 @@ function OldTyres() {
         position: "",
         tyre_mileage:"",
         condition:"",
+        status:"",
         date: "",
+        retread_status:"",
     });
 
     useEffect(() => {
@@ -73,6 +79,9 @@ function OldTyres() {
     function handleOldSubmit(event) {
         event.preventDefault();
 
+        setIsLoading(true);
+        setOpenDialog(true);
+
         const { starting_mileage, final_mileage } = formData;
         const starting = parseFloat(starting_mileage);
         const final = parseFloat(final_mileage);
@@ -93,6 +102,8 @@ function OldTyres() {
                 body: JSON.stringify({
                     ...newFormData,
                     retread_counter: 0,
+                    status:'Store',
+                    retread_status:'NOT AVAILABLE'
                 })
             })
                 .then(response => {
@@ -128,6 +139,9 @@ function OldTyres() {
                     })
                     .then(data => {
 
+                        setIsLoading(true);
+                        setOpenDialog(true);
+
                         fetch('https://demo-server-757m.onrender.com/removetyres',{
                             method: 'GET',
                             credentials: 'include',
@@ -159,10 +173,18 @@ function OldTyres() {
                     })
                     .catch(error => {
                         console.error('Error updating tyre status:', error);
+                        setIsLoading(false);
+                        setOpenDialog(false);
+                        setOpenSnackbar(true);
+                        setErrorMessage("Failed to remove tyre. Please try again!")
                     });
                 })
                 .catch(error => {
                     console.error('Error:', error);
+                    setIsLoading(false);
+                    setOpenDialog(false);
+                    setOpenSnackbar(true);
+                    setErrorMessage("Failed to remove tyre. Please try again!")
                 });
         } else {
             alert("Please enter valid starting and final mileage values.");
@@ -175,6 +197,15 @@ function OldTyres() {
     };
 
     const navigate = useNavigate()
+
+    function handleCloseDialog(){
+        setOpenDialog(!openDialog)
+    }
+
+    function handleCloseSnackbar(event, reason){
+        if(reason === 'clickaway') return;
+        setOpenDialog(false)
+    }
 
     const columns = [
         // { field: "id", headerName: "ID", flex: 0.5 },
@@ -237,6 +268,23 @@ function OldTyres() {
                 <Button type="button" variant="contained" color="secondary" onClick={handleTyreContol} sx={{margin:'30px'}}>
                     BACK
                 </Button>
+
+                <Dialog open={openDialog} onClose={handleCloseDialog}>
+                    <DialogContent sx={{display:'flex', alignItems:'center', gap:'20px'}}>
+                        <CircularProgress sx={{fontSize:'10px'}}/>
+                        <Typography fontFamily={"GT Bold"}>Saving...</Typography>
+                    </DialogContent>
+                </Dialog>
+                
+                <Snackbar
+                    open={openSnackBar} 
+                    autoHideDuration={6000} 
+                    onClose={handleCloseSnackbar} 
+                    anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+                >
+                    <Alert onClose={handleCloseSnackbar} severity={errorMessage.includes('Please') ? "error" : "success"} sx={{ width: '100%' }}>{errorMessage}</Alert>
+                </Snackbar>
+
                 <Typography fontSize={'27px'} fontWeight={'bold'} textAlign={'center'}>REMOVE TYRE FROM TRUCK</Typography>
                 <Box
                    sx={{
@@ -385,7 +433,7 @@ function OldTyres() {
                             />
 
 
-                        <Button type="submit" color="secondary" variant="contained">UNFIT</Button>
+                        <Button disabled={loading} type="submit" color="secondary" variant="contained" sx={{fontFamily:'GT Bold'}}>{loading ? "Unfitting..." : "UNFIT"}</Button>
                     </form>
                 </Box>
             </Box>
