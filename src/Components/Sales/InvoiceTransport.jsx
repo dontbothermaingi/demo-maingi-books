@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Box, Typography, Button, IconButton, FormControl, Select, MenuItem, TextField, RadioGroup, FormControlLabel, TableContainer, Paper, Table, TableHead, TableRow, TableCell, ListSubheader, Divider, Card, CardContent, Pagination, Snackbar, Alert } from "@mui/material";
+import { Box, Typography, Button, IconButton, FormControl, Select, MenuItem, TextField, RadioGroup, FormControlLabel, TableContainer, Paper, Table, TableHead, TableRow, TableCell, ListSubheader, Divider, Card, CardContent, Pagination, Snackbar, Alert, CircularProgress } from "@mui/material";
 import { DataGrid, GridToolbar } from "@mui/x-data-grid";
 import { useNavigate } from "react-router-dom";
 import { Dialog, DialogContent } from '@mui/material';
@@ -86,7 +86,7 @@ function InvoiceTransport() {
                 setInvoices(invoiceTotal);
 
                 const sortedInvoices = data.sort((a,b) => b.id - a.id)
-                const lastInvoiceNumber = sortedInvoices.length > 0 ? sortedInvoices[0].invoice_number : null;
+                const lastInvoiceNumber = sortedInvoices.length > 0 ? sortedInvoices[0].invoice_number : 1;
     
                 console.log("Last Invoice Number:", lastInvoiceNumber);
                 setLastInvoiceNumber(lastInvoiceNumber)
@@ -640,7 +640,8 @@ function InvoiceTransport() {
                     </Button>
 
                     <Dialog open={openDialog} onClose={handleCloseDialog}>
-                        <DialogContent>
+                        <DialogContent sx={{display:'flex', alignItems:'center', gap:'10px'}}>
+                            <CircularProgress sx={{fontSize:'10px'}}/>
                             <Typography fontFamily={"GT Bold"}>Saving...</Typography>
                         </DialogContent>
                     </Dialog>

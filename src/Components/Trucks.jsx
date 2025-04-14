@@ -1,4 +1,4 @@
-import { Box,Button,Card,CardContent,FormControl,MenuItem,Pagination,Select,TextField,ToggleButton,ToggleButtonGroup,Typography, useMediaQuery} from "@mui/material";
+import { Box,Button,Card,CardContent,CircularProgress,Dialog,DialogContent,FormControl,MenuItem,Pagination,Select,TextField,ToggleButton,ToggleButtonGroup,Typography, useMediaQuery} from "@mui/material";
 import { DataGrid, GridToolbar } from "@mui/x-data-grid";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -8,6 +8,8 @@ import { useTheme } from "@mui/material";
 function Trucks(){
   const theme = useTheme();
   const [currentPage, setCurrentPage] = useState(1)
+  const [openDialog, setOpenDialog] = useState(false)
+  const [loading, setLoading] = useState(false)
   const itemsPerPage = 16;
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const token = localStorage.getItem('access_token')
@@ -49,6 +51,9 @@ function Trucks(){
 
     const vehicleId = trucks.length + 1
 
+    setLoading(true)
+    setOpenDialog(true)
+
     fetch('https://demo-server-757m.onrender.com/trucks', {
       method:'POST',
       headers:{
@@ -81,6 +86,12 @@ function Trucks(){
         trailer:"",
         contact:"",
       })
+
+      setOpenDialog(false)
+      setLoading(false)
+    })
+    .catch((error) => {
+      console.error('Failed to create vehicle', error)
     })
   }
 
@@ -99,6 +110,10 @@ function Trucks(){
   const handleFitNewTyre = () => {
     navigate(`/fit-new-tyre`);
   };
+
+  function handleCloseDialog(){
+    setOpenDialog(!openDialog)
+  }
 
 
   const columns = [
@@ -255,6 +270,12 @@ function Trucks(){
                 <ToggleButton onClick={() => handleRepair()} sx={{fontSize:{xs:"11px", md:'14px'}}}>Repair</ToggleButton>
               </ToggleButtonGroup>
 
+              <Dialog open={openDialog} onClose={handleCloseDialog}>
+                  <DialogContent sx={{display:'flex', alignItems:'center', gap:'10px'}}>
+                    <CircularProgress sx={{fontSize:'10px'}}/>
+                    <Typography fontFamily={"GT Bold"}>Saving...</Typography>
+                  </DialogContent>
+              </Dialog>
               <Box>
               <Typography
                   textAlign='center'
@@ -353,7 +374,7 @@ function Trucks(){
                               sx={{mb:'20px'}}
                           />
 
-                      <Button type="submit" variant="contained" color="secondary" sx={{fontFamily:"GT Bold", width:'150px', mt:'30px'}}>ADD VEHICLE</Button>
+                        <Button disabled={loading} type="submit" variant="contained" color="secondary" sx={{fontFamily:"GT Bold", width:'150px', mt:'30px'}}>{loading ? "Saving..." : "ADD VEHICLE"}</Button>
                       </FormControl>
                   </form>
                 </Box>
