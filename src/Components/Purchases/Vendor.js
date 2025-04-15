@@ -528,6 +528,7 @@ function Vendor() {
                         {displayedItems.map((item) => (
                             <Card
                             key={item.id}
+                            onClick={() => handleVendor(item.id)}
                             sx={{
                                 borderRadius: '15px',
                                 display: 'flex',

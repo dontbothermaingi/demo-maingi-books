@@ -222,13 +222,13 @@ const Items = () => {
 
                                 <CardContent>
                                   <Box display={'flex'} gap={'5px'}>
-                                    <Typography>Item Details:</Typography>
-                                    <Typography fontWeight={'bold'}>{item.item_details}</Typography>
+                                    <Typography fontFamily={"GT Medium"} fontSize={'15px'}>Item Details:</Typography>
+                                    <Typography fontFamily={"GT Light"} fontSize={'15px'}>{item.item_details}</Typography>
                                   </Box>
 
                                   <Box display={'flex'} gap={'5px'}>
-                                    <Typography>Quantity:</Typography>
-                                    <Typography fontWeight={'bold'}>{item.quantity}</Typography>
+                                    <Typography fontFamily={"GT Medium"} fontSize={'15px'}>Quantity:</Typography>
+                                    <Typography fontFamily={"GT Light"} fontSize={'15px'}>{item.quantity}</Typography>
                                   </Box>
                                   
                                 </CardContent>

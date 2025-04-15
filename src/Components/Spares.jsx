@@ -29,23 +29,8 @@ const Spares = () => {
       })
       .then(data => {
         console.log(data); // Check the data
-        setSubSpares(data)
-      })
-      .catch(error => console.error('Error fetching data:', error));
-  }, [token]);
-
-  useEffect(() => {
-    fetch('https://demo-server-757m.onrender.com/sparesubcategories', {
-            method:'GET',
-            headers:{
-                'Authorization':`Bearer ${token}`
-            },
-            credentials:'include'
-    })
-      .then(response =>  response.json())
-      .then(data => {
-        console.log(data);
-        setSubSpares(data)
+        const filtered = data.sort((a,b) => a.spare_subcategory_name.localeCompare(b.spare_subcategory_name))
+        setSubSpares(filtered)
       })
       .catch(error => console.error('Error fetching data:', error));
   }, [token]);
@@ -89,7 +74,7 @@ const Spares = () => {
                 <Box
                     display={'grid'}
                     gridTemplateColumns={{xs:'repeat(1,1fr)', sm:'repeat(2,1fr)'}}
-                    gap="10px"
+                    gap="20px"
                     margin="0 10px"
                 >
 
@@ -102,7 +87,6 @@ const Spares = () => {
                                 flexDirection: 'column',
                                 height: 'auto', // Adjust height for better flexibility
                                 boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
-                                padding: '10px',
                                 backgroundColor: '#fff',
                                 transition: 'transform 0.3s ease-in-out',
                                 '&:hover': {
@@ -113,23 +97,23 @@ const Spares = () => {
                         >
                             <CardContent>
                                   <Box display={'flex'} gap={'5px'}>
-                                    <Typography>Spare Name:</Typography>
-                                    <Typography fontWeight={'bold'}>{item.spare_subcategory_name}</Typography>
+                                    <Typography fontFamily={"GT Medium"} fontSize={'15px'}>Spare Name:</Typography>
+                                    <Typography fontFamily={"GT Light"} fontSize={'15px'}>{item.spare_subcategory_name}</Typography>
                                   </Box>
 
                                   <Box display={'flex'} gap={'5px'}>
-                                    <Typography>Quantity:</Typography>
-                                    <Typography fontWeight={'bold'}>{item.quantity}</Typography>
+                                    <Typography fontFamily={"GT Medium"} fontSize={'15px'}>Quantity:</Typography>
+                                    <Typography fontFamily={"GT Light"} fontSize={'15px'}>{item.quantity}</Typography>
                                   </Box>
 
                                   <Box display={'flex'} gap={'5px'}>
-                                    <Typography>Measurement:</Typography>
-                                    <Typography fontWeight={'bold'}>{item.measurement}</Typography>
+                                    <Typography fontFamily={"GT Medium"} fontSize={'15px'}>Measurement:</Typography>
+                                    <Typography fontFamily={"GT Light"} fontSize={'15px'}>{item.measurement}</Typography>
                                   </Box>
 
                                   <Box display={'flex'} gap={'5px'}>
-                                    <Typography>Date:</Typography>
-                                    <Typography fontWeight={'bold'}>{item.date}</Typography>
+                                    <Typography fontFamily={"GT Medium"} fontSize={'15px'}>Date:</Typography>
+                                    <Typography fontFamily={"GT Light"} fontSize={'15px'}>{item.date}</Typography>
                                   </Box>
 
                             </CardContent>

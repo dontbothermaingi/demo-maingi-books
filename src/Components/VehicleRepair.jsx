@@ -848,7 +848,7 @@ function VehicleRepair(){
                                 <Box
                                     display={'grid'}
                                     gridTemplateColumns={{xs:'repeat(1,1fr)', sm:'repeat(2,1fr)'}}
-                                    gap="10px"
+                                    gap="20px"
                                     margin="0 10px"
                                 >
 
@@ -862,7 +862,6 @@ function VehicleRepair(){
                                                 flexDirection: 'column',
                                                 height: 'auto', // Adjust height for better flexibility
                                                 boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
-                                                padding: '10px',
                                                 backgroundColor: '#fff',
                                                 transition: 'transform 0.3s ease-in-out',
                                                 '&:hover': {
@@ -873,40 +872,40 @@ function VehicleRepair(){
                                         >
                                             <CardContent>
                                                 <Box display={'flex'} gap={'3px'}>
-                                                    <Typography>Vehicle:</Typography>
-                                                    <Typography fontWeight={'bold'}>{item.truck_number}</Typography>
+                                                    <Typography fontFamily={"GT Medium"} fontSize={'15px'}>Vehicle:</Typography>
+                                                    <Typography fontFamily={"GT Light"} fontSize={'15px'}>{item.truck_number}</Typography>
                                                 </Box>
 
                                                 <Box display={'flex'} gap={'3px'}>
-                                                    <Typography>Manufacturer:</Typography>
-                                                    <Typography fontWeight={'bold'}>{item.manufacturer}</Typography>
+                                                    <Typography fontFamily={"GT Medium"} fontSize={'15px'}>Manufacturer:</Typography>
+                                                    <Typography fontFamily={"GT Light"} fontSize={'15px'}>{item.manufacturer}</Typography>
                                                 </Box>
                                                 
                                                 <Box display={'flex'} gap={'3px'}>
-                                                    <Typography>Job Type:</Typography>
-                                                    <Typography fontWeight={'bold'}>{item.job_description}</Typography>
+                                                    <Typography fontFamily={"GT Medium"} fontSize={'15px'}>Job Type:</Typography>
+                                                    <Typography fontFamily={"GT Light"} fontSize={'15px'}>{item.job_description}</Typography>
                                                 </Box>
                                                 
                                                 <Box display={'flex'} gap={'3px'}>
-                                                    <Typography>Spare:</Typography>
-                                                    <Typography fontWeight={'bold'}>{item.spare_subcategory_name}</Typography>
+                                                    <Typography fontFamily={"GT Medium"} fontSize={'15px'}>Spare:</Typography>
+                                                    <Typography fontFamily={"GT Light"} fontSize={'15px'}>{item.spare_subcategory_name}</Typography>
                                                 </Box>
                                                     
                                                 
                                                 <Box display={'flex'} gap={'3px'}>
-                                                    <Typography>Mechanic:</Typography>
-                                                    <Typography fontWeight={'bold'}>{item.mechanic}</Typography>
+                                                    <Typography fontFamily={"GT Medium"} fontSize={'15px'}>Mechanic:</Typography>
+                                                    <Typography fontFamily={"GT Light"} fontSize={'15px'}>{item.mechanic}</Typography>
                                                 </Box>
                                                 
                                                 <Box display={'flex'} gap={'3px'}>
-                                                    <Typography>Quantity:</Typography>
-                                                    <Typography fontWeight={'bold'}>{item.quantity}</Typography>
+                                                    <Typography fontFamily={"GT Medium"} fontSize={'15px'}>Quantity:</Typography>
+                                                    <Typography fontFamily={"GT Light"} fontSize={'15px'}>{item.quantity}</Typography>
                                                 </Box>
                                                 
 
                                                 <Box display={'flex'} gap={'3px'}>
-                                                    <Typography>Job Description</Typography>
-                                                    <Typography fontWeight={'bold'}>{item.job_name}</Typography>
+                                                    <Typography fontFamily={"GT Medium"} fontSize={'15px'}>Job:</Typography>
+                                                    <Typography fontFamily={"GT Light"} fontSize={'15px'}>{item.job_name}</Typography>
                                                 </Box>
                                                     
                                             </CardContent>

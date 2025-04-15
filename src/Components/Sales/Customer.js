@@ -612,6 +612,7 @@ function Customer() {
                         {displayedItems.map((item) => (
                             <Card
                                 key={item.id}
+                                onClick={() => handleViewDetails(item.id)}
                                 sx={{
                                     borderRadius: '15px',
                                     display: 'flex',
@@ -644,7 +645,7 @@ function Customer() {
 
                                         <Box display={'flex'} gap={'7px'}>
                                             <Typography fontFamily={"GT Medium"} fontSize={'15px'}>KRA Pin:</Typography>
-                                            <Typography fontFamily={"GT Light"} fontSize={'15px'}>{item.vendor_pin}</Typography>
+                                            <Typography fontFamily={"GT Light"} fontSize={'15px'}>{item.kra_pin}</Typography>
                                         </Box>
 
                                         <Box display={'flex'} gap={'7px'}>
