@@ -186,7 +186,7 @@ function App() {
             <Box>
                     <Box>
                     <Routes>
-                        <Route path='/register' element={<Register />}></Route>
+                        <Route path='/register-lol-wow-78596555' element={<Register />}></Route>
                         <Route path='/login' element={<Login onLogin={handleLogin}/>}></Route>
                         <Route element={<PrivateRoutes />}>
                             <Route path='/' exact element={<Dashboard />}></Route>
