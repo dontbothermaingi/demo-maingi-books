@@ -322,7 +322,6 @@ import { useState } from "react";
                              {activeDropdown === 'stock' && (
                                  <Box mt={1}>
                                      {renderNavLink("/stock-items", "Stock")}
-                                     {renderNavLink("/add-item", "Add Stock")}
                                  </Box>
                              )}
                          </Box>
