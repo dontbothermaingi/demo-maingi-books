@@ -1,4 +1,4 @@
-import { Box, Button, Card, CardContent, Pagination, Typography} from "@mui/material";
+import { Box, Button, Card, CardContent, CircularProgress, Dialog, DialogContent, Pagination, Typography} from "@mui/material";
 import { DataGrid, GridToolbar } from "@mui/x-data-grid";
 import { useEffect, useState } from "react";
 import { useTheme } from '@mui/material/styles';
@@ -8,6 +8,7 @@ import { useNavigate } from "react-router";
 
 const Spares = () => {
   const [subSpares,setSubSpares] = useState([])
+  const [openDialog, setOpenDialog] = useState(false)
   const [currentPage, setCurrentPage] = useState(1)
   const itemsPerPage = 16;
   const theme = useTheme();
@@ -15,13 +16,13 @@ const Spares = () => {
   const token = localStorage.getItem('access_token')
   const navigate = useNavigate()
 
-  useEffect(() => {
-    fetch('https://demo-server-757m.onrender.com/sparesubcategories',{
-            method:'GET',
-            headers:{
-                'Authorization':`Bearer ${token}`
-            },
-            credentials:'include'
+  const fetchSubSpares = () => {
+    fetch('https://demo-server-757m.onrender.com/sparesubcategories', {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`
+      },
+      credentials: 'include'
     })
       .then(response => {
         if (!response.ok) {
@@ -30,12 +31,17 @@ const Spares = () => {
         return response.json();
       })
       .then(data => {
-        console.log(data); // Check the data
-        const filtered = data.sort((a,b) => a.spare_subcategory_name.localeCompare(b.spare_subcategory_name))
-        setSubSpares(filtered)
+        const filtered = data.sort((a, b) => a.spare_subcategory_name.localeCompare(b.spare_subcategory_name));
+        setSubSpares(filtered);
       })
       .catch(error => console.error('Error fetching data:', error));
+  };
+  
+
+  useEffect(() => {
+    fetchSubSpares();
   }, [token]);
+  
 
   const totalPages = Math.ceil(subSpares.length / itemsPerPage)
   const displayedItems = subSpares.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
@@ -45,6 +51,9 @@ const Spares = () => {
     };
   
     function handleDelete(id){
+
+      setOpenDialog(true);
+
       fetch(`https://demo-server-757m.onrender.com/sparesubcategories/${id}`, {
         method:'DELETE',
         headers:{
@@ -55,11 +64,20 @@ const Spares = () => {
       .then(response => response.json())
       .then((data) => {
         console.log(data, 'Deleted Successfully')
+        setOpenDialog(false)
+        fetchSubSpares()
+      })
+      .catch((error) => {
+        console.error("Failed to delete", error)
       })
     }
 
     function handleEdit(spareId){
       navigate(`/edit-spare/${spareId}`)
+    }
+
+    function handleCloseDialog(){
+      setOpenDialog(!openDialog)
     }
 
   const columns = [
@@ -116,6 +134,12 @@ const Spares = () => {
   return (
     
     <Box margin={'30px'}>
+                      <Dialog open={openDialog} onClose={handleCloseDialog}>
+                          <DialogContent sx={{display:'flex', alignItems:'center', gap:'20px'}}>
+                              <CircularProgress sx={{fontSize:'10px'}}/>
+                              <Typography fontFamily={"GT Bold"}>Deleting...</Typography>
+                          </DialogContent>
+                      </Dialog>
       {isMobile ? (
                 <Box>
                 <Typography fontSize={'27px'} fontWeight={'bold'} textAlign={'center'}>SPARES</Typography>
