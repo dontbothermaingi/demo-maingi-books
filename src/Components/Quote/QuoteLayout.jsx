@@ -40,9 +40,9 @@ const QuoteLayout = ({ items,vendorPin, customerEmail, typeVat, customerPhone, s
       <Box ref={componentRef} className="a4-print" padding='10mm'>
         <Box display='flex' justifyContent='space-between' mb='20px'>
           <Box>
-            <Typography fontSize='24px' color="black" fontWeight="bold">EKATI HAULIERS</Typography>
-            <Typography variant="h6" color="black">Emali, Makueni</Typography>
-            <Typography variant="h6" color="black">Kenya</Typography>
+            <Typography fontSize='24px' color="black" fontWeight="bold">MAINGI BOOKS LIMITED</Typography>
+            <Typography variant="h6" color="black">Somewhere, County</Typography>
+            <Typography variant="h6" color="black">Country</Typography>
           </Box>
           <Box textAlign='right'>
             <Typography variant="h4" color="black" fontWeight="bold">{title}</Typography>
@@ -123,7 +123,7 @@ const QuoteLayout = ({ items,vendorPin, customerEmail, typeVat, customerPhone, s
 
         <Box display='flex' justifyContent='center'>
           <Typography variant="body1" color='black' fontWeight="bold">
-            Gerald, 0728891580, gmutyetumo@yahoo.com
+            Maingi, +52045889632, maingibooks@yahoo.com
           </Typography>
         </Box>
 

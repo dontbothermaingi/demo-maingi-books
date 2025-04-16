@@ -44,9 +44,9 @@ const DeliveryNoteLayout = ({ title, customerName, customerEmail, customerPhone,
           <Box display={'flex'} justifyContent={'space-between'}>
               <Box>
                 <Typography fontSize='20px' color="black" fontWeight="bold" className="HEADER">TRANSPORTER</Typography>
-                <Typography fontSize='14px' color="black" className="Info">EKATI HAULIERS</Typography>
-                <Typography fontSize='14px' color="black" className="Info">Emali, Makueni</Typography>
-                <Typography fontSize='14px' color="black" className="Info">Kenya</Typography>
+                <Typography fontSize='14px' color="black" className="Info">MAINGI BOOKS</Typography>
+                <Typography fontSize='14px' color="black" className="Info">Somewhere, County</Typography>
+                <Typography fontSize='14px' color="black" className="Info">Country</Typography>
               </Box>
 
                 <Box>
