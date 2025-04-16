@@ -189,6 +189,11 @@ const Spares = () => {
                                     <Typography fontFamily={"GT Light"} fontSize={'15px'}>{item.date}</Typography>
                                   </Box>
 
+                                  <Box>onClick={() => handleDelete(item.id)}
+                                    <Button onClick={() => handleEdit(item.id)}variant="contained" color="secondary" sx={{fontFamily:'GT Bold', width:'150px'}}>EDIT</Button>
+                                    <Button onClick={() => handleDelete(item.id)} variant="contained" sx={{fontFamily:'GT Bold', width:'150px', backgroundColor:'red'}}>DELETE</Button>
+                                  </Box>
+
                             </CardContent>
                         </Card>
                     ))}
