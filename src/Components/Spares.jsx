@@ -1,9 +1,10 @@
-import { Box, Card, CardContent, Pagination, Typography} from "@mui/material";
+import { Box, Button, Card, CardContent, Pagination, Typography} from "@mui/material";
 import { DataGrid, GridToolbar } from "@mui/x-data-grid";
 import { useEffect, useState } from "react";
 import { useTheme } from '@mui/material/styles';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import Header from "./Header";
+import { useNavigate } from "react-router";
 
 const Spares = () => {
   const [subSpares,setSubSpares] = useState([])
@@ -12,6 +13,7 @@ const Spares = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const token = localStorage.getItem('access_token')
+  const navigate = useNavigate()
 
   useEffect(() => {
     fetch('https://demo-server-757m.onrender.com/sparesubcategories',{
@@ -41,6 +43,24 @@ const Spares = () => {
     const handlePageChange = (event, value) => {
         setCurrentPage(value);
     };
+  
+    function handleDelete(id){
+      fetch(`https://demo-server-757m.onrender.com/sparesubcategories/${id}`, {
+        method:'DELETE',
+        headers:{
+          'Authorization':`Bearer ${token}`
+        },
+        credentials:"include"
+      })
+      .then(response => response.json())
+      .then((data) => {
+        console.log(data, 'Deleted Successfully')
+      })
+    }
+
+    function handleEdit(spareId){
+      navigate(`/edit-spare/${spareId}`)
+    }
 
   const columns = [
     {
@@ -63,6 +83,34 @@ const Spares = () => {
       headerName: "Date",
       flex: 0.3,
     },
+    {
+      field: 'actions',
+      headerName: 'Actions',
+      width: 150,
+      renderCell: (params) => (
+        <Button
+          onClick={() => handleDelete(params.row.id)} // Pass the row ID to the handler
+          variant="contained"
+          color="secondary"
+        >
+          DELETE
+        </Button>
+      ),
+    },
+    {
+      field: 'action',
+      headerName: 'Actions',
+      width: 150,
+      renderCell: (params) => (
+        <Button
+          onClick={() => handleEdit(params.row.id)} // Pass the row ID to the handler
+          variant="contained"
+          color="secondary"
+        >
+          EDIT
+        </Button>
+      ),
+    },
   ];
 
   return (
@@ -74,7 +122,7 @@ const Spares = () => {
                 <Box
                     display={'grid'}
                     gridTemplateColumns={{xs:'repeat(1,1fr)', sm:'repeat(2,1fr)'}}
-                    gap="20px"
+                    gap="10px"
                     margin="0 10px"
                 >
 
@@ -87,6 +135,7 @@ const Spares = () => {
                                 flexDirection: 'column',
                                 height: 'auto', // Adjust height for better flexibility
                                 boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
+                                padding: '10px',
                                 backgroundColor: '#fff',
                                 transition: 'transform 0.3s ease-in-out',
                                 '&:hover': {

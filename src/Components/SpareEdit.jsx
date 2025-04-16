@@ -1,6 +1,6 @@
 import { Alert, Box, Button, Snackbar, TextField } from "@mui/material";
 import { useEffect, useState } from "react";
-import { useParams } from "react-router";
+import { useNavigate, useParams } from "react-router";
 
 function EditSpare (){
 
@@ -8,6 +8,7 @@ function EditSpare (){
     const {spareId} = useParams()
     const [openSnackbar, setOpenSnackbar] = useState(false)
     const [successMessage, setSuccessMessage] = useState('')
+    const navigate = useNavigate()
     const [formData, setFormData] = useState({
         spare_subcategory_name :"",
         measurement : "",
@@ -72,6 +73,7 @@ function EditSpare (){
 
             setSuccessMessage('Updated Successfully')
             setOpenSnackbar(true)
+            navigate("/spares")
         })
         .catch(error => {
             console.error('Failed Request', error)
