@@ -320,9 +320,9 @@ const InvoiceLayout = ({ items, status,remainder,currency, diesel, vendorPin, cu
 
                   <Box>
                   <Typography fontSize='20px' color="black" fontWeight="bold" className="HEADER">BILL FROM</Typography>
-                    <Typography fontSize='14px' color="black" className="Info">EKATI HAULIERS</Typography>
-                    <Typography fontSize='14px' color="black" className="Info">Emali, Makueni</Typography>
-                    <Typography fontSize='14px' color="black" className="Info">Kenya</Typography>
+                    <Typography fontSize='14px' color="black" className="Info">MAINGI BOOKS LIMITED</Typography>
+                    <Typography fontSize='14px' color="black" className="Info">Somewhere, County</Typography>
+                    <Typography fontSize='14px' color="black" className="Info">Country</Typography>
                   </Box>
 
                   <Box>
@@ -404,7 +404,7 @@ const InvoiceLayout = ({ items, status,remainder,currency, diesel, vendorPin, cu
                 <Box display='flex' gap='20px' justifyContent='space-between' mt='20px'>
                   <Box>
                     <Typography fontSize='20px' color="black" fontWeight="bold" className="HEADER">Payment Info</Typography>
-                    <Typography fontSize='14px' color='black' className="Info">EKATI HAULIERS LIMITED</Typography>
+                    <Typography fontSize='14px' color='black' className="Info">MAINGI BOOKS LIMITED</Typography>
                   </Box>
 
                   <Box>
@@ -416,8 +416,8 @@ const InvoiceLayout = ({ items, status,remainder,currency, diesel, vendorPin, cu
 
                   <Box>
                     <Typography fontSize='20px' color="black" fontWeight="bold" className="HEADER">Contact Us</Typography>
-                    <Typography fontSize='14px' color="black" className="Info">0728891580</Typography>
-                    <Typography fontSize='14px' color="black" className="Info">gmutyetumo@yahoo.com</Typography>
+                    <Typography fontSize='14px' color="black" className="Info">+52045889632</Typography>
+                    <Typography fontSize='14px' color="black" className="Info">maingibooks@yahoo.com</Typography>
                   </Box>
                 </Box>
               </Box>
