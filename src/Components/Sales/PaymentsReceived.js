@@ -179,9 +179,10 @@ function PaymentsReceived (){
 
         setOpenDialog(true)
         setLoading(true)
-    
+
+        const encordedCustomerName = encodeURIComponent(formData.customer_name)
         // Fetch unpaid or partially paid invoices
-        fetch(`https://demo-server-757m.onrender.com/invoicepayment?customer_name=${formData.customer_name}`, {
+        fetch(`https://demo-server-757m.onrender.com/invoicepayment?customer_name=${encordedCustomerName}`, {
             method: 'GET',
             headers: {
                 'Authorization': `Bearer ${token}`,

@@ -39,7 +39,24 @@ const Spares = () => {
   
 
   useEffect(() => {
-    fetchSubSpares();
+    fetch('https://demo-server-757m.onrender.com/sparesubcategories', {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`
+      },
+      credentials: 'include'
+    })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        return response.json();
+      })
+      .then(data => {
+        const filtered = data.sort((a, b) => a.spare_subcategory_name.localeCompare(b.spare_subcategory_name));
+        setSubSpares(filtered);
+      })
+      .catch(error => console.error('Error fetching data:', error));
   }, [token]);
   
 

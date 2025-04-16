@@ -181,9 +181,11 @@ function PaymentsMade (){
 
         setOpenDialog(true)
         setLoading(true)
-    
+
+        const encordedVendorName = encodeURIComponent(formData.vendor_name)
+
         // Fetch unpaid or partially paid invoices
-        fetch(`https://demo-server-757m.onrender.com/newbillstatus?vendor_name=${formData.vendor_name}`, {
+        fetch(`https://demo-server-757m.onrender.com/newbillstatus?vendor_name=${encordedVendorName}`, {
             method: 'GET',
             headers: {
                 'Authorization': `Bearer ${token}`,
