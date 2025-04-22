@@ -86,7 +86,7 @@ function InvoiceTransport() {
                 setInvoices(invoiceTotal);
 
                 const sortedInvoices = data.sort((a,b) => b.id - a.id)
-                const lastInvoiceNumber = sortedInvoices.length > 0 ? sortedInvoices[0].invoice_number : 0;
+                const lastInvoiceNumber = sortedInvoices.length > 0 ? sortedInvoices[sortedInvoices.length -1].invoice_number : 0;
     
                 console.log("Last Invoice Number:", lastInvoiceNumber);
                 setLastInvoiceNumber(lastInvoiceNumber)
@@ -945,7 +945,7 @@ function InvoiceTransport() {
                                                     maxRows={20}   // Maximum number of rows
                                                 />
 
-                                                <Typography fontFamily={"GT Medium"}>Quantity</Typography>
+                                                <Typography fontFamily={"GT Medium"}>Weight</Typography>
                                                 <TextField
                                                     type="number"
                                                     name="quantity"
@@ -1037,7 +1037,7 @@ function InvoiceTransport() {
                                                 <TableRow>
                                                 <TableCell sx={{ minWidth: 150 }}><Typography fontWeight="bold">Truck</Typography></TableCell>
                                                     <TableCell sx={{ minWidth: 200 }}><Typography fontWeight="bold">Description</Typography></TableCell>
-                                                    <TableCell sx={{ minWidth: 50 }}><Typography fontWeight="bold">Quantity</Typography></TableCell>
+                                                    <TableCell sx={{ minWidth: 50 }}><Typography fontWeight="bold">Weight(T)</Typography></TableCell>
                                                     <TableCell sx={{ minWidth: 50 }}><Typography fontWeight="bold">Rate</Typography></TableCell>
                                                     <TableCell sx={{ minWidth: 50 }}><Typography fontWeight="bold">Sub Total</Typography></TableCell>
                                                     <TableCell sx={{ minWidth: 50 }}><Typography fontWeight="bold">VAT</Typography></TableCell>

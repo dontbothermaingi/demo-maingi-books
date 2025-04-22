@@ -21,6 +21,7 @@ import ReportForPaymentsMade from './Components/ReportForPaymentsMade';
 import StoreDetails from './Components/StoreDetails';
 import StockItemDetails from './Components/StockItemDetails';
 import CreateStore from './Components/CreateStore';
+import FitUsedTyre from './Components/FitUsedTyre';
 
 const Customer = lazy(() => import('./Components/Sales/Customer'));
 const Invoice = lazy(() => import('./Components/Sales/Invoice'));
@@ -307,6 +308,7 @@ function App() {
                             <Route path="/store-details/:storeId" element={<StoreDetails />} />
                             <Route path="/stock-details/:stockId" element={<StockItemDetails />} />
                             <Route path="/create-store" element={<CreateStore />} />
+                            <Route path="/fit-used-tyre" element={<FitUsedTyre />} />
                         </Route>
                     </Routes>
                     </Box>

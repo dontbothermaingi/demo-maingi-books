@@ -21,17 +21,17 @@ function UsedTyresControl() {
             <Typography fontFamily={"GT Bold"} fontSize={{xs:'20px', md:'29px'}}>
                 Used Tyres Information
             </Typography>
-            <Typography fontFamily={"GT Medium"} fontSize={{xs:'18px', md:'29px'}}>
+            <Typography fontFamily={"GT Medium"} fontSize={{xs:'15px', md:'23px'}} mt={'20px'} mb={'20px'}>
                 *IF YOU WANT TO ADD RETREAD TYRES TO YOUR STORE USE THE RETREAD TYRE BILL*
             </Typography>
             <Box display="flex" flexDirection="column" gap={2}>
 
                 <Card>
                     <CardContent>
-                        <Typography fontFamily={"GT Medium"} fontSize={{xs:'18px', md:'29px'}}>
+                        <Typography fontFamily={"GT Medium"} fontSize={{xs:'18px', md:'25px'}}>
                             1.  Fit Used Tyre
                         </Typography>
-                        <Typography fontFamily={"GT Light"} fontSize={{xs:'15px', md:'19px'}}>
+                        <Typography fontFamily={"GT Light"} fontSize={{xs:'15px', md:'16px'}}>
                             Fit used tyre.
                         </Typography>
                         <Button
@@ -45,10 +45,10 @@ function UsedTyresControl() {
                 </Card>
                 <Card>
                     <CardContent>
-                        <Typography fontFamily={"GT Medium"} fontSize={{xs:'18px', md:'29px'}}>
+                        <Typography fontFamily={"GT Medium"} fontSize={{xs:'18px', md:'25px'}}>
                             2.  Unfit Used Tyre
                         </Typography>
-                        <Typography fontFamily={"GT Light"} fontSize={{xs:'15px', md:'19px'}}>
+                        <Typography fontFamily={"GT Light"} fontSize={{xs:'15px', md:'16px'}}>
                             Unfit used tyre.
                         </Typography>
                         <Button
@@ -62,10 +62,10 @@ function UsedTyresControl() {
                 </Card>
                 <Card>
                     <CardContent>
-                        <Typography fontFamily={"GT Medium"} fontSize={{xs:'18px', md:'29px'}}>
+                        <Typography fontFamily={"GT Medium"} fontSize={{xs:'18px', md:'25px'}}>
                             3.  View All Used Tyres
                         </Typography>
-                        <Typography fontFamily={"GT Light"} fontSize={{xs:'15px', md:'19px'}}>
+                        <Typography fontFamily={"GT Light"} fontSize={{xs:'15px', md:'16px'}}>
                             Check all used tyres.
                         </Typography>
                         <Button

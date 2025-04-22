@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
-import { Box, Typography } from "@mui/material";
+import { Box, Button, Card, CardContent, FormControl, MenuItem, Pagination, Select, TextField, Typography, useMediaQuery } from "@mui/material";
 import { DataGrid, GridToolbar } from "@mui/x-data-grid";
-import "./Fitretreadtyre.css"
 import { useNavigate } from "react-router-dom";
 
 
@@ -10,6 +9,9 @@ function FitUsedTyre(){
     const [retreadTyres, setRetreadTyres] = useState([]);
     const [availableRetreadTyres, setAvailableRetreadTyres] = useState([]);
     const token = localStorage.getItem('access_token')
+    const [currentPage, setCurrentPage] = useState(1)
+    const itemsPerPage = 16;
+    const isMobile = useMediaQuery('(max-width: 768px)');
     const [formData,setFormData] = useState({
         item_details : "",
         size : "",
@@ -104,6 +106,9 @@ function FitUsedTyre(){
                 date : "",
             })
         })
+        .catch((error) => {
+            console.error("Failed to post Tyre", error)
+        })
     }
 
     function handleSelectTyre(event){
@@ -183,178 +188,207 @@ function FitUsedTyre(){
         
     ];
 
+    const totalPages = Math.ceil(availableRetreadTyres.length / itemsPerPage)
+    const displayedItems = availableRetreadTyres.slice((currentPage - 1)*itemsPerPage, currentPage * itemsPerPage)
+    
+
+    const handlePageChange = (event, value) => {
+        setCurrentPage(value);
+    };
+
     return ( 
-        <div>
-            <button
-               type="button"
-               className="button"
+        <Box>
+            <Button
+               variant="contained"
+               color="secondary"
                onClick={()=> handleRetreadControl()}
+               sx={{margin:'30px'}}
             >
                 BACK
-            </button>
+            </Button>
                 
-                <div className="bill-content">
-
-                    <div>
-                        <h2 className="h2">FIT USED TYRE</h2>
-                        <form className="bill-form" onSubmit={handleSubmit}>
-
-                                <div className="bill-input">
-                                    <label>Serial Number</label>
-                                        <select
+                    <Box>
+                        <Typography fontSize={'27px'} fontWeight={'bold'} textAlign={'center'}>FIT USED TYRE</Typography>
+                        <form style={{display:'flex', flexDirection:'column', margin:'30px'}} onSubmit={handleSubmit}>
+                                    <FormControl>
+                                        <Typography fontWeight={'bold'}>Serial Number</Typography>
+                                        <Select
                                             type="text"
                                             name="serial_number"
                                             placeholder="Serial Number"
                                             className="bill-inputfield"
                                             value={formData.serial_number}
                                             onChange={handleSelectTyre}
+                                            sx={{mb:'20px'}}
                                         >
-                                            <option value="">Select Serial Number</option>
+                                            <MenuItem value="">Select Serial Number</MenuItem>
                                             {availableRetreadTyres.map((tyre,index)=>(
-                                                <option key={index} value={tyre.serial_number}>{tyre.serial_number}</option>
+                                                <MenuItem key={index} value={tyre.serial_number}>{tyre.serial_number}</MenuItem>
                                             ))}
-                                        </select>
-                                    </div>
+                                        </Select>
+                                        </FormControl>
                                 
-                            <div className="bill-input">
-                                    <label>Tyre Brand</label>
-                                    <input
+                                    <TextField
                                         type="text"
                                         name="item_details"
-                                        placeholder="Name"
-                                        className="bill-inputfield"
+                                        label="Name"
                                         value={formData.item_details}
                                         onChange={handleChange}
-                                        readOnly
+                                        inputProps={{readOnly:true}}
+                                        variant="outlined"
+                                        sx={{mb:'20px'}}
                                     />
-                            </div>
 
-                            <div className="bill-input">
-                                    <label>Tyre Size</label>
-                                    <input
+                                    <TextField
                                         type="text"
                                         name="size"
-                                        placeholder="Tyre Size"
-                                        className="bill-inputfield"
+                                        label="Tyre Size"
                                         value={formData.size}
                                         onChange={handleChange}
-                                        readOnly
+                                        inputProps={{readOnly:true}}
+                                        variant="outlined"
+                                        sx={{mb:'20px'}}
                                     />
-                            </div>
 
-                            <div className="bill-input">
-                                    <label>Truck Number</label>
-                                        <select
-                                            type="text"
-                                            name="truck_number"
-                                            placeholder="Truck Number"
-                                            className="bill-inputfield"
-                                            value={formData.truck_number}
-                                            onChange={handleChange}
-                                        >
-                                            <option value="">Select Truck Number</option>
-                                            {trucks.map((truck,index)=>(
-                                                <option key={index} value={truck.truck_number}>{truck.truck_number}</option>
+                                    <FormControl>
+                                        <Typography fontWeight={'bold'}>Truck Number</Typography>
+                                            <Select
+                                                type="text"
+                                                name="truck_number"
+                                                placeholder="Truck Number"
+                                                value={formData.truck_number}
+                                                onChange={handleChange}
+                                                sx={{mb:'20px'}}
+                                            >
+                                                <MenuItem value="">Select Truck Number</MenuItem>
+                                                {trucks.map((truck,index)=>(
+                                                    <MenuItem key={index} value={truck.truck_number}>{truck.truck_number}</MenuItem>
+                                                ))}
+                                            </Select>
+                                    </FormControl>
+
+                                    <TextField
+                                        type="number"
+                                        name="starting_mileage"
+                                        label="Starting Mileage"
+                                        value={formData.starting_mileage}
+                                        onChange={handleChange}
+                                        required
+                                        variant="outlined"
+                                        sx={{mb:'20px'}}
+                                    />
+                                    <FormControl>
+                                        <Typography fontWeight={'bold'}>Position</Typography>
+                                        <Select value={formData.position} onChange={handleChange} name="position" sx={{mb:'20px'}}>
+                                            <MenuItem value=''>Select Axle</MenuItem>
+                                            {axel.map((axelOption, index) => (
+                                                <MenuItem key={index} value={axelOption.axels}>
+                                                    {axelOption.axels}
+                                                </MenuItem>
                                             ))}
-                                        </select>
-                            </div>
+                                        </Select>
+                                    </FormControl>
 
-                            <div className="bill-input">
-                                    <label>Starting Mileage</label>
-                            <input
-                                type="number"
-                                name="starting_mileage"
-                                placeholder="Starting Mileage"
-                                className="bill-inputfield"
-                                value={formData.starting_mileage}
-                                onChange={handleChange}
-                                required
-                            />
-                            </div>
-
-                            <div className="bill-input">
-                            <label>Position</label>
-                            <select value={formData.position} onChange={handleChange} name="position" className="bill-inputfield">
-                                <option value=''>Select Axle</option>
-                                {axel.map((axelOption, index) => (
-                                    <option key={index} value={axelOption.axels}>
-                                        {axelOption.axels}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-
-                            <div className="bill-input">
-                                    <label>Fitment Date</label>
-                                    <input
+                                    <Typography fontWeight={'bold'}>DATE</Typography>
+                                    <TextField
                                         type="date"
                                         name="date"
-                                        placeholder="Date"
-                                        className="bill-inputfield"
                                         value={formData.date}
                                         onChange={handleChange}
                                         required
+                                        variant="outlined"
+                                        sx={{mb:'20px'}}
                                     />
-                            </div>
 
-                            <button type="submit" className="button">FIT</button>
+                            <Button type="submit" variant="contained" color="secondary">FIT</Button>
                         </form>
-                    </div>
+                    </Box>
 
-                        <Box m="20px">
-                            <Typography
-                            textAlign='center'
-                            fontSize='30px'
-                            fontWeight='bold'
+                    {isMobile ? (
+                        <Box>
+                        <Typography fontSize={'27px'} fontWeight={'bold'} textAlign={'center'} marginTop={'30px'} marginBottom={'30px'}>AVAILABLE USED TYRES IN GOOD CONDITION</Typography>
+                        <Box
+                            display={'grid'}
+                            gridTemplateColumns={{xs:'repeat(1,1fr)', sm:'repeat(2,1fr)'}}
+                            gap="10px"
+                            margin="0 10px"
+                        >
+
+                            {displayedItems.map((item) => (
+                                <Card
+                                    key={item.id}
+                                    sx={{
+                                        borderRadius: '15px',
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        height: 'auto', // Adjust height for better flexibility
+                                        boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
+                                        padding: '10px',
+                                        backgroundColor: '#fff',
+                                        transition: 'transform 0.3s ease-in-out',
+                                        '&:hover': {
+                                            transform: 'scale(1.03)',
+                                            boxShadow: '0 8px 30px rgba(0,0,0,0.15)',
+                                        },
+                                    }}
+                                >
+                                    <CardContent>
+                                            <Box display={'flex'} gap={'5px'}>
+                                                <Typography>Tyre Name:</Typography>
+                                                <Typography fontWeight={'bold'}>{item.item_details}</Typography>
+                                            </Box>
+
+                                            <Box display={'flex'} gap={'5px'}>
+                                                <Typography>Serial Number:</Typography>
+                                                <Typography fontWeight={'bold'}>{item.serial_number}</Typography>
+                                            </Box>
+
+                                            <Box display={'flex'} gap={'5px'}>
+                                                <Typography>Size:</Typography>
+                                                <Typography fontWeight={'bold'}>{item.size}</Typography>
+                                            </Box>
+
+                                            <Box display={'flex'} gap={'5px'}>
+                                                <Typography>Condition:</Typography>
+                                                <Typography fontWeight={'bold'}>{item.condition}</Typography>
+                                            </Box>
+
+                                            <Box display={'flex'} gap={'5px'}>
+                                                <Typography>Status:</Typography>
+                                                <Typography fontWeight={'bold'}>{item.status}</Typography>
+                                            </Box>
+                                    </CardContent>
+                                </Card>
+                            ))}
+                            <Box display="flex" justifyContent="center" mt="20px">
+                                    <Pagination count={totalPages} page={currentPage} onChange={handlePageChange} color="secondary" />
+                            </Box>
+                        </Box>
+                        </Box>
+                        ) : (
+                            <Box m="20px">
+                            <Typography 
+                                fontSize='30px'
+                                fontWeight='bold'
+                                textAlign='center'
                             >
                                 AVAILABLE USED TYRES IN GOOD CONDITION
                             </Typography>
-                                <Box
-                                    m="40px 0 0 0"
-                                    height="75vh"
-                                    sx={{
-                                    "& .MuiDataGrid-root": {
-                                        border: "none",
-                                    },
-                                    "& .MuiDataGrid-cell": {
-                                        borderBottom: "none",
-                                        // fontSize: "16px",  // Increase the font size of the data
-                                    },
-                                    "& .name-column--cell": {
-                                        // color: colors.greenAccent[300],
-                                    },
-                                    "& .MuiDataGrid-columnHeaders": {
-                                        // backgroundColor: colors.blueAccent[700],
-                                        borderBottom: "none",
-                                        // fontSize: "16px",  // Increase the font size of the header
-                                    },
-                                    "& .MuiDataGrid-virtualScroller": {
-                                        // backgroundColor: colors.primary[400],
-                                    },
-                                    "& .MuiDataGrid-footerContainer": {
-                                        borderTop: "none",
-                                        // backgroundColor: colors.blueAccent[700],
-                                    },
-                                    "& .MuiCheckbox-root": {
-                                        // color: `${colors.greenAccent[200]} !important`,
-                                    },
-                                    "& .MuiDataGrid-toolbarContainer .MuiButton-text": {
-                                        // color: `${colors.grey[100]} !important`,
-                                    },
-                                    }}
-                                >
-                                    <DataGrid
-                                    rows={availableRetreadTyres}
-                                    columns={columns}
-                                    components={{ Toolbar: GridToolbar }}
-                                    getRowId={(row) => `${row.truck_number}-${row.size}-${row.item_details}-${row.position}-${row.date}-${row.serial_number}-${row.starting_mileage}`}
-                                    />
-                                </Box>
-                        </Box>
+                            <Box
+                                height="75vh"
+                            >
+                                <DataGrid
+                                rows={availableRetreadTyres}
+                                columns={columns}
+                                components={{ Toolbar: GridToolbar }}
+                                getRowId={(row) => row.id}
+                                />
+                            </Box>
+                            </Box>
+                        )}
 
-                    </div>
 
-        </div>
+        </Box>
      );
 }
  

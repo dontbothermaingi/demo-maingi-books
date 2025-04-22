@@ -265,7 +265,7 @@ const Dashboard = () => {
           }}
         >
           <CardContent sx={{ textAlign: 'center' }}>
-            <Typography fontSize={'27px'} fontFamily={"GT Medium"} color={'white'} fontWeight="bold">
+            <Typography fontSize={{md:'27px', xs:'24px'}} fontFamily={"GT Medium"} color={'white'} fontWeight="bold">
               DIESEL
             </Typography>
             <Typography fontSize={'20px'} color={'grey'} fontFamily={"GT Regular"}>
@@ -297,7 +297,7 @@ const Dashboard = () => {
           }}
         >
           <CardContent sx={{ textAlign: 'center' }}>
-            <Typography fontSize={'27px'} color={'white'} fontFamily={"GT Medium"} fontWeight="bold">
+            <Typography fontSize={{md:'27px', xs:'24px'}} color={'white'} fontFamily={"GT Medium"} fontWeight="bold">
               CUSTOMERS
             </Typography>
             <Typography fontSize={'20px'} fontFamily={"GT Regular"} color={'grey'}>
@@ -329,7 +329,7 @@ const Dashboard = () => {
           }}
         >
             <CardContent sx={{ textAlign: 'center'}}>
-            <Typography fontSize={'27px'} fontFamily={"GT Medium"} color={'white'} fontWeight="bold">
+            <Typography fontSize={{md:'27px', xs:'24px'}} fontFamily={"GT Medium"} color={'white'} fontWeight="bold">
               INVOICES
             </Typography>
             <Typography fontSize={'20px'} fontFamily={"GT Regular"} color={'grey'}>
@@ -362,7 +362,7 @@ const Dashboard = () => {
           }}
         >
           <CardContent sx={{ textAlign: 'center' }}>
-            <Typography fontSize={'27px'} color={'white'} fontFamily={"GT Medium"} fontWeight="bold">
+            <Typography fontSize={{md:'27px', xs:'24px'}} color={'white'} fontFamily={"GT Medium"} fontWeight="bold">
               VENDORS
             </Typography>
             <Typography fontSize={'20px'} fontFamily={"GT Regular"} color={'grey'}>

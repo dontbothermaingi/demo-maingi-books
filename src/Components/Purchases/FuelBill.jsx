@@ -796,7 +796,6 @@ function FuelBill() {
                             sx={{mb:'20px'}}
                         />
                         
-                        <FormControl>
                             <Typography fontWeight={'bold'}>Payment terms</Typography>
                                 <Select
                                     value={formData.payment_terms}
@@ -812,7 +811,6 @@ function FuelBill() {
                                     <MenuItem value="45 days">45 days</MenuItem>
                                     <MenuItem value="60 days">60 days</MenuItem>
                                 </Select>
-                        </FormControl>
 
                         <Typography fontWeight={'bold'}>Due Date</Typography>
                         <TextField
