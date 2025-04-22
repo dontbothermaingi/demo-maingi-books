@@ -198,7 +198,7 @@ function PaymentsRececivedReport(){
       };
 
     useEffect(()=>{
-        fetch('https://demo-server-757m.onrender.com/paymentsreceived',{
+        fetch('https://maingi-demo-server.onrender.com/paymentsreceived',{
           method:'GET',
           headers:{
             'Authorization':`Bearer ${token}`

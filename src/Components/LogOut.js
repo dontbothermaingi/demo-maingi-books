@@ -6,7 +6,7 @@ function Logout({ onLogout }) {
 
     useEffect(() => {
         onLogout(); // Update auth state
-        navigate('https://demo-server-757m.onrender.com/login');
+        navigate('https://maingi-demo-server.onrender.com/login');
     }, [onLogout, navigate]);
 
     return (

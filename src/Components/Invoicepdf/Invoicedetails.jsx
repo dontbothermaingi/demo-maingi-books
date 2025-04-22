@@ -20,7 +20,7 @@ const InvoiceDetails = () => {
 
   useEffect(() => {
     setLoading(true); // Set loading to true before fetching data
-    fetch(`https://demo-server-757m.onrender.com/invoices/${invoiceId}`,{
+    fetch(`https://maingi-demo-server.onrender.com/invoices/${invoiceId}`,{
       method:'GET',
       headers:{
         'Authorization':`Bearer ${token}`
@@ -41,7 +41,7 @@ const InvoiceDetails = () => {
   }, [invoiceId,token]);
 
   useEffect(() => {
-    fetch('https://demo-server-757m.onrender.com/pumpnames',{
+    fetch('https://maingi-demo-server.onrender.com/pumpnames',{
       method:'GET',
       headers:{
         'Authorization':`Bearer ${token}`
@@ -107,7 +107,7 @@ const InvoiceDetails = () => {
     setPending(true);
     setOpenDialog(true);
 
-    fetch(`https://demo-server-757m.onrender.com/invoices/${invoiceId}`, {
+    fetch(`https://maingi-demo-server.onrender.com/invoices/${invoiceId}`, {
       method:"DELETE",
       headers:{
         'Authorization':`Bearer ${token}`

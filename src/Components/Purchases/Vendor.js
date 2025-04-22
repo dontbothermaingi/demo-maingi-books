@@ -191,7 +191,7 @@ function Vendor() {
     ];
 
     useEffect(() => {
-        fetch('https://demo-server-757m.onrender.com/vendors',{
+        fetch('https://maingi-demo-server.onrender.com/vendors',{
             method:'GET',
             headers:{
                 'Authorization':`Bearer ${token}`
@@ -222,7 +222,7 @@ function Vendor() {
         setLoading(true);
         setOpenDialog(true);
 
-        fetch('https://demo-server-757m.onrender.com/vendors', {
+        fetch('https://maingi-demo-server.onrender.com/vendors', {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -239,7 +239,7 @@ function Vendor() {
             .then((data) => {
                 console.log(data);
 
-                fetch('https://demo-server-757m.onrender.com/vendors', {
+                fetch('https://maingi-demo-server.onrender.com/vendors', {
                     method:'GET',
                     headers:{
                         'Authorization':`Bearer ${token}`

@@ -11,7 +11,7 @@ function PrivateRoutes() {
     const navigate = useNavigate()
 
     useEffect(() => {
-        fetch('https://demo-server-757m.onrender.com/check_session', {
+        fetch('https://maingi-demo-server.onrender.com/check_session', {
             method: 'GET',
             credentials: 'include',
             headers: {

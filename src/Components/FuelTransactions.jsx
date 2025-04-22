@@ -10,7 +10,7 @@ function FuelTransactions(){
     const token = localStorage.getItem('access_token')
 
     useEffect(()=>{
-        fetch('https://demo-server-757m.onrender.com/pumpfuelings', {
+        fetch('https://maingi-demo-server.onrender.com/pumpfuelings', {
             method:'GET',
             headers:{
                 'Authorization':`Bearer ${token}`
@@ -36,7 +36,7 @@ function FuelTransactions(){
   
     //   // Loop through the range of IDs from 129 to 138
     //   for (let id = 1118; id <= 1127; id++) {
-    //       fetch(`https://maingi-server-3.onrender.com/pumpfuelings/${id}`, {
+    //       fetch(`https://maingi-demo-server.onrender.com/pumpfuelings/${id}`, {
     //           method: 'DELETE',
     //           headers: {
     //               'Content-Type': 'application/json',
@@ -54,7 +54,7 @@ function FuelTransactions(){
     //       })
     //       .then(() => {
     //           // Refetch the data after each delete
-    //           fetch('https://maingi-server-3.onrender.com/pumpfuelings', {
+    //           fetch('https://maingi-demo-server.onrender.com/pumpfuelings', {
     //             method:'GET',
     //             headers:{
     //                 'Authorization':`Bearer ${token}`

@@ -59,7 +59,7 @@ function BillEdit() {
     }
 
     useEffect(() => {
-        fetch(`https://demo-server-757m.onrender.com/newbills/${billId}`,{
+        fetch(`https://maingi-demo-server.onrender.com/newbills/${billId}`,{
             method:'GET',
             headers:{
                 'Authorization':`Bearer ${token}`
@@ -109,7 +109,7 @@ function BillEdit() {
     }, [formData.payment_terms, formData.bill_date]);
 
     useEffect(() => {
-        fetch('https://demo-server-757m.onrender.com/vendors',{
+        fetch('https://maingi-demo-server.onrender.com/vendors',{
             method:'GET',
             headers:{
                 'Authorization':`Bearer ${token}`
@@ -291,7 +291,7 @@ function BillEdit() {
             return formData.items.reduce((total, item) => total + item.amount, 0);
         }
     
-        fetch(`https://demo-server-757m.onrender.com/newbills/${billId}`, {
+        fetch(`https://maingi-demo-server.onrender.com/newbills/${billId}`, {
             method: "PATCH",
             headers: {
                 "Content-Type": "application/json",

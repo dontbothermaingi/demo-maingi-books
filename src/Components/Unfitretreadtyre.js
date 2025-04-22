@@ -31,7 +31,7 @@ function UnfitRetreadTyres() {
     });
 
     useEffect(() => {
-        fetch('https://demo-server-757m.onrender.com/retreadtyresremove',{
+        fetch('https://maingi-demo-server.onrender.com/retreadtyresremove',{
             method: 'GET',
             credentials: 'include',
             headers: {
@@ -93,7 +93,7 @@ function UnfitRetreadTyres() {
             }
             const newFormData = { ...formData, tyre_mileage: tyreMileage };
     
-            fetch('https://demo-server-757m.onrender.com/unfitretreadtyres', {
+            fetch('https://maingi-demo-server.onrender.com/unfitretreadtyres', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -110,7 +110,7 @@ function UnfitRetreadTyres() {
             })
             .then(data => {
                 
-                return fetch(`/retreadtyresremove/${formData.serial_number}`, {
+                return fetch(`https://maingi-demo-server.onrender.com/retreadtyresremove/${formData.serial_number}`, {
                     method: 'PATCH',
                     headers: {
                         'Content-Type': 'application/json',
@@ -135,7 +135,7 @@ function UnfitRetreadTyres() {
                 setIsLoading(false);
                 setOpenDialog(false);
 
-                fetch('https://demo-server-757m.onrender.com/retreadtyresremove',{
+                fetch('https://maingi-demo-server.onrender.com/retreadtyresremove',{
                     method: 'GET',
                     credentials: 'include',
                     headers: {

@@ -69,7 +69,7 @@ function InvoiceTransport() {
     }
 
     useEffect(() => {
-        fetch('https://demo-server-757m.onrender.com/invoices', {
+        fetch('https://maingi-demo-server.onrender.com/invoices', {
             method:'GET',
             headers:{
                 'Authorization':`Bearer ${token}`
@@ -94,7 +94,7 @@ function InvoiceTransport() {
     }, [token]);
 
     useEffect(() => {
-        fetch('https://demo-server-757m.onrender.com/trucks', {
+        fetch('https://maingi-demo-server.onrender.com/trucks', {
             method:'GET',
             headers:{
                 'Authorization':`Bearer ${token}`
@@ -106,7 +106,7 @@ function InvoiceTransport() {
     }, [token]);
 
     useEffect(() => {
-        fetch('https://demo-server-757m.onrender.com/customers', {
+        fetch('https://maingi-demo-server.onrender.com/customers', {
             method:'GET',
             headers:{
                 'Authorization':`Bearer ${token}`
@@ -307,7 +307,7 @@ function InvoiceTransport() {
     
         console.log(allData);
     
-        fetch('https://demo-server-757m.onrender.com/invoicetransport', {
+        fetch('https://maingi-demo-server.onrender.com/invoicetransport', {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -323,7 +323,7 @@ function InvoiceTransport() {
             return response.json();
         })
         .then((data) => {
-            fetch('https://demo-server-757m.onrender.com/invoices', {
+            fetch('https://maingi-demo-server.onrender.com/invoices', {
                 method:'GET',
                 headers:{
                     'Authorization':`Bearer ${token}`

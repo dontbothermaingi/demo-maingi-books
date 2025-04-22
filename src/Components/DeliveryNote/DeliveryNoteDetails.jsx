@@ -13,7 +13,7 @@ function DeliveryNoteDetails() {
 
   useEffect(() => {
     setLoading(true);
-    fetch(`https://demo-server-757m.onrender.com/deliverynotes/${deliveryId}`, {
+    fetch(`https://maingi-demo-server.onrender.com/deliverynotes/${deliveryId}`, {
       method:'GET',
       headers:{
         'Authorization': `Bearer ${token}`

@@ -8,6 +8,7 @@ import { AddOutlined, DeleteForever } from "@mui/icons-material";
 
 function InventoryBill() {
     const [bills, setBills] = useState([]);
+    const [stores, setStores] = useState([]);
     const [openDialog, setOpenDialog] = useState(false);
     const [activeItem, setActiveItem] = useState(0);
     const [errorMessage, setErrorMessage] = useState('')
@@ -38,6 +39,7 @@ function InventoryBill() {
         payment_terms: "",
         amount_paid:0,
         amount_owed:0,
+        store_id:0,
         status:"",
         type_vat: "Inclusive VAT",
         items: [],
@@ -64,7 +66,7 @@ function InventoryBill() {
     }
 
     useEffect(() => {
-        fetch('https://demo-server-757m.onrender.com/newbills', {
+        fetch('https://maingi-demo-server.onrender.com/newbills', {
             method:'GET',
             headers:{
                 'Authorization':`Bearer ${token}`
@@ -91,7 +93,7 @@ function InventoryBill() {
     }, [formData.payment_terms, formData.bill_date]);
 
     useEffect(() => {
-        fetch('https://demo-server-757m.onrender.com/vendors', {
+        fetch('https://maingi-demo-server.onrender.com/vendors', {
             method:'GET',
             headers:{
                 'Authorization':`Bearer ${token}`
@@ -102,6 +104,20 @@ function InventoryBill() {
             .then(data => setVendors(data))
             .catch(error => console.error('Error fetching vendors:', error));
     }, [token]);
+
+    useEffect(() => {
+        fetch('https://maingi-demo-server.onrender.com/store', {
+            method:'GET',
+            headers:{
+                'Authorization':`Bearer ${token}`
+            },
+            credentials:'include'
+        })
+        .then(response => response.json())
+        .then((data) => {
+            setStores(data)
+        })
+    },[token])
 
    const navigate = useNavigate()
 
@@ -265,6 +281,12 @@ function InventoryBill() {
             
         }
 
+        if(name === "store"){
+            const selectedStore = stores.find(item => item.store_name === value)
+            values[index].store_id = selectedStore ? selectedStore.id : 0
+            values[index].store = selectedStore ? selectedStore.store_name: null
+        }
+
         setNewItem(values);
 
         setVatAmount(values.reduce((total, item) => total + item.rate_vat, 0))
@@ -279,7 +301,7 @@ function InventoryBill() {
       }
 
     function handleNewInputField() {
-        setNewItem([...newItem, { item_details: "", description: "", measurement: "", store:"", quantity: 0, rate: 0, vat: 0, rate_vat: 0,sub_total:0, amount: 0 }]);
+        setNewItem([...newItem, { item_details: "", description: "", measurement: "", store:"", store_id:"", quantity: 0, rate: 0, vat: 0, rate_vat: 0,sub_total:0, amount: 0 }]);
     }
 
     useEffect(() => {
@@ -363,7 +385,7 @@ function InventoryBill() {
         }
         
     
-        fetch('https://demo-server-757m.onrender.com/inventorybills', {
+        fetch('https://maingi-demo-server.onrender.com/inventorybills', {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -381,7 +403,7 @@ function InventoryBill() {
             .then(response => response.json())
             .then(data => {
 
-                fetch('https://demo-server-757m.onrender.com/newbills',{
+                fetch('https://maingi-demo-server.onrender.com/newbills',{
                     method:'GET',
                     headers:{
                         'Authorization':`Bearer ${token}`
@@ -425,6 +447,8 @@ function InventoryBill() {
                     rate_vat: 0,
                     rate: 0,
                     amount: 0,
+                    store_id:"",
+                    store:"",
                 }]);
 
                 setOpenDialog(false); 
@@ -1104,8 +1128,11 @@ function InventoryBill() {
                                                     displayEmpty
                                                 >
                                                     <MenuItem value="">Select Store</MenuItem>
-                                                    <MenuItem value={'KOROGA HOTEL'}>KOROGA HOTEL</MenuItem>
-                                                    <MenuItem value={'B&G CLUB'}>B&G CLUB</MenuItem>
+                                                    {stores.map((store) => (
+                                                        <MenuItem key={store.id} value={store.store_name}>
+                                                            {store.store_name}
+                                                        </MenuItem>
+                                                    ))}
                                                 </Select>
 
                                                 <TextField

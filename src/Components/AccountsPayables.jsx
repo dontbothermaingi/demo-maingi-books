@@ -181,7 +181,7 @@ function AccountsPayables() {
      const navigate = useNavigate();
 
   useEffect(() => {
-    fetch('https://demo-server-757m.onrender.com/vendors', {
+    fetch('https://maingi-demo-server.onrender.com/vendors', {
             method:'GET',
             headers:{
                 'Authorization':`Bearer ${token}`

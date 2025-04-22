@@ -66,7 +66,7 @@ const CustomerDetails = () => {
 
 
   useEffect(() => {
-    fetch(`https://demo-server-757m.onrender.com/customers/${customerId}`, {
+    fetch(`https://maingi-demo-server.onrender.com/customers/${customerId}`, {
       method:'GET',
       credentials:'include',
       headers:{

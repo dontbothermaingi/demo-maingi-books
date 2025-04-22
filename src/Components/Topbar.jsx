@@ -25,7 +25,7 @@ function TopBar() {
   const access_token = localStorage.getItem('access_token')
 
   useEffect(() => {
-      fetch('https://demo-server-757m.onrender.com/check_session', {
+      fetch('https://maingi-demo-server.onrender.com/check_session', {
           method: 'GET',
           credentials: 'include',
           headers: {
@@ -168,7 +168,7 @@ function TopBar() {
                   { id: 'banking', icon: <RequestQuoteIcon />, label: 'BANKING', links: [{ path: "/banking", label: "Banking" }, { path: "/payments-received", label: "Payments Received" }, { path: "/payments-made", label: "Payments Made" }] },
                   { id: 'diesel', icon: <LocalGasStation />, label: 'FUEL PUMP', links: [{ path: "/fuel-control", label: "Your Pumps" }] },
                   { id: 'spares', icon: <Build />, label: 'SPARES', links: [{ path: "/spares", label: "Spares" }, { path: "/vehicle-repair", label: "Vehicle Repair" }] },
-                  { id: 'stock', icon: <Inventory />, label: 'STOCK', links: [{ path: "/stock-items", label: "Stock" }] },
+                  { id: 'stock', icon: <Inventory />, label: 'STOCK', links: [{ path: "/stock-items", label: "Stock" }, {path: "/create-store", label: "Stores"}] },
                   { id: 'tyres', icon: <Storefront />, label: 'TYRES', links: [{ path: "/tyre-control", label: "New Tyres" }, { path: "/retread-tyres-control", label: "Retread Tyres" }, { path: "/used-tyres-control", label: "Used Tyres" }] },
                   { id: 'reports', icon: <ReceiptOutlinedIcon />, label: 'REPORTS', links: [{ path: "/balance-sheet", label: "Balance Sheet" }, { path: "/trading-profit-loss-account", label: "Trading, Profit and Loss Account" }, { path: "/cash-book", label: "Cash Book" }, { path: "/sales-report", label: "Sales" }, { path: "/expenses-reports", label: "Expenses Report" }, { path: "/vat-payable", label: "Vat Payable" }, { path: "/all-invoices-report", label: "Detailed Report" }, { path: "/account-receivables-report", label: "Account Receivables" }, { path: "/account-payables-report", label: "Account Payables" }, { path: "/credit-notes-report", label: "Credit Note Report" }, { path: "/payments-made-report", label: "Payments Made Report" }, { path: "/payments-received-report", label: "Payments Received Report" }, { path: "/pump-reports", label: "Pump Report" }, {path:"/truck-invoices", label:'Fuel Report'}, { path: "/fuel-transactions", label: "Fuel Transactions" }, { path: "/repairs-made", label: "Repairs Made" }] }
               ].map((item) => (

@@ -17,7 +17,7 @@ function FuelPumpReport(){
 
 
     useEffect(() => {
-        fetch(`https://demo-server-757m.onrender.com/pumpnames/${pumpId}`, {
+        fetch(`https://maingi-demo-server.onrender.com/pumpnames/${pumpId}`, {
             method:'GET',
             headers:{
                 'Authorization':`Bearer ${token}`

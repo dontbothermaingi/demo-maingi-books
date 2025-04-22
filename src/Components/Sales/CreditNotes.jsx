@@ -44,7 +44,7 @@ function CreditNote() {
     });
 
     useEffect(() => {
-        fetch('https://demo-server-757m.onrender.com/creditnotes',{
+        fetch('https://maingi-demo-server.onrender.com/creditnotes',{
             method:'GET',
             headers:{
                 'Authorization':`Bearer ${token}`
@@ -69,7 +69,7 @@ function CreditNote() {
     }, [formData.payment_terms, formData.bill_date]);
 
     useEffect(() => {
-        fetch('https://demo-server-757m.onrender.com/customers', {
+        fetch('https://maingi-demo-server.onrender.com/customers', {
             method:'GET',
             headers:{
                 'Authorization':`Bearer ${token}`
@@ -82,7 +82,7 @@ function CreditNote() {
     }, [token]);
 
     useEffect(() => {
-        fetch('https://demo-server-757m.onrender.com/stockitems',{
+        fetch('https://maingi-demo-server.onrender.com/stockitems',{
             method:'GET',
             headers:{
                 'Authorization':`Bearer ${token}`
@@ -192,7 +192,7 @@ function CreditNote() {
     
         const paymentNumber = creditnotes.length + 1;
     
-        fetch('https://demo-server-757m.onrender.com/creditnotes', {
+        fetch('https://maingi-demo-server.onrender.com/creditnotes', {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -208,7 +208,7 @@ function CreditNote() {
             .then(response => response.json())
             .then(data => {
 
-                fetch('https://demo-server-757m.onrender.com/creditnotes',{
+                fetch('https://maingi-demo-server.onrender.com/creditnotes',{
                     method:'GET',
                     headers:{
                         'Authorization':`Bearer ${token}`

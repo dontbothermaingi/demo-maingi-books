@@ -21,7 +21,7 @@ function Banking() {
     const navigate = useNavigate()
 
     useEffect(() => {
-        fetch('https://demo-server-757m.onrender.com/invoices',{
+        fetch('https://maingi-demo-server.onrender.com/invoices',{
           method:'GET',
           headers:{
             'Authorization':`Bearer ${token}`
@@ -43,7 +43,7 @@ function Banking() {
     }, [token]);
 
     useEffect(() => {
-      fetch('https://demo-server-757m.onrender.com/paymentsmade',{
+      fetch('https://maingi-demo-server.onrender.com/paymentsmade',{
           method:'GET',
           headers:{
             'Authorization':`Bearer ${token}`
@@ -61,7 +61,7 @@ function Banking() {
 
 
   useEffect(() => {
-    fetch('https://demo-server-757m.onrender.com/customers',{
+    fetch('https://maingi-demo-server.onrender.com/customers',{
           method:'GET',
           headers:{
             'Authorization':`Bearer ${token}`
@@ -86,7 +86,7 @@ const handleCurrencyChange = (event) => {
 };
 
 useEffect(() => {
-  fetch('https://demo-server-757m.onrender.com/vendors',{
+  fetch('https://maingi-demo-server.onrender.com/vendors',{
           method:'GET',
           headers:{
             'Authorization':`Bearer ${token}`
@@ -102,7 +102,7 @@ useEffect(() => {
 
 
   useEffect(() => {
-    fetch('https://demo-server-757m.onrender.com/paymentsreceived',{
+    fetch('https://maingi-demo-server.onrender.com/paymentsreceived',{
           method:'GET',
           headers:{
             'Authorization':`Bearer ${token}`

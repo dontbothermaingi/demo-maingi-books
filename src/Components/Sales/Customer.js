@@ -28,7 +28,7 @@ function Customer() {
     const itemsPerPage = 16;
 
     useEffect(() => {
-        fetch('https://demo-server-757m.onrender.com/customers', {
+        fetch('https://maingi-demo-server.onrender.com/customers', {
             method:'GET',
             headers:{
                 'Authorization':`Bearer ${token}`
@@ -56,7 +56,7 @@ function Customer() {
         setLoading(true);
         setOpenDialog(true);
 
-        fetch('https://demo-server-757m.onrender.com/customers', {
+        fetch('https://maingi-demo-server.onrender.com/customers', {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -71,7 +71,7 @@ function Customer() {
             .then(response => response.json())
             .then(() => {
                 // Refetch customers after successful submission
-                fetch('https://demo-server-757m.onrender.com/customers', {
+                fetch('https://maingi-demo-server.onrender.com/customers', {
                     method:'GET',
                     headers:{
                         'Authorization':`Bearer ${token}`

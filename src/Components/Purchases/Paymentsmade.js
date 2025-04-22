@@ -30,7 +30,7 @@ function PaymentsMade (){
     })
 
     useEffect(()=>{
-        fetch('https://demo-server-757m.onrender.com/vendors', {
+        fetch('https://maingi-demo-server.onrender.com/vendors', {
             method:'GET',
             headers:{
                 'Authorization':`Bearer ${token}`
@@ -44,7 +44,7 @@ function PaymentsMade (){
     },[token])
 
     useEffect(()=>{
-        fetch('https://demo-server-757m.onrender.com/paymentsmade', {
+        fetch('https://maingi-demo-server.onrender.com/paymentsmade', {
             method:'GET',
             headers:{
                 'Authorization':`Bearer ${token}`
@@ -147,7 +147,7 @@ function PaymentsMade (){
             const updatedStatus = updatedPaymentMade >= totalAmount ? "PAID" : "PARTIALLY PAID";
     
             try {
-                const response = await fetch(`https://demo-server-757m.onrender.com/newbillspayment/${invoice.id}`, {
+                const response = await fetch(`https://maingi-demo-server.onrender.com/newbillspayment/${invoice.id}`, {
                     method: 'PATCH',
                     headers: {
                         "Content-Type": "application/json",
@@ -185,7 +185,7 @@ function PaymentsMade (){
         const encordedVendorName = encodeURIComponent(formData.vendor_name)
 
         // Fetch unpaid or partially paid invoices
-        fetch(`https://demo-server-757m.onrender.com/newbillstatus?vendor_name=${encordedVendorName}`, {
+        fetch(`https://maingi-demo-server.onrender.com/newbillstatus?vendor_name=${encordedVendorName}`, {
             method: 'GET',
             headers: {
                 'Authorization': `Bearer ${token}`,
@@ -211,7 +211,7 @@ function PaymentsMade (){
                 const updatedInvoiceIds = await updateInvoices(invoices);
     
                 // Submit the payment
-                fetch('https://demo-server-757m.onrender.com/paymentsmade', {
+                fetch('https://maingi-demo-server.onrender.com/paymentsmade', {
                     method: 'POST',
                     headers: {
                         'Authorization': `Bearer ${token}`,
@@ -237,7 +237,7 @@ function PaymentsMade (){
                         setLoading(false);
                         setOpenSnackBar(true);
 
-                        fetch('https://demo-server-757m.onrender.com/paymentsmade', {
+                        fetch('https://maingi-demo-server.onrender.com/paymentsmade', {
                             method:'GET',
                             headers:{
                                 'Authorization':`Bearer ${token}`

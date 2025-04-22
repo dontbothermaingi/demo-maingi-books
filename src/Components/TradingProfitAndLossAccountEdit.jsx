@@ -23,7 +23,7 @@ function TradingEdit(){
     function handleSubmit(event){
         event.preventDefault()
 
-        fetch('https://demo-server-757m.onrender.com/tradingprofitandlossaccounts', {
+        fetch('https://maingi-demo-server.onrender.com/tradingprofitandlossaccounts', {
             method:"POST",
             headers:{
                 'Content-Type':'application/json',

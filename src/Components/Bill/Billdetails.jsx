@@ -14,11 +14,11 @@ const BillDetails = () => {
   const [error, setError] = useState(null);
   const [subtotal, setSubtotal] = useState(0); // Initialize subtotal state
   const token = localStorage.getItem('access_token')
-  const navigate = useNavigate() 
+  const navigate = useNavigate()
 
   useEffect(() => {
     setLoading(true); // Set loading to true before fetching data
-    fetch(`https://demo-server-757m.onrender.com/newbills/${billId}`,{
+    fetch(`https://maingi-demo-server.onrender.com/newbills/${billId}`,{
       method:'GET',
       credentials:'include',
       headers:{
@@ -69,12 +69,16 @@ const BillDetails = () => {
     navigate(`/bill-edit/${billId}`)
   }
 
+  function handleStockBillEdit(){
+    navigate(`/stockbill-edit/${billId}`)
+  }
+
   function handleDelete(){
 
     setPending(true);
     setOpenDialog(true);
 
-    fetch(`https://demo-server-757m.onrender.com/newbills/${billId}`, {
+    fetch(`https://maingi-demo-server.onrender.com/newbills/${billId}`, {
       method:"DELETE",
       headers:{
         'Authorization':`Bearer ${token}`
@@ -117,7 +121,7 @@ const BillDetails = () => {
       <Button
             variant="contained"
             color="secondary"
-            onClick={handleBillEdit}
+            onClick={bill.category_name === "Stock" ? handleStockBillEdit : handleBillEdit}
         >
           <Typography fontFamily={"GT Bold"}>EDIT BILL</Typography>
         </Button>

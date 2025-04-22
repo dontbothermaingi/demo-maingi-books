@@ -17,7 +17,7 @@ const Spares = () => {
   const navigate = useNavigate()
 
   const fetchSubSpares = () => {
-    fetch('https://demo-server-757m.onrender.com/sparesubcategories', {
+    fetch('https://maingi-demo-server.onrender.com/sparesubcategories', {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${token}`
@@ -39,7 +39,7 @@ const Spares = () => {
   
 
   useEffect(() => {
-    fetch('https://demo-server-757m.onrender.com/sparesubcategories', {
+    fetch('https://maingi-demo-server.onrender.com/sparesubcategories', {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${token}`
@@ -71,7 +71,7 @@ const Spares = () => {
 
       setOpenDialog(true);
 
-      fetch(`https://demo-server-757m.onrender.com/sparesubcategories/${id}`, {
+      fetch(`https://maingi-demo-server.onrender.com/sparesubcategories/${id}`, {
         method:'DELETE',
         headers:{
           'Authorization':`Bearer ${token}`

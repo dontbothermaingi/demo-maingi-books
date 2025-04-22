@@ -14,7 +14,7 @@ function PaymentsDetails() {
 
   useEffect(() => {
     setLoading(true);
-    fetch(`https://demo-server-757m.onrender.com/paymentsreceived/${madeId}`, {
+    fetch(`https://maingi-demo-server.onrender.com/paymentsreceived/${madeId}`, {
       method:'GET',
       headers:{
         'Authorization':`Bearer ${token}`
@@ -36,6 +36,8 @@ function PaymentsDetails() {
         setLoading(false);
       });
   }, [madeId,token]);
+
+  console.log(quotes)
 
   if (loading) {
     return (

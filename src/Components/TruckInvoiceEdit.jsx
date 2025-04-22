@@ -75,7 +75,7 @@ function TruckInvoiceEdit() {
     useEffect(() => {
         const fetchInvoice = async () => {
             try {
-                const response = await fetch(`https://demo-server-757m.onrender.com/invoices/${invoiceId}`, {
+                const response = await fetch(`https://maingi-demo-server.onrender.com/invoices/${invoiceId}`, {
                     method: 'GET',
                     headers: {
                         'Authorization': `Bearer ${token}`
@@ -128,7 +128,7 @@ function TruckInvoiceEdit() {
     
 
     useEffect(() => {
-        fetch('https://demo-server-757m.onrender.com/customers',{
+        fetch('https://maingi-demo-server.onrender.com/customers',{
             method:'GET',
             headers:{
                 'Authorization':`Bearer ${token}`
@@ -140,7 +140,7 @@ function TruckInvoiceEdit() {
     }, [token]);
 
     useEffect(() => {
-        fetch('https://demo-server-757m.onrender.com/trucks',{
+        fetch('https://maingi-demo-server.onrender.com/trucks',{
             method:'GET',
             headers:{
                 'Authorization':`Bearer ${token}`
@@ -332,7 +332,7 @@ function TruckInvoiceEdit() {
             original_amount:originalInvoiceAmount,
         };
     
-        fetch(`https://demo-server-757m.onrender.com/invoices/${invoiceId}`, {
+        fetch(`https://maingi-demo-server.onrender.com/invoices/${invoiceId}`, {
             method: "PATCH",
             headers: {
                 "Content-Type": "application/json",

@@ -27,7 +27,7 @@ function Trucks(){
   
 
   useEffect(() => {
-    fetch('https://demo-server-757m.onrender.com/trucks',{
+    fetch('https://maingi-demo-server.onrender.com/trucks',{
           method: 'GET',
           credentials: 'include',
           headers: {
@@ -54,7 +54,7 @@ function Trucks(){
     setLoading(true)
     setOpenDialog(true)
 
-    fetch('https://demo-server-757m.onrender.com/trucks', {
+    fetch('https://maingi-demo-server.onrender.com/trucks', {
       method:'POST',
       headers:{
         'Content-Type':'application/json',
@@ -66,7 +66,7 @@ function Trucks(){
     .then(response => response.json())
     .then(data => {
 
-      fetch('https://demo-server-757m.onrender.com/trucks',{
+      fetch('https://maingi-demo-server.onrender.com/trucks',{
           method: 'GET',
           credentials: 'include',
           headers: {

@@ -86,7 +86,7 @@ function TruckReport ({
         alignItems: 'center', 
         cursor: 'pointer', 
       }}
-      onClick={() => handleViewInvoices(params.row.invoice_number)}
+      onClick={() => handleViewInvoices(params.row.invoice_id)}
     >
       <Typography
           variant="h7"
@@ -392,7 +392,7 @@ function TruckReport ({
           </Box>
           ),
       },
-]
+  ] 
   
     const newtyres = [
         // { field: "id", headerName: "ID" },

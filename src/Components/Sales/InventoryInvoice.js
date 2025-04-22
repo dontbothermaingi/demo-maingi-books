@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Box, Typography, Button,IconButton, FormControl, Select, MenuItem, TextField,FormControlLabel, RadioGroup, Radio, ListSubheader, Divider, TableContainer, TableCell, Table, TableHead, TableRow,Paper, Card, CardContent, Pagination, Alert, Snackbar, CircularProgress} from "@mui/material";
+import { Box, Typography, Button,IconButton, FormControl, Select, MenuItem, TextField,FormControlLabel, RadioGroup, Radio, ListSubheader, Divider, TableContainer, TableCell, Table, TableHead, TableRow,Paper, Card, CardContent, Pagination, Alert, Snackbar} from "@mui/material";
 import { DataGrid, GridToolbar } from "@mui/x-data-grid";
 import { useNavigate } from "react-router-dom";
 import { useTheme } from '@mui/material/styles';
@@ -10,6 +10,7 @@ import { AddOutlined, DeleteForever } from "@mui/icons-material";
 
 function InventoryInvoice() {
     const [invoices, setInvoices] = useState([]);
+    const [stores, setStores] = useState([])
     const [selectedItem, setSelectedItem] = useState("");
     const [activeItem, setActiveItem] = useState(0);
     const [vatAmount, setVatAmount] = useState(0)
@@ -46,6 +47,7 @@ function InventoryInvoice() {
         currency:"",
         payment_made:"",
         status:"UNPAID",
+        store_id:0,
         items: [],
     });
 
@@ -61,6 +63,7 @@ function InventoryInvoice() {
                 rate: 0,
                 amount: 0,
                 store:"",
+                stock_id:0,
             }
     ]);
 
@@ -98,6 +101,20 @@ function InventoryInvoice() {
     }, [token]);
 
     useEffect(() => {
+        fetch('https://demo-server-757m.onrender.com/store',{
+            method:'GET',
+            headers:{
+                'Authorization':`Bearer ${token}`
+            },
+            credentials:'include'
+        })
+        .then(response => response.json())
+        .then((data) => {
+            setStores(data)
+        })
+    },[token])
+
+    useEffect(() => {
         fetch('https://demo-server-757m.onrender.com/stockitems', {
             method:'GET',
             headers:{
@@ -108,14 +125,9 @@ function InventoryInvoice() {
             .then(response => response.json())
             .then((data) => {
 
-                const KOROGA = data.filter(item => item.store === 'KOROGA HOTEL')
-                const CLUB = data.filter(item => item.store === 'B&G CLUB')
-
-                if (formData.customer_name === 'KOROGA HOTEL'){
-                    setStoreItems(KOROGA)
-                }else{
-                    setStoreItems(CLUB)
-                }
+                const specificStore = data.filter(item => item.store === formData.customer_name)
+                setStoreItems(specificStore)
+                
 
             });
     }, [token, formData.customer_name]);
@@ -185,6 +197,7 @@ function InventoryInvoice() {
             setSelectedItem(selectedItem)
             values[index].item_details = selectedItem ? selectedItem.item_details : "";
             values[index].store =  selectedItem ? selectedItem.store:"";
+            values[index].stock_id = selectedItem ?selectedItem.id : 0;
         }
 
         setNewItem(values)
@@ -251,7 +264,7 @@ function InventoryInvoice() {
     }, [newItem]);
     
     function handleNewInputField() {
-        setNewItem([...newItem, { item_details: "", quantity: 0, rate: 0, vat: 0, rate_vat: 0,sub_total:0, amount: 0, store:"" }]);
+        setNewItem([...newItem, { item_details: "",stock_id:0, store_id:0, quantity: 0, rate: 0, vat: 0, rate_vat: 0,sub_total:0, amount: 0, store:"" }]);
         setSelectedItem("")
     }
 
@@ -318,14 +331,17 @@ function InventoryInvoice() {
         const calculateInvoiceTotal = () => {
             return formData.items.reduce((total, item) => total + item.amount, 0);
         }
-        
-    
+
+        const selectedStore = stores.find(item => item.store_name === formData.customer_name);
+        console.log(selectedStore)
+
         const allData = {
             ...formData,
             status: 'UNPAID',
             amount_paid:0,
             amount_owed:calculateInvoiceTotal(),
             invoice_number:invoiceNumber,
+            store_id: selectedStore ? selectedStore.id : 0, 
         };
     
         // Submit the invoice
@@ -401,6 +417,8 @@ function InventoryInvoice() {
                         rate_vat: 0,
                         rate: 0,
                         amount: 0,
+                        stock_id:0,
+                        store_id:0,
                     }])
 
                 })
@@ -408,6 +426,8 @@ function InventoryInvoice() {
                     console.error('Error with stock update operations:', error);
                     setOpenSnackBar(true)
                     setSuccessMessage("Failed to save the invoice. Please try again.")
+                    setOpenDialog(false);
+                    setLoading(false);
                 });
     }
     
@@ -655,8 +675,7 @@ function InventoryInvoice() {
                     </Snackbar>
 
                     <Dialog open={openDialog} onClose={handleCloseDialog}>
-                        <DialogContent sx={{display:'flex', alignItems:'center', gap:'10px'}}>
-                            <CircularProgress sx={{fontSize:'10px'}}/>
+                        <DialogContent>
                             <Typography fontFamily={"GT Bold"}>Saving...</Typography>
                         </DialogContent>
                     </Dialog>
@@ -1042,7 +1061,7 @@ function InventoryInvoice() {
                                     <Table aria-label="Invoice Table" sx={{ minWidth: isMobile ? 900 : 'auto' }}>
                                         <TableHead>
                                         <TableRow>
-                                                <TableCell sx={{ minWidth: 150 }}><Typography fontWeight="bold">Item Details</Typography></TableCell>
+                                                <TableCell sx={{ minWidth: 100 }}><Typography fontWeight="bold">Item Details</Typography></TableCell>
                                                 <TableCell sx={{ minWidth: 50 }}><Typography fontWeight="bold">Store</Typography></TableCell>
                                                 <TableCell sx={{ minWidth: 50 }}><Typography fontWeight="bold">Quantity</Typography></TableCell>
                                                 <TableCell sx={{ minWidth: 50 }}><Typography fontWeight="bold">Rate</Typography></TableCell>
@@ -1078,6 +1097,7 @@ function InventoryInvoice() {
                                                 variant="outlined"
                                                 size="small"
                                                 fullWidth
+                                                inputProps={{ readOnly:true }}
                                                 value={item.store}
                                                 onChange={(e) => handleNewItemChange(e, index)}
                                             />

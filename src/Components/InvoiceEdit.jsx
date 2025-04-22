@@ -69,7 +69,7 @@ function EditInvoice() {
     }
 
     useEffect(() => {
-        fetch(`https://demo-server-757m.onrender.com/invoices/${invoiceId}`, {
+        fetch(`https://maingi-demo-server.onrender.com/invoices/${invoiceId}`, {
             method:'GET',
             headers:{
                 'Authorization':`Bearer ${token}`
@@ -114,7 +114,7 @@ function EditInvoice() {
     }, [invoiceId, token]);
 
     useEffect(() => {
-        fetch('https://demo-server-757m.onrender.com/customers',{
+        fetch('https://maingi-demo-server.onrender.com/customers',{
             method:'GET',
             headers:{
                 'Authorization':`Bearer ${token}`
@@ -298,7 +298,7 @@ function EditInvoice() {
             original_amount:originalInvoiceAmount,
         };
     
-        fetch(`https://demo-server-757m.onrender.com/invoices/${invoiceId}`, {
+        fetch(`https://maingi-demo-server.onrender.com/invoices/${invoiceId}`, {
             method: "PATCH",
             headers: {
                 "Content-Type": "application/json",

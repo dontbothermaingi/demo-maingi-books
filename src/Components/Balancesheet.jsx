@@ -17,7 +17,7 @@ function BalanceSheet() {
     const todayDateOnly = new Date(today.getFullYear(), today.getMonth(), today.getDate());
 
     useEffect(() => {
-        fetch('https://demo-server-757m.onrender.com/balancesheets', {
+        fetch('https://maingi-demo-server.onrender.com/balancesheets', {
             method:'GET',
             headers:{
                 'Authorization':`Bearer ${token}`

@@ -30,7 +30,7 @@ import { useState } from "react";
          event.preventDefault();
  
          const token = localStorage.getItem('access_token');
-         fetch('https://demo-server-757m.onrender.com/logout', {
+         fetch('https://maingi-demo-server.onrender.com/logout', {
              method: "POST",
              headers: {
                  'Content-Type': 'application/json',
@@ -322,6 +322,8 @@ import { useState } from "react";
                              {activeDropdown === 'stock' && (
                                  <Box mt={1}>
                                      {renderNavLink("/stock-items", "Stock")}
+                                     {renderNavLink("/create-store", "Stores")}
+
                                  </Box>
                              )}
                          </Box>

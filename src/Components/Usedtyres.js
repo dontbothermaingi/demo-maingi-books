@@ -11,7 +11,7 @@ function CheckUsedTyre() {
 
     useEffect(() => {
         // Fetch used tyres
-        fetch('https://demo-server-757m.onrender.com/usedtyres', {
+        fetch('https://maingi-demo-server.onrender.com/usedtyres', {
             method: 'GET',
             credentials: 'include',
             headers: {

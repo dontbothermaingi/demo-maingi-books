@@ -14,7 +14,7 @@ const MoreAccount = () => {
 
   useEffect(() => {
     setLoading(true); // Set loading to true before fetching data
-    fetch(`/accounts/${accountId}`)
+    fetch(`https://maingi-demo-server.onrender.com/accounts/${accountId}`)
       .then(response => response.json())
       .then(data => {
         console.log('Fetched invoice:', data); // Debugging log

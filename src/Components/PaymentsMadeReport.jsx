@@ -196,7 +196,7 @@ function PaymentsMadeReport(){
       };
 
     useEffect(()=>{
-        fetch('https://demo-server-757m.onrender.com/paymentsmade',{
+        fetch('https://maingi-demo-server.onrender.com/paymentsmade',{
           method:'GET',
           headers:{
             'Authorization':`Bearer ${token}`

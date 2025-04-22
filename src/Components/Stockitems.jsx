@@ -26,7 +26,7 @@ const Items = () => {
   });
 
   useEffect(() => {
-    fetch('https://demo-server-757m.onrender.com/stockitems', {
+    fetch('https://maingi-demo-server.onrender.com/stockitems', {
           method: 'GET',
           credentials: 'include',
           headers: {
@@ -43,7 +43,7 @@ const Items = () => {
   }, [token]);
 
   function handleReload(){
-    fetch('https://demo-server-757m.onrender.com/stockitems', {
+    fetch('https://maingi-demo-server.onrender.com/stockitems', {
       method: 'GET',
       credentials: 'include',
       headers: {
@@ -78,7 +78,7 @@ const Items = () => {
     setOpenDialog(true)
     setLoading(true)
 
-    fetch(`https://demo-server-757m.onrender.com/stockitems/${id}`,{
+    fetch(`https://maingi-demo-server.onrender.com/stockitems/${id}`,{
       method:"DELETE",
       headers:{
         "Authorization":`Bearer ${token}`

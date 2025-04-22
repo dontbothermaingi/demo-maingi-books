@@ -197,7 +197,7 @@ function SalesReport (){
   };
 
   useEffect(()=>{
-    fetch('https://demo-server-757m.onrender.com/invoices',{
+    fetch('https://maingi-demo-server.onrender.com/invoices',{
             method:'GET',
             headers:{
                 'Authorization':`Bearer ${token}`

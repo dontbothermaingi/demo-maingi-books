@@ -27,7 +27,7 @@ function Register() {
         e.preventDefault();
         
         try {
-            const response = await fetch('https://demo-server-757m.onrender.com/userRegister', {
+            const response = await fetch('https://maingi-demo-server.onrender.com/userRegister', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'  

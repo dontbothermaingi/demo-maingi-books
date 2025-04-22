@@ -50,7 +50,7 @@ function VehicleRepair(){
     }
 
     useEffect(()=>{
-        fetch('https://demo-server-757m.onrender.com/trucks',{
+        fetch('https://maingi-demo-server.onrender.com/trucks',{
             method: 'GET',
             credentials: 'include',
             headers: {
@@ -65,7 +65,7 @@ function VehicleRepair(){
 
 
     useEffect(()=>{
-        fetch('https://demo-server-757m.onrender.com/sparesubcategories', {
+        fetch('https://maingi-demo-server.onrender.com/sparesubcategories', {
             method: 'GET',
             credentials: 'include',
             headers: {
@@ -79,7 +79,7 @@ function VehicleRepair(){
     },[token])
 
     useEffect(() => {
-        fetch("https://demo-server-757m.onrender.com/vehiclemantainances", {
+        fetch("https://maingi-demo-server.onrender.com/vehiclemantainances", {
             method: 'GET',
             credentials: 'include',
             headers: {
@@ -222,7 +222,7 @@ function VehicleRepair(){
         setIsLoading(true);
         setOpenDialog(true);
 
-        fetch('https://demo-server-757m.onrender.com/vehiclemantainances', {
+        fetch('https://maingi-demo-server.onrender.com/vehiclemantainances', {
             method:"POST",
             headers:{
                 'Content-Type':'application/json',
@@ -237,7 +237,7 @@ function VehicleRepair(){
         .then(response => response.json())
         .then((data) => {
 
-                fetch("https://demo-server-757m.onrender.com/vehiclemantainances", {
+                fetch("https://maingi-demo-server.onrender.com/vehiclemantainances", {
                     method: 'GET',
                     credentials: 'include',
                     headers: {

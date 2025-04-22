@@ -15,7 +15,7 @@ function UserAccount({ onLogout }) {
         event.preventDefault();
 
         const token = localStorage.getItem('access_token');
-        fetch('https://demo-server-757m.onrender.com/logout', {
+        fetch('https://maingi-demo-server.onrender.com/logout', {
             method: "POST",
             headers: {
                 'Content-Type': 'application/json',

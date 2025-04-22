@@ -17,7 +17,7 @@ function EditSpare (){
     })
 
     useEffect(()=>{
-        fetch(`https://demo-server-757m.onrender.com/sparesubcategories/${spareId}`, {
+        fetch(`https://maingi-demo-server.onrender.com/sparesubcategories/${spareId}`, {
             method:'GET',
             headers:{
                 'Authorization':`Bearer ${access_token}`
@@ -53,7 +53,7 @@ function EditSpare (){
     function handleSubmit(event){
         event.preventDefault()
 
-        fetch(`https://demo-server-757m.onrender.com/sparesubcategories/${spareId}`, {
+        fetch(`https://maingi-demo-server.onrender.com/sparesubcategories/${spareId}`, {
             method:"PATCH",
             headers:{
                 'Content-Type':'application/json',

@@ -7,7 +7,7 @@ function RetreadedTyreShop() {
     const [tyres, setTyres] = useState([]);
 
     useEffect(() => {
-        fetch('https://demo-server-757m.onrender.com/shopretreads')
+        fetch('https://maingi-demo-server.onrender.com/shopretreads')
             .then(response => response.json())
             .then((data) => {
                 const filter = data.filter(item => item.position === 'SHOP');
@@ -27,7 +27,7 @@ function RetreadedTyreShop() {
         
         // You may want to also make a DELETE request to your backend API here to persist the deletion.
         // Example:
-        fetch(`https://demo-server-757m.onrender.com/shopretreads/${id}`, { method: 'DELETE' })
+        fetch(`https://maingi-demo-server.onrender.com/shopretreads/${id}`, { method: 'DELETE' })
             .then(response => response.json())
             .then(() => {
                 // Optionally update state or show a notification

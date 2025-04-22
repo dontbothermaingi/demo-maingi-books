@@ -13,7 +13,7 @@ function CreditNotesReport(){
     const navigate = useNavigate()
 
     useEffect(()=>{
-        fetch('https://demo-server-757m.onrender.com/creditnotes', {
+        fetch('https://maingi-demo-server.onrender.com/creditnotes', {
           method:'GET',
           headers:{
             'Authorization':`Bearer ${token}`

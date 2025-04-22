@@ -60,7 +60,7 @@ function CustomBill() {
     }
 
     useEffect(() => {
-        fetch('https://demo-server-757m.onrender.com/newbills',{
+        fetch('https://maingi-demo-server.onrender.com/newbills',{
             method:'GET',
             headers:{
                 'Authorization':`Bearer ${token}`
@@ -88,7 +88,7 @@ function CustomBill() {
     }, [formData.payment_terms, formData.bill_date]);
 
     useEffect(() => {
-        fetch('https://demo-server-757m.onrender.com/vendors',{
+        fetch('https://maingi-demo-server.onrender.com/vendors',{
             method:'GET',
             headers:{
                 'Authorization':`Bearer ${token}`
@@ -292,7 +292,7 @@ function CustomBill() {
         }
         
     
-        fetch('https://demo-server-757m.onrender.com/custombills', {
+        fetch('https://maingi-demo-server.onrender.com/custombills', {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -312,7 +312,7 @@ function CustomBill() {
             .then(data => {
 
 
-                fetch('https://demo-server-757m.onrender.com/newbills',{
+                fetch('https://maingi-demo-server.onrender.com/newbills',{
                     method:'GET',
                     headers:{
                         'Authorization':`Bearer ${token}`

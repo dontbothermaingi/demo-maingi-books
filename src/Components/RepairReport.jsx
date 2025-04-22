@@ -12,7 +12,7 @@ function RepairReport() {
     const token = localStorage.getItem('access_token')
 
     useEffect(() => {
-        fetch(`https://demo-server-757m.onrender.com/vehiclemantainances/${repairId}`, {
+        fetch(`https://maingi-demo-server.onrender.com/vehiclemantainances/${repairId}`, {
             method: 'GET',
             credentials: 'include',
             headers: {

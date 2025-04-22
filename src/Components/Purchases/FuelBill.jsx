@@ -61,7 +61,7 @@ function FuelBill() {
     }
 
     useEffect(()=>{
-        fetch('https://demo-server-757m.onrender.com/pumpnames', {
+        fetch('https://maingi-demo-server.onrender.com/pumpnames', {
             method:'GET',
             headers:{
                 'Authorization':`Bearer ${token}`
@@ -75,7 +75,7 @@ function FuelBill() {
     },[token])
 
     useEffect(() => {
-        fetch('https://demo-server-757m.onrender.com/newbills', {
+        fetch('https://maingi-demo-server.onrender.com/newbills', {
             method:'GET',
             headers:{
                 'Authorization':`Bearer ${token}`
@@ -114,7 +114,7 @@ function FuelBill() {
     }, [formData.payment_terms, formData.bill_date]);
 
     useEffect(() => {
-        fetch('https://demo-server-757m.onrender.com/vendors', {
+        fetch('https://maingi-demo-server.onrender.com/vendors', {
             method:'GET',
             headers:{
                 'Authorization':`Bearer ${token}`
@@ -304,7 +304,7 @@ function FuelBill() {
             return formData.items.reduce((total, item) => total + item.amount, 0);
         }
     
-        fetch('https://demo-server-757m.onrender.com/fuelbills', {
+        fetch('https://maingi-demo-server.onrender.com/fuelbills', {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -323,7 +323,7 @@ function FuelBill() {
         .then(response => response.json())
         .then(data => {
 
-            fetch('https://demo-server-757m.onrender.com/newbills', {
+            fetch('https://maingi-demo-server.onrender.com/newbills', {
                 method:'GET',
                 headers:{
                     'Authorization':`Bearer ${token}`

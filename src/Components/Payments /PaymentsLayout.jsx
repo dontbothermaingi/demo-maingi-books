@@ -184,7 +184,7 @@ const PaymentLayout = ({
       </Box>
       ),
     },
-]
+  ]
 
   return (
     <Box padding="20px">
@@ -209,10 +209,10 @@ const PaymentLayout = ({
         <Box display="flex" justifyContent="space-between" mb="30px">
           <Box>
             <Typography fontSize="28px" fontWeight="bold" color="black">
-              EKATI HAULIERS
+              MAINGI LOGISTICS LIMITED
             </Typography>
             <Typography variant="body1" color="black">
-              Emali, Makueni, Kenya
+              Somewhere, County, Country.
             </Typography>
           </Box>
           <Box textAlign="right">

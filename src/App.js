@@ -18,6 +18,9 @@ import VendorEdit from './Components/VendorEdit';
 import EditSpare from './Components/SpareEdit';
 import VehicleReport from './Components/VehicleReport';
 import ReportForPaymentsMade from './Components/ReportForPaymentsMade';
+import StoreDetails from './Components/StoreDetails';
+import StockItemDetails from './Components/StockItemDetails';
+import CreateStore from './Components/CreateStore';
 
 const Customer = lazy(() => import('./Components/Sales/Customer'));
 const Invoice = lazy(() => import('./Components/Sales/Invoice'));
@@ -125,7 +128,7 @@ function App() {
 
 
         useEffect(()=>{
-          fetch('https://demo-server-757m.onrender.com/check_session', {
+          fetch('https://maingi-demo-server.onrender.com/check_session', {
               method:'GET',
               credentials:'include',
               headers:{
@@ -301,6 +304,9 @@ function App() {
                             <Route path="/edit-spare/:spareId" element={<EditSpare />} />
                             <Route path="/truck-invoices" element={<VehicleReport />} />
                             <Route path='/report-for-payments-made/:paymentId' element={<ReportForPaymentsMade />} />
+                            <Route path="/store-details/:storeId" element={<StoreDetails />} />
+                            <Route path="/stock-details/:stockId" element={<StockItemDetails />} />
+                            <Route path="/create-store" element={<CreateStore />} />
                         </Route>
                     </Routes>
                     </Box>

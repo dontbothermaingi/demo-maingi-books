@@ -12,7 +12,7 @@ const FittedNewTyres = () => {
   const navigate = useNavigate();
   
   useEffect(() => {
-    fetch('https://demo-server-757m.onrender.com/removetyres',{
+    fetch('https://maingi-demo-server.onrender.com/removetyres',{
             method:'GET',
             headers:{
                 'Authorization':`Bearer ${token}`

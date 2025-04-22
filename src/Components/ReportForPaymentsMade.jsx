@@ -14,7 +14,7 @@ function ReportForPaymentsMade(){
     const {paymentId} = useParams();
 
     useEffect(()=>{
-        fetch(`https://demo-server-757m.onrender.com/paymentsmade/${paymentId}`, {
+        fetch(`https://maingi-demo-server.onrender.com/paymentsmade/${paymentId}`, {
             method:'GET',
             headers:{
                 'Authorization':`Bearer ${token}`

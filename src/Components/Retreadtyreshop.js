@@ -28,7 +28,7 @@ function RetreadTyreShop(){
     });
 
     useEffect(()=>{
-        fetch('https://demo-server-757m.onrender.com/usedtyres')
+        fetch('https://maingi-demo-server.onrender.com/usedtyres')
         .then(response => response.json())
         .then((data) => {
             setUsedTyres(data)
@@ -36,7 +36,7 @@ function RetreadTyreShop(){
     },[])
 
     useEffect(()=>{
-        fetch('https://demo-server-757m.onrender.com/retreadshoptrips')
+        fetch('https://maingi-demo-server.onrender.com/retreadshoptrips')
         .then(response => response.json())
         .then((data) => {
             setTrips(data)
@@ -44,7 +44,7 @@ function RetreadTyreShop(){
     },[])
 
     useEffect(()=>{
-        fetch('https://demo-server-757m.onrender.com/vendors')
+        fetch('https://maingi-demo-server.onrender.com/vendors')
         .then(response => response.json())
         .then((data) => {
             setVendors(data)
@@ -89,7 +89,7 @@ function RetreadTyreShop(){
     function handleSubmit(event){
         event.preventDefault()
 
-        fetch('https://demo-server-757m.onrender.com/retreadshoptrips', {
+        fetch('https://maingi-demo-server.onrender.com/retreadshoptrips', {
             method:"POST",
             headers:{
                 'Content-Type':'application/json'
@@ -103,7 +103,7 @@ function RetreadTyreShop(){
         .then((data) => {
             console.log(data)
 
-            fetch('https://demo-server-757m.onrender.com/retreadshoptrips')
+            fetch('https://maingi-demo-server.onrender.com/retreadshoptrips')
             .then(response => response.json())
             .then((data) => {
                 setTrips(data)

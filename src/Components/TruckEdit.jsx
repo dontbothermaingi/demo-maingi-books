@@ -25,7 +25,7 @@ function TruckEdit() {
 
   useEffect(() => {
     // Fetch truck details to prefill the form
-    fetch(`https://demo-server-757m.onrender.com/trucks/${truckId}`,{
+    fetch(`https://maingi-demo-server.onrender.com/trucks/${truckId}`,{
             method:'GET',
             headers:{
                 'Authorization':`Bearer ${token}`
@@ -71,7 +71,7 @@ function TruckEdit() {
     setPending(true)
     setOpenDialog(true)
 
-    fetch(`https://demo-server-757m.onrender.com/trucks/${truckId}`, {
+    fetch(`https://maingi-demo-server.onrender.com/trucks/${truckId}`, {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",

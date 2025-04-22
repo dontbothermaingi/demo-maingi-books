@@ -8,6 +8,7 @@ function EditStock (){
     const {stockId} = useParams()
     const [name, setName] = useState("")
     const [openSnackbar, setOpenSnackbar] = useState(false)
+    const [stores, setStores] = useState([])
     const [successMessage, setSuccessMessage] = useState('')
     const [openDialog, setOpenDialog] = useState(false);
     const [loading, setLoading] = useState(false);
@@ -18,10 +19,11 @@ function EditStock (){
         price:"",
         measurement:"",
         store:"",
+        store_id:0,
     })
 
     useEffect(()=>{
-        fetch(`https://demo-server-757m.onrender.com/stockitems/${stockId}`, {
+        fetch(`https://maingi-demo-server.onrender.com/stockitems/${stockId}`, {
             method:'GET',
             headers:{
                 'Authorization':`Bearer ${access_token}`
@@ -48,6 +50,31 @@ function EditStock (){
         })
     },[access_token, stockId])
 
+    useEffect(() => {
+        fetch('https://maingi-demo-server.onrender.com/store',{
+            method:'GET',
+            headers:{
+                'Authorization':`Bearer ${access_token}`
+            },
+            credentials:'include'
+        })
+        .then(response => response.json())
+        .then((data) => {
+
+            setStores(data)
+        })
+    },[access_token])
+
+    useEffect(() => {
+        const storeId = stores.find(item => item.store_name === formData.store)
+
+        setFormData(prevFormData => ({
+            ...prevFormData,
+            store_id: storeId ? storeId.id : 0
+        }))
+
+    },[formData.store, stores])
+
     function handleChange(event){
         const {name,value} = event.target
 
@@ -60,9 +87,9 @@ function EditStock (){
     function handleSubmit(event){
         event.preventDefault()
 
-        setLoading(true)
+        setLoading(true);
 
-        fetch(`https://demo-server-757m.onrender.com/stockitems/${stockId}`, {
+        fetch(`https://maingi-demo-server.onrender.com/stockitems/${stockId}`, {
             method:"PATCH",
             headers:{
                 'Content-Type':'application/json',
@@ -80,7 +107,7 @@ function EditStock (){
         .then((data) => {
             console.log(data)
 
-            setOpenDialog(true)
+            setOpenDialog(true);
             setLoading(false)
             setSuccessMessage('Updated Successfully')
             setOpenSnackbar(true)
@@ -96,6 +123,8 @@ function EditStock (){
             console.error('Failed Request', error)
             setSuccessMessage('Failed to update')
             setOpenSnackbar(true)
+            setLoading(false)
+            setOpenDialog(false)
         })
     }
 
@@ -155,19 +184,24 @@ function EditStock (){
                 />
 
                 <Typography fontFamily={"GT Regular"}>Store</Typography>
-                <Select 
-                    type="text"
-                    name="store"
-                    placeholder="Select Store"
-                    value={formData.store}
-                    onChange={handleChange}
-                    variant="outlined"
-                    sx={{mb:'20px'}}
-                >
-                    <MenuItem value="KOROGA HOTEL">KOROGA HOTEL</MenuItem>
-                    <MenuItem value="B&G CLUB">B&G CLUB</MenuItem>
+                {stores.length > 0 ? (
+                    <Select 
+                        type="text"
+                        name="store"
+                        placeholder="Select Store"
+                        value={formData.store}
+                        onChange={handleChange}
+                        variant="outlined"
+                        sx={{mb:'20px'}}
+                    >
+                        {stores.map((store,index) => (
+                            <MenuItem key={index} value={store.store_name}>{store.store_name}</MenuItem>
+                        ))}
 
-                </Select>
+                    </Select>
+                ):(
+                    <Typography textAlign={'center'} fontFamily={"GT Regular"}>Loading Stores...</Typography>
+                )}
 
                 <TextField 
                     type="number"
@@ -175,6 +209,16 @@ function EditStock (){
                     value={formData.price}
                     onChange={handleChange}
                     label="Price"
+                    variant="outlined"
+                    sx={{mb:'20px'}}
+                />
+
+                <TextField 
+                    type="number"
+                    name="store_id"
+                    value={formData.store_id}
+                    onChange={handleChange}
+                    label="Store Id"
                     variant="outlined"
                     sx={{mb:'20px'}}
                 />

@@ -1,728 +1,780 @@
-import { Typography, Box, useTheme, Button, Divider, TextField, TableCell, TableBody, TableRow, TableContainer, Table, TableHead, Card, CardContent, useMediaQuery, Pagination } from "@mui/material";
-import { tokens } from "../../theme";
-import { useRef, useState, useEffect } from "react";
-import ReactToPrint from 'react-to-print';
-import { LocalizationProvider, DateRangePicker } from '@mui/x-date-pickers-pro';
-import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
-import { format, parseISO } from 'date-fns';
-import { useNavigate } from "react-router-dom";
+import { Box, Card, CardContent, Divider, Pagination, Typography, useMediaQuery } from "@mui/material";
+import { DataGrid, GridToolbar } from "@mui/x-data-grid";
+import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router";
 
+function ReportLayout (){
 
-const ReportLayout = ({ piechart }) => {
-  const theme = useTheme();
-  const colors = tokens(theme.palette.mode);
-  const componentRef = useRef();
-  const [currentInvoicePage, setCurrentInvoicePage] = useState(1)
-  const [currentBillPage, setCurrentBillPage] = useState(1)
-  const itemsPerPage = 16;
-  const isMobile = useMediaQuery('(max-width: 768px)');
-  const token = localStorage.getItem('access_token')
+    const [invoices, setInvoices] = useState([]);
+    const [bills, setBills] = useState([]);
+    const [invoiceSpecifics, setInvoiceSpecifics] = useState([])
+    const [billls, setBillls] = useState([]);
+    const [invoicesss, setInvoicesss] = useState([]);
+    const [billSpecifics, setBillSpecifics] = useState([])
+    const [categoryInvoices, setCategoryInvoices] = useState([])
+    const [categoryBills, setCategoryBills] = useState([])
+    const [categoryName , setCategoryName] = useState("");
+    const [activeCategory, setActiveCategory] = useState("");
+    const [viewType, setViewType] = useState("")
+    const token = localStorage.getItem('access_token')
+    const navigate = useNavigate();
+    const isMobile = useMediaQuery("(max-width:768px)")
+    const [billCurrentPage, setBillCurrentPage] = useState(1)
+    const [invoiceCurrentPage, setInvoiceCurrentPage] = useState(1)
+    const [startDate, setStartDate] = useState(null)
+    const [endDate, setEndDate] = useState(null)
+    const itemsPerPage = 14;
 
-  const [accounts, setAccounts] = useState([]);
-  const [dateRange, setDateRange] = useState([null, null]);
-  const [activeSection, setActiveSection] = useState(null);
+    function filterByDateRange (items,startDate,endDate){
+      if(!startDate || !endDate) return items;
 
-
-
-  useEffect(() => {
-    fetch('https://demo-server-757m.onrender.com/accountcategories',{
-      method:'GET',
-      headers:{
-        'Authorization':`Bearer ${token}`
-      },
-      credentials:'include'
-    })
-      .then(response => response.json())
-      .then(data => {
-        setAccounts(data);
+      return items.filter(item => {
+        const itemDate = new Date(item.bill_date || item.invoice_date)  // Converts the string intoa date object
+        return itemDate >= startDate && itemDate <= endDate
       })
-      .catch(error => console.error('Error fetching account data:', error));
-  }, [token]);
+    }
 
-  const filterByDateRange = (items) => {
-    if (!dateRange[0] || !dateRange[1]) return items;
-    const [startDate, endDate] = dateRange;
-    const filteredItems = items.filter(item => {
-      const date = parseISO( item.invoice_date || item.bill_date);
-      return date >= startDate && date <= endDate;
-    });
-    console.log('Filtered Items:', filteredItems); // Debug log to see filtered items
-    return filteredItems;
-  };
+    useEffect(() => {
+          fetch(`https://maingi-demo-server.onrender.com/newbills`,{
+              method:'GET',
+              headers:{
+                  'Authorization':`Bearer ${token}`
+              },
+              credentials:'include'
+          })
+          .then(response => response.json())
+          .then((data) => {
 
-  const names = [...new Set(accounts.map(category => category.category_name))];
+              const filterByDate = filterByDateRange(data, startDate, endDate);
 
-
-  const commonColumns = [
-    { field: "item_details", headerName: "ITEM", flex: 0.2 },
-    { field: "quantity", headerName: "QUANTITY", flex: 0.15 },
-    { field: "rate", headerName: "RATE", flex: 0.15 },
-    { field: "vat", headerName: "VAT", flex: 0.15 },
-    { field: "rate_vat", headerName: "VAT AMOUNT", flex: 0.15 },
-    { field: "amount", headerName: "AMOUNT", flex: 0.15,},
-
-  ];
-
-  const billColumns = [
-    { field: "vendor_name", headerName: "VENDOR NAME", flex: 0.2, renderCell: (params) => (
-      <Box 
-      sx={{ 
-        display: 'flex', 
-        alignItems: 'center', 
-        cursor: 'pointer', 
-      }}
-      onClick={() => handleViewBills(params.row.bill_number)}
-    >
-      <Typography
-          variant="h7"
-      >
-        {params.value}
-      </Typography>
-    </Box>
-    ), },
-    { field: "bill_number", headerName: "BILL NUMBER", flex: 0.2, renderCell: (params) => (
-      <Box 
-      sx={{ 
-        display: 'flex', 
-        alignItems: 'center', 
-        cursor: 'pointer', 
-      }}
-      onClick={() => handleViewBills(params.row.bill_number)}
-    >
-      <Typography
-          variant="h7"
-      >
-        {params.value}
-      </Typography>
-    </Box>
-    ), },
-    { field: "bill_date", headerName: "BILL DATE", flex: 0.2, renderCell: (params) => (
-      <Box 
-      sx={{ 
-        display: 'flex', 
-        alignItems: 'center', 
-        cursor: 'pointer', 
-      }}
-      onClick={() => handleViewBills(params.row.bill_number)}
-    >
-      <Typography
-          variant="h7"
-      >
-        {params.value}
-      </Typography>
-    </Box>
-    ), },
-    ...commonColumns,
-  ];
-
-  const invoiceColumns = [
-    { field: "customer_name", headerName: "CUSTOMER NAME", flex: 0.3,renderCell: (params) => (
-      <Box 
-      sx={{ 
-        display: 'flex', 
-        alignItems: 'center', 
-        cursor: 'pointer', 
-      }}
-      onClick={() => handleViewInvoices(params.row.invoice_number)}
-    >
-      <Typography
-          variant="h7"
-      >
-        {params.value}
-      </Typography>
-    </Box>
-    ), },
-    { field: "invoice_date", headerName: "INVOICE DATE", flex: 0.2, renderCell: (params) => (
-      <Box 
-      sx={{ 
-        display: 'flex', 
-        alignItems: 'center', 
-        cursor: 'pointer', 
-      }}
-      onClick={() => handleViewInvoices(params.row.invoice_number)}
-    >
-      <Typography
-          variant="h7"
-      >
-        {params.value}
-      </Typography>
-    </Box>
-    ), },
-    ...commonColumns,
-  ];
-
-  const calculateTotal = (items) => items.reduce((total, item) => total + item.amount, 0);
-
-  const navigate = useNavigate()
-
-  const handleViewInvoices = (invoiceId) => {
-    navigate(`/invoices/${invoiceId}`)
-  }
-
-  const handleViewBills = (billId) => {
-    navigate(`/newbills/${billId}`)
-  }
-
-  const handleNameClick = (name) => {
-    setActiveSection(name);
-  };
-
-  
-  
-
-  return (
-      <Box margin={{md:'40px', xs:'20px'}} >
-
-        <Box display="flex" justifyContent="space-between" flexDirection={{xs:'column', md:'row'}} gap={'20px'}>
-
-          <Typography fontSize="28px" textAlign={'center'} fontWeight="bold">
-            DETAILED REPORT
-          </Typography>
-
-          <Box>
-                  <Box display="flex" justifyContent="center">
-                                      <ReactToPrint
-                                        trigger={() => (
-                                          <Button
-                                            variant="contained"
-                                            color="primary"
-                                            sx={{
-                                              backgroundColor: colors.blueAccent[700],
-                                              color: colors.grey[100],
-                                              '&:hover': {
-                                                backgroundColor: colors.blueAccent[500],
-                                              },
-                                              padding: "10px 20px",
-                                              fontSize: "16px",
-                                              fontWeight: "bold",
-                                            }}
-                                          >
-                                            Print
-                                          </Button>
-                                        )}
-                                        content={() => componentRef.current}
-                                      />
-                  </Box>
-          </Box>
-
-          <LocalizationProvider dateAdapter={AdapterDateFns}>
-            <DateRangePicker
-              startText="Start Date"
-              endText="End Date"
-              value={dateRange}
-              onChange={(newValue) => setDateRange(newValue)}
-              renderInput={(startProps, endProps) => (
-                <>
-                  <TextField {...startProps} />
-                  <Box sx={{ mx: 2 }}> to </Box>
-                  <TextField {...endProps} />
-                </>
-              )}
-            />
-          </LocalizationProvider>
-        </Box>
-
-        <Box>
-          <Box>
-            <Typography fontSize={'27px'} textAlign={'center'} fontWeight="bold">
-              MONETARY SUMMARY
-            </Typography>
-
-            <Box
-              display="flex"
-              justifyContent={'center'}
-              mt="20px"
-              flexDirection={{ xs: "column", md: "row" }}
-              gap={2}
-            >
-              {/* Expenses Card */}
-              <Card
-                sx={{
-                  borderRadius: '15px',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
-                  padding: '20px',
-                  backgroundColor: '#fff',
-                }}
-              >
-                <CardContent>
-                  <Typography variant="h5" color="black" fontWeight="bold">
-                    EXPENSES
-                  </Typography>
-                </CardContent>
-                <Divider sx={{ borderBottomWidth: 1 }} color="black" />
-
-                {/* Expenses Content */}
-                {accounts.map((account) =>
-                  names.map((name) => {
-                    const billItems = filterByDateRange(
-                      account.bill_items.flatMap(bill =>
-                        bill.items.map(item => ({
-                          ...bill,
-                          ...item,
-                          id: `${bill.id}-${item.id}`,
-                        }))
-                      )
-                    );
-                    const filteredItems = billItems.filter(item => item.category_name === name);
-                    const expenseTotal = calculateTotal(filteredItems);
-                    if (expenseTotal === 0) return null;
-
-                    return (
-                      <Box
-                        display="flex"
-                        justifyContent="space-between"
-                        gap={'80px'}
-                        key={`${account.id}-${name}`}
-                        onClick={() => handleNameClick(name)}
-                        sx={{ cursor: 'pointer', mb: 1 }}
-                      >
-                        <Typography variant="h6" color="black" fontWeight="bold">
-                          {name}
-                        </Typography>
-                        <Typography variant="h6" color="black" fontWeight="bold">
-                          {new Intl.NumberFormat().format(expenseTotal)}
-                        </Typography>
-                      </Box>
-                    );
-                  })
-                )}
-
-                <Divider sx={{ borderBottomWidth: 1 }} color="black" />
-                <Box display="flex" justifyContent="space-between">
-                  <Typography variant="h6" color="black" fontWeight="bold">
-                    Total
-                  </Typography>
-                  <Typography variant="h6" color="black" fontWeight="bold">
-                    {new Intl.NumberFormat().format(accounts.reduce((total, account) => {
-                      const billItems = filterByDateRange(
-                        account.bill_items.flatMap(bill =>
-                          bill.items.map(item => ({
-                            ...bill,
-                            ...item,
-                            id: `${bill.id}-${item.id}`,
-                          }))
-                        )
-                      );
-                      return total + calculateTotal(billItems);
-                    }, 0))}
-                  </Typography>
-                </Box>
-              </Card>
-
-              {/* Divider for larger screens */}
-              <Divider orientation="vertical" flexItem sx={{ display: { xs: 'none', md: 'block' }, mx: 2 }} color="black" />
-
-              {/* Sales Card */}
-              <Card
-                sx={{
-                  borderRadius: '15px',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
-                  padding: '20px',
-                  backgroundColor: '#fff',
-                  
-                }}
-              >
-                <CardContent>
-                  <Typography variant="h5" color="black" fontWeight="bold">
-                    SALES
-                  </Typography>
-                </CardContent>
-                <Divider sx={{ borderBottomWidth: 1 }} color="black" />
-
-                {/* Sales Content */}
-                {accounts.map((account) =>
-                  names.map((name) => {
-                    const invoiceItems = filterByDateRange(
-                      account.invoice_items.flatMap(invoice =>
-                        invoice.items.map(item => ({
-                          ...invoice,
-                          ...item,
-                          id: `${invoice.id}-${item.id}`,
-                        }))
-                      )
-                    );
-                    const filteredItems = invoiceItems.filter(item => item.category_name === name);
-                    const invoiceTotal = calculateTotal(filteredItems);
-                    if (invoiceTotal === 0) return null;
-
-                    return (
-                      <Box
-                        display="flex"
-                        justifyContent="space-between"
-                        gap={'80px'}
-                        key={`${account.id}-${name}`}
-                        onClick={() => handleNameClick(name)}
-                        sx={{ cursor: 'pointer', mb: 1 }}
-                      >
-                        <Typography variant="h6" color="black" fontWeight="bold">
-                          {name}
-                        </Typography>
-                        <Typography variant="h6" color="black" fontWeight="bold">
-                          {new Intl.NumberFormat().format(invoiceTotal)}
-                        </Typography>
-                      </Box>
-                    );
-                  })
-                )}
-
-                <Divider sx={{ borderBottomWidth: 1 }} color="black" />
-                <Box display="flex" justifyContent="space-between">
-                  <Typography variant="h6" color="black" fontWeight="bold">
-                    Total
-                  </Typography>
-                  <Typography variant="h6" color="black" fontWeight="bold">
-                    {new Intl.NumberFormat().format(accounts.reduce((total, account) => {
-                      const invoiceItems = filterByDateRange(
-                        account.invoice_items.flatMap(invoice =>
-                          invoice.items.map(item => ({
-                            ...invoice,
-                            ...item,
-                            id: `${invoice.id}-${item.id}`,
-                          }))
-                        )
-                      );
-                      return total + calculateTotal(invoiceItems);
-                    }, 0))}
-                  </Typography>
-                </Box>
-              </Card>
-            </Box>
-          </Box>
-        </Box>
-
-
-        <Box ref={componentRef} >
-              {accounts.map((account) => (
-                <Box key={account.id} mb="40px">
-                  {names.map((name) => {
-                    const billItems = filterByDateRange(account.bill_items.flatMap(bill =>
-                      bill.items.map(item => ({
-                        ...bill,
-                        ...item,
-                        rate_vat: new Intl.NumberFormat().format(item.rate_vat),
-                        rate: new Intl.NumberFormat().format(item.rate),
-                        // amount: new Intl.NumberFormat().format(item.amount),
-                        quantity: new Intl.NumberFormat().format(item.quantity),
-                        id: `${bill.id}-${item.id}`,
-                      }))
-                    )
-                  );
-
-                  const invoiceItems = filterByDateRange(account.invoice_items.flatMap(invoice =>
-                    invoice.items.map(item => ({
-                      ...invoice,
+              const billItems = filterByDate.flatMap(bill =>
+                  bill.items.map(item => ({
                       ...item,
-                      rate_vat: new Intl.NumberFormat().format(item.rate_vat),
-                      rate: new Intl.NumberFormat().format(item.rate),
-                      // amount: new Intl.NumberFormat().format(item.amount),
-                      quantity: new Intl.NumberFormat().format(item.quantity),
-                      id: `${invoice.id}-${item.id}`,
-                    }))
-                  )
-                );
+                      ...bill,
+                      // Add other bill fields if needed
+                  }))
+              );
 
-                    
+              const billsWithTotals = filterByDate.map(bill => ({
+                ...bill,
+                total_amount: bill.items.reduce((total, item) => total + Number(item.amount || 0), 0)
+              }));
 
-                    const filteredBills = filterByDateRange(billItems.filter(item => item.category_name === name));
-                    const filteredInvoices = filterByDateRange(invoiceItems.filter(item => item.category_name === name));
+              const specifics = billsWithTotals.reduce((acc,item) => {
+                if(!acc[item.category_name]){
+                    acc[item.category_name] = {...item, amount : 0, bills:[] }
+                }
 
-                    const billTotal = calculateTotal(filteredBills);
-                    const invoiceTotal = calculateTotal(filteredInvoices);
+                acc[item.category_name].amount += parseFloat(item.total_amount);
+                acc[item.category_name].bills.push(item)
+                return acc;
+              },{})
+    
+              setBills(billsWithTotals)
+              setBillls(billItems)
+              setBillSpecifics(Object.values(specifics))
+          })
+    },[token, startDate,endDate])
 
-                    if (filteredBills.length === 0 && filteredInvoices.length === 0) {
-                      return null;
-                    }
+    useEffect(() => {
+          fetch(`https://maingi-demo-server.onrender.com/invoices`,{
+              method:'GET',
+              headers:{
+                  'Authorization':`Bearer ${token}`
+              },
+              credentials:'include'
+          })
+          .then(response => response.json())
+          .then((data) => {
 
-                  // Sort filteredInvoices based on invoice_date in descending order
-                  const sort = filteredInvoices.sort((a, b) => new Date(b.invoice_date) - new Date(a.invoice_date));
+              const filterByDate = filterByDateRange(data, startDate, endDate);
 
-                  const totalBillPages = Math.ceil(billItems.length / itemsPerPage)
-                  const displayedBillItems = billItems.slice((currentBillPage - 1)*itemsPerPage, currentBillPage * itemsPerPage)
+              const filtered = filterByDate.filter(item => item.customer_name !== "EKATI FUELS")
 
+              const invoiceItems = filtered.flatMap(invoice =>
+                  invoice.items.map(item => ({
+                      ...item,
+                      ...invoice,
+                  }))
+              );
 
-                  const totalInvoicePages = Math.ceil(sort.length / itemsPerPage)
-                  const displayedInvoiceItems = sort.slice((currentInvoicePage - 1)*itemsPerPage, currentInvoicePage * itemsPerPage)
-                  
-                  
-                  const handleBillPageChange = (event, value) => {
-                      setCurrentBillPage(value);
-                  };
+              const invoiceWithTotals = filtered.map(invoice => ({
+                ...invoice,
+                items: invoice.items,
+                total_amount: invoice.items.reduce((total, item) => total + Number(item.amount || 0), 0)
+              }));
 
-                  const handleInvoicePageChange = (event, value) => {
-                    setCurrentInvoicePage(value);
-                };
+              const specifics = invoiceWithTotals.reduce((acc,item) => {
+                if(!acc[item.category_name]){
+                    acc[item.category_name] = {...item, amount : 0, invoices:[] }
+                }
 
-                    return (
-                      <Box key={`${account.id}-${name}`} mb="40px">
+                acc[item.category_name].amount += Number(item.total_amount);
+                acc[item.category_name].invoices.push(item)
+                return acc;
+              },{})
 
-                        {activeSection === name && (
-                          <>
-                            {filteredBills.length > 0 && (
-                              <Box>
+              setInvoices(invoiceWithTotals)
+              setInvoicesss(invoiceItems)
+              setInvoiceSpecifics(Object.values(specifics))
+          })
+    },[token, startDate,endDate])
 
-                              <Typography fontSize="25px" fontWeight="bold" ml="20px" textAlign="center" >
-                                  {account.category_name}
-                              </Typography>
+    // function handleActiveItem(id){
+    //   setActiveCategory(activeCategory === id ? null : id)
+    // }
 
+    function handleInvoiceSpecific(cat_name){
+      const specificInvoice = invoices.filter(item => item.category_name === cat_name)
+    
+      setCategoryInvoices(specificInvoice) // overwrite the current list
+      setCategoryBills([]) // clear out any previously selected bills
+    
+      setActiveCategory(cat_name)
+      setCategoryName(cat_name)
+      setViewType("invoice")
+    }
 
+    function handleBillSpecific(cat_name){
+      const specificBills = bills.filter(item => item.category_name === cat_name)
+    
+      setCategoryBills(specificBills) // overwrite the current list
+      setCategoryInvoices([]) // clear out any previously selected invoices
+    
+      setActiveCategory(cat_name)
+      setCategoryName(cat_name)
+      setViewType("bill")
+    }
 
-                              <Box display={'flex'} justifyContent={'center'} flexDirection={'column'} alignItems={'center'}>
-                                <Typography fontWeight={'bold'} fontSize={'20px'}>
-                                    Total: {new Intl.NumberFormat('en-KE', {style:'currency', currency:'KES'}).format(billTotal)}
-                                </Typography>
-                              </Box>
+    const invoiceTotal = invoicesss.reduce((total, item) => total + Number(item.amount || 0), 0).toFixed(2)
+    const billTotal = billls.reduce((total, item) => total + Number(item.amount || 0), 0).toFixed(2)
+    const profit = invoiceTotal - billTotal
 
+    const handleViewInvoices = (invoiceId) => {
+      navigate(`/invoices/${invoiceId}`)
+    }
 
-
-                              {isMobile ? (
-                                <Box>
-                                <Typography fontSize={'27px'} fontWeight={'bold'} textAlign={'center'}>BILLS</Typography>
-                                <Box
-                                    display={'grid'}
-                                    gridTemplateColumns={{xs:'repeat(1,1fr)', sm:'repeat(2,1fr)'}}
-                                    gap="10px"
-                                    margin="0 10px"
-                                >
-                
-                                    {displayedBillItems.map((item) => (
-                                        <Card
-                                            key={item.id}
-                                            onClick={() => handleViewBills(item.bill_number)}
-                                            sx={{
-                                                borderRadius: '15px',
-                                                display: 'flex',
-                                                flexDirection: 'column',
-                                                height: 'auto', // Adjust height for better flexibility
-                                                boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
-                                                padding: '10px',
-                                                backgroundColor: '#fff',
-                                                
-                                            }}
-                                        >
-                                             <CardContent>
-                                                    <Box display={'flex'} gap={'3px'}>
-                                                      <Typography>Vendor:</Typography>
-                                                      <Typography fontWeight={'bold'}>{item.vendor_name}</Typography>
-                                                    </Box>
-
-                                                    <Box display={'flex'} gap={'5px'}>
-                                                      <Typography>Bill Number:</Typography>
-                                                      <Typography fontWeight={'bold'}>{item.bill_number}</Typography>
-                                                    </Box>
-
-                                                    <Box display={'flex'} gap={'5px'}>
-                                                      <Typography>Item Details:</Typography>
-                                                      <Typography fontWeight={'bold'}>{item.item_details}</Typography>
-                                                    </Box>
-
-                                                    <Box display={'flex'} gap={'5px'}>
-                                                      <Typography>Quantity:</Typography>
-                                                      <Typography fontWeight={'bold'}>{item.quantity}</Typography>
-                                                    </Box>
-
-                                                    <Box display={'flex'} gap={'5px'}>
-                                                      <Typography>Rate:</Typography>
-                                                      <Typography fontWeight={'bold'}>{item.rate}</Typography>
-                                                    </Box>
-
-                                                    <Box display={'flex'} gap={'5px'}>
-                                                      <Typography>VAT:</Typography>
-                                                      <Typography fontWeight={'bold'}>{item.vat}</Typography>
-                                                    </Box>
-
-                                                    <Box display={'flex'} gap={'5px'}>
-                                                      <Typography>VAT Amount:</Typography>
-                                                      <Typography fontWeight={'bold'}>{item.rate_vat}</Typography>
-                                                    </Box>
-
-                                                    <Box display={'flex'} gap={'5px'}>
-                                                      <Typography>Total Amount:</Typography>
-                                                      <Typography fontWeight={'bold'}>{new Intl.NumberFormat('en-KE', {style:'currency', currency:'KES'}).format(item.amount)}</Typography>
-                                                    </Box>
-                                            </CardContent>
-                                        </Card>
-                                    ))}
-                                    <Box display="flex" justifyContent="center" mt="20px">
-                                            <Pagination count={totalBillPages} page={currentBillPage} onChange={handleBillPageChange} color="secondary" />
-                                    </Box>
-                                </Box>
-                                </Box>
-                              ):(
-
-                                <Box ml="20px" height="35vh" mb="20px">
-                                <TableContainer  mb='30px'>
-                                <Table>
-                                    <TableHead>
-                                        <TableRow>
-                                            {billColumns.map((column) => (
-                                                <TableCell key={column.field} sx={{ fontWeight: 'bold', fontSize: '10px' }}>{column.headerName}</TableCell>
-                                            ))}
-                                        </TableRow>
-                                    </TableHead>
-                                    <TableBody>
-                                        {billItems.map((item, index) => (
-                                            <TableRow key={index}>
-                                                <TableCell onClick={() => handleViewBills(item.bill_number)}>{item.vendor_name}</TableCell>
-                                                <TableCell onClick={() => handleViewBills(item.bill_number)}>{item.bill_number}</TableCell>
-                                                <TableCell onClick={() => handleViewBills(item.bill_number)}>{format(new Date(item.bill_date), 'dd/MM/yyyy')}</TableCell> 
-                                                <TableCell onClick={() => handleViewBills(item.bill_number)}>{item.item_details}</TableCell>
-                                                <TableCell onClick={() => handleViewBills(item.bill_number)}>{item.quantity}</TableCell>
-                                                <TableCell onClick={() => handleViewBills(item.bill_number)}>{item.rate}</TableCell>
-                                                <TableCell onClick={() => handleViewBills(item.bill_number)}>{item.vat}</TableCell>
-                                                <TableCell onClick={() => handleViewBills(item.bill_number)}>{item.rate_vat}</TableCell>
-                                                <TableCell onClick={() => handleViewBills(item.bill_number)}>{item.amount}</TableCell>
-                                            </TableRow>
-                                        ))}
-                                    </TableBody>
-                        
-                                </Table>
-                            </TableContainer>
-                                </Box>
-                              )}
-
-                                
-
-                              </Box>
-                            )}
-
-                            {filteredInvoices.length > 0 && (
-                              <Box>
-                                <Box display={'flex'} flexDirection={'column'} alignItems={'center'} justifyContent={'center'}>
-                                    <Typography fontSize="26px" fontWeight="bold" ml="20px">
-                                      {name}
-                                    </Typography>
-                                    <Typography fontSize='20px' fontWeight="bold">
-                                      Total: {new Intl.NumberFormat('en-KE', {style:'currency', currency:'KES'}).format(invoiceTotal)}
-                                    </Typography>
-                                </Box>
+    const handleViewDetails = (billId) => {
+        navigate(`/newbills/${billId}`);
+    };
 
 
-                                {isMobile ? (
-                                   <Box>
-                                   <Typography fontSize={'27px'} fontWeight={'bold'} textAlign={'center'}>INVOICES</Typography>
-                                   <Box
-                                       display={'grid'}
-                                       gridTemplateColumns={{xs:'repeat(1,1fr)', sm:'repeat(2,1fr)'}}
-                                       gap="10px"
-                                       margin="0 10px"
-                                   >
-                   
-                                       {displayedInvoiceItems.map((item) => (
-                                           <Card
-                                               key={item.id}
-                                               onClick={() => handleViewInvoices(item.invoice_number)}
-                                               sx={{
-                                                   borderRadius: '15px',
-                                                   display: 'flex',
-                                                   flexDirection: 'column',
-                                                   height: 'auto', // Adjust height for better flexibility
-                                                   boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
-                                                   padding: '10px',
-                                                   backgroundColor: '#fff',
-                                                   
-                                               }}
-                                           >
-                                                <CardContent>
-                                                      <Box display={'flex'} gap={'4px'}>
-                                                          <Typography>Name:</Typography>
-                                                          <Typography fontWeight={'bold'}>{item.customer_name}</Typography>
-                                                      </Box>
+    const InvoiceItemPages = Math.ceil(categoryInvoices.length /itemsPerPage)
+    const billItemPages = Math.ceil(categoryBills.length /itemsPerPage)
 
-                                                      <Box display={'flex'} gap={'4px'}>
-                                                          <Typography>Invoice Date:</Typography>
-                                                          <Typography  fontWeight={'bold'}>{format(new Date(item.invoice_date), 'dd/MM/yyyy')}</Typography>
-                                                      </Box>
+    const billItemDisplayed = categoryBills.slice((billCurrentPage - 1) * itemsPerPage, billCurrentPage * itemsPerPage)
+    const invoiceItemDisplayed = categoryInvoices.slice((invoiceCurrentPage - 1) * itemsPerPage, invoiceCurrentPage * itemsPerPage)
 
-                                                      
-                                                      <Box display={'flex'} gap={'4px'}>
-                                                          <Typography>Item:</Typography>
-                                                          <Typography fontWeight={'bold'}>{item.item_details}</Typography>
-                                                      </Box>
+    const handleBillPageChange = (event, value) => {
+      setBillCurrentPage(value);
+    };
 
-                                                      <Box display={'flex'} gap={'4px'}>
-                                                          <Typography>Quantity:</Typography>
-                                                          <Typography fontWeight={'bold'}>{item.quantity}</Typography>
-                                                      </Box>
+    const handleInvoicePageChange = (event, value) => {
+      setInvoiceCurrentPage(value);
+    };
 
-                                                      <Box display={'flex'} gap={'4px'}>
-                                                          <Typography>Rate:</Typography>
-                                                          <Typography fontWeight={'bold'}>{item.rate}</Typography>
-                                                      </Box>
+    const currencyLocaleMap = {
+      AED: "en-AE", // United Arab Emirates Dirham
+      AUD: "en-AU", // Australian Dollar
+      CAD: "en-CA", // Canadian Dollar
+      CHF: "de-CH", // Swiss Franc
+      CNY: "zh-CN", // Chinese Yuan
+      EUR: "de-DE", // Euro
+      GBP: "en-GB", // British Pound
+      HKD: "en-HK", // Hong Kong Dollar
+      IDR: "id-ID", // Indonesian Rupiah
+      ILS: "he-IL", // Israeli New Shekel
+      INR: "en-IN", // Indian Rupee
+      JPY: "ja-JP", // Japanese Yen
+      KES: "en-KE", // Kenyan Shilling
+      NZD: "en-NZ", // New Zealand Dollar
+      SGD: "en-SG", // Singapore Dollar
+      THB: "th-TH", // Thai Baht
+      TRY: "tr-TR", // Turkish Lira
+      USD: "en-US", // United States Dollar
+      ZAR: "en-ZA", // South African Rand
+      MXN: "es-MX", // Mexican Peso
+      BRL: "pt-BR", // Brazilian Real
+    };
 
-                                                      <Box display={'flex'} gap={'4px'}>
-                                                          <Typography>Vat:</Typography>
-                                                          <Typography fontWeight={'bold'}>{item.vat}</Typography>
-                                                      </Box>
-
-                                                      <Box display={'flex'} gap={'4px'}>
-                                                          <Typography>Vat Amount:</Typography>
-                                                          <Typography fontWeight={'bold'}>{item.rate_vat}</Typography>
-                                                      </Box>
-
-                                                      <Box display={'flex'} gap={'4px'}>
-                                                          <Typography>Amount:</Typography>
-                                                          <Typography fontWeight={'bold'}>{ new Intl.NumberFormat('en-KE', {style:'currency', currency:item.currency}).format(item.amount)}</Typography>
-                                                      </Box>
-
-                                                </CardContent>
-                                          </Card>
-                                                ))}
-                                                <Box display="flex" justifyContent="center" mt="20px">
-                                                        <Pagination count={totalInvoicePages} page={currentInvoicePage} onChange={handleInvoicePageChange} color="secondary" />
-                                                </Box>
-                                   </Box>
-                                   </Box>
-                                ):(
-                                   <Box ml="20px" height="35vh" mb="20px">
-                                   <TableContainer>
-                                   <Table>
-                                       <TableHead>
-                                           <TableRow>
-                                               {invoiceColumns.map((column) => (
-                                                   <TableCell key={column.field} sx={{ fontWeight: 'bold', fontSize: '12px' }}>{column.headerName}</TableCell>
-                                               ))}
-                                           </TableRow>
-                                       </TableHead>
-                                       <TableBody>
-                                           {filteredInvoices.map((item, index) => (
-                                               <TableRow key={index}>
-                                                   <TableCell onClick={() => handleViewInvoices(item.invoice_number)}>{item.customer_name}</TableCell>
-                                                   <TableCell onClick={() => handleViewInvoices(item.invoice_number)}>{format(new Date(item.invoice_date), 'dd/MM/yyyy')}</TableCell> 
-                                                   <TableCell onClick={() => handleViewInvoices(item.invoice_number)}>{item.item_details}</TableCell>
-                                                   <TableCell onClick={() => handleViewInvoices(item.invoice_number)}>{item.quantity}</TableCell>
-                                                   <TableCell onClick={() => handleViewInvoices(item.invoice_number)}>{item.rate}</TableCell>
-                                                   <TableCell onClick={() => handleViewInvoices(item.invoice_number)}>{item.vat}</TableCell>
-                                                   <TableCell onClick={() => handleViewInvoices(item.invoice_number)}>{item.rate_vat}</TableCell>
-                                                   <TableCell onClick={() => handleViewInvoices(item.invoice_number)}>{new Intl.NumberFormat('en-KE', {style:'currency', currency:'KES'}).format(item.amount)}</TableCell>
-                                               </TableRow>
-                                           ))}
-                                       </TableBody>
-                           
-                                   </Table>
-                               </TableContainer>                                
-                                   </Box>
-                                )}
-                               
-
-
-                              </Box>
-                            )}
-                          </>
-                        )}
-                      </Box>
-                    );
-                  })}
-                </Box>
-              ))}
+    const invoiceColumns = [
+      { field: "id", headerName: "ID", flex: 0.2 },
+      {
+        field: "customer_name",
+        headerName: "Customer Name",
+        flex: 0.5,
+        cellClassName: "name-column--cell",
+        renderCell: (params) => (
+          <Box 
+          sx={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            cursor: 'pointer', 
+          }}
+          onClick={() => handleViewInvoices(params.row.id)}
+        >
+          <Typography
+              variant="h7"
+          >
+            {params.value}
+          </Typography>
         </Box>
+        ),
+      },
+      {
+        field: "invoice_number",
+        headerName: "Invoice Number",
+        flex: 0.3,
+        renderCell: (params) => (
+          <Box 
+          sx={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            cursor: 'pointer', 
+          }}
+          onClick={() => handleViewInvoices(params.row.id)}
+        >
+          <Typography
+            variant="h7"
+          >
+            {params.value}
+          </Typography>
+        </Box>
+        ),
+      },
+      {
+        field: "currency",
+        headerName: "Currency",
+        flex: 0.3,
+        renderCell: (params) => (
+          <Box 
+          sx={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            cursor: 'pointer', 
+          }}
+          onClick={() => handleViewInvoices(params.row.id)}
+        >
+          <Typography
+            variant="h7"
+          >
+            {params.value}
+          </Typography>
+        </Box>
+        ),
+      },
+      {
+        field: "total_amount",
+        headerName: "Amount",
+        flex: 0.3,
+        renderCell: (params) => {
+          // Use Intl.NumberFormat for currency formatting
+          const formattedAmount = new Intl.NumberFormat(currencyLocaleMap[params.row.currency], {
+            style: 'currency',
+            currency: params.row.currency, // Replace with your desired currency
+          }).format(params.value);
+      
+          return (
+            <Box 
+              sx={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                cursor: 'pointer', 
+              }}
+              onClick={() => handleViewInvoices(params.row.id)}
+            >
+              <Typography variant="h7">
+                {formattedAmount}  {/* Display formatted amount */}
+              </Typography>
+            </Box>
+          );
+        },
+      },
+      {
+        field: "invoice_date",
+        headerName: "Invoice Date",
+        flex: 0.3,
+        renderCell: (params) => (
+          <Box 
+          sx={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            cursor: 'pointer', 
+          }}
+          onClick={() => handleViewInvoices(params.row.id)}
+        >
+          <Typography
+            variant="h7"
+          >
+            {params.value}
+          </Typography>
+        </Box>
+        ),
+      },
+      {
+        field: "status",
+        headerName: "STATUS",
+        flex: 0.4,
+        renderCell: (params) => (
+          <Box 
+          sx={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            cursor: 'pointer', 
+          }}
+          onClick={() => handleViewInvoices(params.row.id)}
+        >
+          <Typography
+            variant="h7"
+          >
+            {params.value}
+          </Typography>
+        </Box>
+        ),
+      },
+      {
+        field: "sales_person",
+        headerName: "Sales Person",
+        flex: 0.5,
+        renderCell: (params) => (
+          <Box 
+          sx={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            cursor: 'pointer', 
+          }}
+          onClick={() => handleViewInvoices(params.row.id)}
+        >
+          <Typography
+            variant="h7"
+          >
+            {params.value}
+          </Typography>
+        </Box>
+        ),
+      },
+    ]
 
 
-      </Box>
-  );
-};
+    const billColumns = [
+      { field: "id", headerName: "ID", flex: 0.2 },
+      {
+        field: "vendor_name",
+        headerName: "Vendor Name",
+        flex: 0.7,
+        cellClassName: "name-column--cell",
+        renderCell: (params) => (
+          <Box 
+          sx={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            cursor: 'pointer', 
+          }}
+          onClick={() => handleViewDetails(params.row.id)}
+        >
+          <Typography
+              variant="h7"
+          >
+            {params.value}
+          </Typography>
+        </Box>
+        ),
+      },
+      {
+        field: "bill_number",
+        headerName: "Bill Number",
+        flex: 0.2,
+        renderCell: (params) => (
+          <Box 
+          sx={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            cursor: 'pointer', 
+          }}
+          onClick={() => handleViewDetails(params.row.id)}
+        >
+          <Typography
+              variant="h7"
+          >
+            {params.value}
+          </Typography>
+        </Box>
+        ),
+      },
+      {
+        field: "bill_date",
+        headerName: "Bill Date",
+        flex: 0.25,
+        renderCell: (params) => (
+          <Box 
+          sx={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            cursor: 'pointer', 
+          }}
+          onClick={() => handleViewDetails(params.row.id)}
+        >
+          <Typography
+              variant="h7"
+          >
+            {params.value}
+          </Typography>
+        </Box>
+        ),
+      },
+      {
+        field: "payment_terms",
+        headerName: "Payment Terms",
+        flex: 0.2,
+        renderCell: (params) => (
+          <Box 
+          sx={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            cursor: 'pointer', 
+          }}
+          onClick={() => handleViewDetails(params.row.id)}
+        >
+          <Typography
+              variant="h7"
+          >
+            {params.value}
+          </Typography>
+        </Box>
+        ),
+      },
+      {
+          field: "status",
+          headerName: "Status",
+          flex: 0.2,
+          renderCell: (params) => (
+              <Box 
+              sx={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                cursor: 'pointer', 
+              }}
+              onClick={() => handleViewDetails(params.row.id)}
+            >
+              <Typography
+                  variant="h7"
+              >
+                {params.value}
+              </Typography>
+            </Box>
+            ),
+        },
+        {
+          field: "total_amount",
+          headerName: "Total Amount",
+          flex: 0.4,
+          renderCell: (params) => {
+            // Use Intl.NumberFormat for currency formatting
+            const formattedAmount = new Intl.NumberFormat(currencyLocaleMap[params.row.currency] || 'en-KE', {
+              style: 'currency',
+              currency: 'KES', // Replace with your desired currency
+            }).format(params.value);
+        
+            return (
+              <Box 
+                sx={{ 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  cursor: 'pointer', 
+                }}
+              >
+                <Typography variant="h7">
+                  {formattedAmount}  {/* Display formatted amount */}
+                </Typography>
+              </Box>
+            );
+          },
+        },
+      {
+          field: "due_date",
+          headerName: "Due Date",
+          flex: 0.2,
+          renderCell: (params) => (
+              <Box 
+              sx={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                cursor: 'pointer', 
+              }}
+              onClick={() => handleViewDetails(params.row.id)}
+            >
+              <Typography
+                  variant="h7"
+              >
+                {params.value}
+              </Typography>
+            </Box>
+            ),
+        },
+    ];
 
+    return ( 
+        <Box >
+            <Box display={'flex'} flexDirection={'column'} gap={'10px'} alignItems={'center'}>
+                <Typography fontFamily={'GT Bold'} fontSize={{md:'40px', xs:'28px'}}>OVERALL REPORT</Typography>
+            </Box>
+
+              <LocalizationProvider dateAdapter={AdapterDayjs}>
+                  <Box display={'flex'} gap={'20px'} mt={'20px'} ml={'30px'}>
+
+                      <Box>
+                          <Typography fontFamily={"GT Light"}>Starting Date</Typography>
+                          <DatePicker value={startDate} onChange={(date) => setStartDate(date)}/>
+                      </Box>
+
+                      <Box>
+                          <Typography fontFamily={"GT Light"}>Ending Date</Typography>
+                          <DatePicker value={endDate} onChange={(date) => setEndDate(date)}/>
+                      </Box>
+
+                  </Box>
+                  
+              </LocalizationProvider>
+
+              {profit > 0 ? (
+                    <Box sx={{backgroundColor:'green', padding:'30px', borderRadius:'15px', width:{md:'300px', xs:'100px'}, margin:'auto', mt:'20px', mb:'20px'}} display={'flex'} flexDirection={'column'} alignItems={'center'}>
+                        <Typography fontFamily={"GT Bold"} color={'white'}  textAlign={'center'} fontSize={{md:'25px', xs:'20px'}}>PROFIT</Typography>
+                        <Typography fontFamily={"GT Bold"} color={'white'} textAlign={'center'} fontSize={{md:'25px', xs:'20px'}}>+{new Intl.NumberFormat('en-KE', {style:"currency", currency:'KES'}).format(profit)}</Typography>
+                    </Box>
+                ):(
+                    <Box sx={{backgroundColor:'red', padding:'30px', borderRadius:'15px',   width:{md:'300px', xs:'230px'}, margin:'auto', mt:'20px', mb:'20px'}} display={'flex'} flexDirection={'column'} alignItems={'center'}>
+                        <Typography fontFamily={"GT Bold"} color={'white'}  textAlign={'center'} fontSize={{md:'25px', xs:'20px'}}>LOSS</Typography>
+                        <Typography fontFamily={"GT Bold"} color={'white'} textAlign={'center'} fontSize={{md:'25px', xs:'20px'}}>{new Intl.NumberFormat('en-KE', {style:"currency", currency:'KES'}).format(profit)}</Typography>
+                    </Box>
+                )}
+
+              <Box display={'flex'} flexDirection={{xs:'column', md:'row'}} justifyContent={'center'} gap={'20px'}>
+
+                <Box display={'flex'} flexDirection={'column'} margin={{md:'50px', xs:'10px'}}>
+                    <Box sx={{padding:{md:'30px', xs:'0px'}, backgroundColor:"#fff", boxShadow:'0 4px 20px rgba(0,0,0,0.1)', width:{md:'400px', xs:"100%"}}}>
+                        <Typography fontFamily={'GT Regular'} fontSize={'30px'} textAlign={'center'} padding={{xs:'10px', md:'0px'}}>SALES</Typography>
+
+                        <Divider sx={{ mt:{md:'20px', xs:'0px'}, mb:{md:'20px', xs:'0px'}, ml:{md:'20px', xs:'10px'}, mr:{md:'20px', xs:'10px'} }}/>
+
+                        {invoiceSpecifics.map((item,index) => (
+                            <Box display={'flex'} justifyContent={'space-between'} sx={{cursor:'pointer'}} gap={'9px'} alignItems={'center'} padding={{xs:'10px', md:'0px'}} key={index} onClick={() => handleInvoiceSpecific(item.category_name)}>
+                                <Typography fontFamily={'GT Medium'} fontSize={{md:'20px', xs:'17px'}}>{item.category_name}</Typography>
+                                <Typography fontFamily={'GT Light'} fontSize={{md:'20px', xs:'17px'}}>{new Intl.NumberFormat('en-KE', {style:'currency', currency:'KES'}).format (Number(item.amount).toFixed(2))}</Typography>
+                            </Box>
+                        ))}
+
+                        <Divider sx={{ mt:{md:'20px', xs:'0px'}, mb:{md:'20px', xs:'0px'}, ml:{md:'20px', xs:'10px'}, mr:{md:'20px', xs:'10px'} }}/>
+
+                        <Typography fontFamily={'GT Light'} padding={{xs:'10px', md:'0px'}} fontSize={'20px'}>Total     {new Intl.NumberFormat('en-KE', {style:'currency', currency:'KES'}).format(invoiceTotal)}</Typography>
+                    </Box>
+                </Box>
+
+                <Divider orientation="vertical" sx={{border:'1px solid black', height:'500px', display:{xs:"none", md:'block'}}}/>
+
+                <Box display={'flex'} flexDirection={'column'} margin={{md:'50px', xs:'10px'}}>
+                    <Box sx={{padding:{md:'30px', xs:'0px'}, backgroundColor:"#fff", boxShadow:'0 4px 20px rgba(0,0,0,0.1)', width:{md:'400px', xs:"100%"}}}>
+                        <Typography fontFamily={'GT Regular'} fontSize={'30px'} textAlign={'center'} padding={{xs:'10px', md:'0px'}}>EXPENSES</Typography>
+
+                        <Divider sx={{ mt:{md:'20px', xs:'0px'}, mb:{md:'20px', xs:'0px'}, ml:{md:'20px', xs:'10px'}, mr:{md:'20px', xs:'10px'} }}/>
+
+                        {billSpecifics.map((item,index) => (
+                            <Box display={'flex'} gap={'9px'} justifyContent={'space-between'} alignItems={'center'} padding={{xs:'10px', md:'0px'}} key={index} sx={{cursor:'pointer'}} onClick={() => handleBillSpecific(item.category_name)}>
+                                <Typography fontFamily={'GT Medium'} fontSize={{md:'20px', xs:'17px'}}>{item.category_name}</Typography>
+                                <Typography fontFamily={'GT Light'} fontSize={{md:'20px', xs:'17px'}}>{new Intl.NumberFormat('en-KE', {style:'currency', currency:'KES'}).format(Number(item.amount).toFixed(2))}</Typography>
+                            </Box>
+                        ))}
+
+                        <Divider sx={{ mt:{md:'20px', xs:'0px'}, mb:{md:'20px', xs:'0px'}, ml:{md:'20px', xs:'10px'}, mr:{md:'20px', xs:'10px'} }}/>
+
+                        <Typography fontFamily={'GT Light'} fontSize={'20px'} padding={{xs:'10px', md:'0px'}}>Total {new Intl.NumberFormat('en-KE', {style:'currency', currency:'KES'}).format(billTotal)}</Typography>
+                    </Box>
+                </Box>
+              </Box>
+
+              <Box>
+                {isMobile ? (
+                  <Box>
+                    {viewType === 'invoice' && activeCategory === categoryName  && (
+                      <Box>
+                          <Typography fontFamily={"GT Bold"} fontSize={{md:'30px', xs:'24px'}} mt={'30px'} mb={'30px'} textAlign={'center'}>{categoryName} Invoices.</Typography>
+                          <Box
+                              display={'grid'}
+                              gridTemplateColumns={{xs:'repeat(1,1fr)', sm:'repeat(2,1fr)'}}
+                              gap="20px"
+                              margin="0 10px"
+                          >
+
+                              {invoiceItemDisplayed && invoiceItemDisplayed.map((item) => (
+                                  <Card
+                                      key={item.id}
+                                      onClick={() => handleViewInvoices(item.id)}
+                                      sx={{
+                                          borderRadius: '15px',
+                                          display: 'flex',
+                                          flexDirection: 'column',
+                                          height: 'auto', // Adjust height for better flexibility
+                                          boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
+                                          backgroundColor: '#fff',
+                                          transition: 'transform 0.3s ease-in-out',
+                                          '&:hover': {
+                                              transform: 'scale(1.03)',
+                                              boxShadow: '0 8px 30px rgba(0,0,0,0.15)',
+                                          },
+                                      }}
+                                  >
+                                      <CardContent>
+                                                  <Box display={'flex'} gap={'5px'}>
+                                                      <Typography fontFamily={"GT Medium"} fontSize={'14px'}>Customer:</Typography>
+                                                      <Typography ffontFamily={"GT Light"} fontSize={'15px'}>{item.customer_name}</Typography>
+                                                  </Box>
+
+                                                  <Box display={'flex'} gap={'7px'}>
+                                                      <Typography fontFamily={"GT Medium"} fontSize={'15px'}>Invoice Number:</Typography>
+                                                      <Typography  fontFamily={"GT Light"} fontSize={'15px'}>{item.invoice_number}</Typography>
+                                                  </Box>
+
+                                                  <Box display={'flex'} gap={'7px'}>
+                                                      <Typography fontFamily={"GT Medium"} fontSize={'15px'}>Amount:</Typography>
+                                                      <Typography fontFamily={"GT Light"} fontSize={'15px'}>{ new Intl.NumberFormat('en-KE', {style:'currency', currency:item.currency}).format(item.total_amount)}</Typography>
+                                                  </Box>
+
+                                                  <Box display={'flex'} gap={'7px'}>
+                                                      <Typography fontFamily={"GT Medium"} fontSize={'15px'}>Currency:</Typography>
+                                                      <Typography fontFamily={"GT Light"} fontSize={'15px'}>{item.currency}</Typography>
+                                                  </Box>
+
+                                                  <Box display={'flex'} gap={'7px'}>
+                                                      <Typography fontFamily={"GT Medium"} fontSize={'15px'}>Date:</Typography>
+                                                      <Typography fontFamily={"GT Light"} fontSize={'15px'}>{item.invoice_date}</Typography>
+                                                  </Box>
+
+                                                  <Box display={'flex'} gap={'7px'}>
+                                                      <Typography fontFamily={"GT Medium"} fontSize={'15px'}>Status:</Typography>
+                                                      <Typography fontFamily={"GT Light"} fontSize={'15px'}>{item.status}</Typography>
+                                                  </Box>
+
+                                                  <Box display={'flex'} gap={'7px'}>
+                                                      <Typography fontFamily={"GT Medium"} fontSize={'15px'}>Sales Person:</Typography>
+                                                      <Typography fontFamily={"GT Light"} fontSize={'15px'}>{item.sales_person}</Typography>
+                                                  </Box>
+
+                                      </CardContent>
+                                  </Card>
+                              ))}
+                              <Box display="flex" justifyContent="center" mt="20px">
+                                    <Pagination count={InvoiceItemPages} page={invoiceCurrentPage} onChange={handleInvoicePageChange} color="secondary" />
+                              </Box>
+                          </Box>
+                      </Box>
+                    )}
+                  </Box>
+                ):(
+                  <Box padding={'30px'}>
+                      {viewType === 'invoice' && activeCategory === categoryName  && (
+                        <Box>
+                          <Typography fontFamily={"GT Bold"} fontSize={'30px'} textAlign={'center'}>{categoryName} Invoices.</Typography>
+                          <DataGrid 
+                            columns={invoiceColumns}
+                            rows={categoryInvoices}
+                            getRowId={(row) => row.id}
+                            components={{toolbar:GridToolbar}}
+                          />
+                        </Box>
+                      )}
+                  </Box>
+                )}
+
+              </Box>
+
+              <Box>
+                {isMobile ? (
+                  <Box>
+                    {viewType === 'bill' && activeCategory === categoryName && (
+                      <Box>
+                          <Typography fontFamily={"GT Bold"} fontSize={{md:'30px', xs:'24px'}} mt={'30px'} mb={'30px'} textAlign={'center'}>{categoryName} Bills.</Typography>
+                          <Box
+                              display={'grid'}
+                              gridTemplateColumns={{xs:'repeat(1,1fr)', sm:'repeat(2,1fr)'}}
+                              gap="20px"
+                              margin="0 10px"
+                          >
+
+                              {billItemDisplayed && billItemDisplayed.map((item) => (
+                                  <Card
+                                      key={item.id}
+                                      onClick={() => handleViewDetails(item.id)}
+                                      sx={{
+                                          borderRadius: '15px',
+                                          display: 'flex',
+                                          flexDirection: 'column',
+                                          height: 'auto', // Adjust height for better flexibility
+                                          boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
+                                          backgroundColor: '#fff',
+                                          transition: 'transform 0.3s ease-in-out',
+                                          '&:hover': {
+                                              transform: 'scale(1.03)',
+                                              boxShadow: '0 8px 30px rgba(0,0,0,0.15)',
+                                          },
+                                      }}
+                                  >
+                                      <CardContent>
+                                            <Box display={'flex'} gap={'5px'}>
+                                              <Typography fontFamily={"GT Medium"} fontSize={'15px'}>Name:</Typography>
+                                              <Typography fontFamily={"GT Light"} fontSize={'15px'}>{item.vendor_name}</Typography>
+                                            </Box>
+
+                                            <Box display={'flex'} gap={'5px'}>
+                                              <Typography fontFamily={"GT Medium"} fontSize={'15px'}>Bill Number:</Typography>
+                                              <Typography fontFamily={"GT Light"} fontSize={'15px'}>{item.bill_number}</Typography>
+                                            </Box>
+
+                                            <Box display={'flex'} gap={'5px'}>
+                                              <Typography fontFamily={"GT Medium"} fontSize={'15px'}>Bill Date:</Typography>
+                                              <Typography fontFamily={"GT Light"} fontSize={'15px'}>{item.bill_date}</Typography>
+                                            </Box>
+
+                                            <Box display={'flex'} gap={'5px'}>
+                                              <Typography fontFamily={"GT Medium"} fontSize={'15px'}>Amount:</Typography>
+                                              <Typography fontFamily={"GT Light"} fontSize={'15px'}>{new Intl.NumberFormat('en-KE', {style:'currency', currency:'KES'}).format(item.total_amount)}</Typography>
+                                            </Box>
+
+                                            <Box display={'flex'} gap={'5px'}>
+                                              <Typography fontFamily={"GT Medium"} fontSize={'15px'}>Status:</Typography>
+                                              <Typography fontFamily={"GT Light"} fontSize={'15px'}>{item.status}</Typography>
+                                            </Box>
+
+                                      </CardContent>
+                                  </Card>
+                              ))}
+                              <Box display="flex" justifyContent="center" mt="20px">
+                                      <Pagination count={billItemPages} page={billCurrentPage} onChange={handleBillPageChange} color="secondary" />
+                              </Box>
+                          </Box>
+                      </Box>
+                    )}
+                  </Box>
+                ):(
+                  <Box padding={'30px'}>
+                    {viewType === 'bill' && activeCategory === categoryName && (
+                      <Box>
+                        <Typography fontFamily={"GT Bold"} fontSize={'30px'} textAlign={'center'}>{categoryName} Bills.</Typography>
+                        <DataGrid 
+                          columns={billColumns}
+                          rows={categoryBills}
+                          getRowId={(row) => row.id}
+                          components={{toolbar:GridToolbar}}
+                        />
+                      </Box>
+                    )}
+                  </Box>
+                )}
+
+              </Box>
+
+        </Box>
+     );
+}
+ 
 export default ReportLayout;

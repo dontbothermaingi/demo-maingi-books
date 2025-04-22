@@ -16,7 +16,7 @@ const Dashboard = () => {
 
 
   useEffect(() => {
-    fetch('https://demo-server-757m.onrender.com/sparesubcategories',{
+    fetch('https://maingi-demo-server.onrender.com/sparesubcategories',{
       method:'GET',
       headers:{
         'Authorization': `Bearer ${token}`
@@ -29,7 +29,7 @@ const Dashboard = () => {
   }, [token]);
 
   useEffect(() => {
-    fetch('https://demo-server-757m.onrender.com/tyres',{
+    fetch('https://maingi-demo-server.onrender.com/tyres',{
       method:'GET',
       headers:{
         'Authorization': `Bearer ${token}`
@@ -42,7 +42,7 @@ const Dashboard = () => {
   }, [token]);
 
   useEffect(() => {
-    fetch('https://demo-server-757m.onrender.com/invoices', {
+    fetch('https://maingi-demo-server.onrender.com/invoices', {
       method:'GET',
       headers:{
         'Authorization': `Bearer ${token}`
@@ -65,7 +65,7 @@ const Dashboard = () => {
   }, [token]);
 
   useEffect(() => {
-    fetch('https://demo-server-757m.onrender.com/newbills',{
+    fetch('https://maingi-demo-server.onrender.com/newbills',{
       method:'GET',
       headers:{
         'Authorization': `Bearer ${token}`
@@ -88,7 +88,7 @@ const Dashboard = () => {
   }, [token]);
  
   useEffect(() => {
-    fetch('https://demo-server-757m.onrender.com/pumpnames', {
+    fetch('https://maingi-demo-server.onrender.com/pumpnames', {
       method:'GET',
       headers:{
         'Authorization': `Bearer ${token}`
@@ -107,7 +107,7 @@ const Dashboard = () => {
   const totalDiesel = new Intl.NumberFormat().format(diesel);
 
   useEffect(() => {
-    fetch('https://demo-server-757m.onrender.com/invoices', {
+    fetch('https://maingi-demo-server.onrender.com/invoices', {
       method:'GET',
       headers:{
         'Authorization': `Bearer ${token}`
@@ -122,7 +122,7 @@ const Dashboard = () => {
   }, [token]);
 
   useEffect(() => {
-    fetch('https://demo-server-757m.onrender.com/customers', {
+    fetch('https://maingi-demo-server.onrender.com/customers', {
       method:'GET',
       headers:{
         'Authorization': `Bearer ${token}`
@@ -137,7 +137,7 @@ const Dashboard = () => {
   }, [token]);
 
   useEffect(() => {
-    fetch('https://demo-server-757m.onrender.com/vendors',{
+    fetch('https://maingi-demo-server.onrender.com/vendors',{
       method:'GET',
       headers:{
         'Authorization': `Bearer ${token}`

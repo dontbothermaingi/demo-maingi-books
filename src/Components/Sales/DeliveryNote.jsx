@@ -41,7 +41,7 @@ function DeliveryNote(){
 
 
     useEffect(()=>{
-        fetch('https://demo-server-757m.onrender.com/deliverynotes', {
+        fetch('https://maingi-demo-server.onrender.com/deliverynotes', {
             method:'GET',
             headers:{
                 'Authorization':`Bearer ${token}`
@@ -55,7 +55,7 @@ function DeliveryNote(){
     },[token])
 
     useEffect(()=>{
-        fetch('https://demo-server-757m.onrender.com/trucks',{
+        fetch('https://maingi-demo-server.onrender.com/trucks',{
             method:'GET',
             headers:{
                 'Authorization':`Bearer ${token}`
@@ -69,7 +69,7 @@ function DeliveryNote(){
     },[token])
 
     useEffect(()=>{
-        fetch('https://demo-server-757m.onrender.com/customers', {
+        fetch('https://maingi-demo-server.onrender.com/customers', {
             method:'GET',
             headers:{
                 'Authorization':`Bearer ${token}`
@@ -164,7 +164,7 @@ function DeliveryNote(){
         console.log(submit)
     
         // POST request to submit form data
-        fetch('https://demo-server-757m.onrender.com/deliverynotes', { 
+        fetch('https://maingi-demo-server.onrender.com/deliverynotes', { 
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -184,7 +184,7 @@ function DeliveryNote(){
         })
         .then((data) => {
             // Assuming `data` contains the updated delivery notes
-            fetch('https://demo-server-757m.onrender.com/deliverynotes', {
+            fetch('https://maingi-demo-server.onrender.com/deliverynotes', {
                 method:'GET',
                 headers:{
                     'Authorization':`Bearer ${token}`
