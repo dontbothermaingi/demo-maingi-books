@@ -232,9 +232,9 @@ function PaymentsMadeReport(){
         navigate(`/vendors/${vendorId}`);
     };
 
-    const handleViewSlip = (madeId) => {
-        navigate(`/payment-details/${madeId}`);
-    };
+    function handlePayment(paymentId){
+      navigate(`/report-for-payments-made/${paymentId}`)
+    }
 
     const columns = [
         { field: "id", headerName: "ID", flex: 0.05 },
@@ -250,7 +250,7 @@ function PaymentsMadeReport(){
               alignItems: 'center', 
               cursor: 'pointer', 
             }}
-            onClick={() => handleViewDetails(params.row.vendor_name)}
+            onClick={() => handleViewDetails(params.row.id)}
           >
             <Typography
                 variant="h7"
@@ -271,7 +271,7 @@ function PaymentsMadeReport(){
                   alignItems: 'center', 
                   cursor: 'pointer', 
                 }}
-                onClick={() => handleViewSlip(params.row.payment)}
+                onClick={() => handlePayment(params.row.payment)}
               >
                 <Typography
                     variant="h7"
@@ -438,6 +438,7 @@ function PaymentsMadeReport(){
                             {displayedItems.map((item) => (
                                 <Card
                                     key={item.id}
+                                    onClick={() => handlePayment(item.id)}
                                     sx={{
                                         borderRadius: '15px',
                                         display: 'flex',

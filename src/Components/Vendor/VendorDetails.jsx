@@ -32,7 +32,7 @@ const VendorDetails = () => {
   };
 
   useEffect(() => {
-    fetch(`https://demo-server-757m.onrender.com/vendors/${vendorId}`, {
+    fetch(`https://maingi-demo-server.onrender.com/vendors/${vendorId}`, {
             method:'GET',
             headers:{
                 'Authorization':`Bearer ${token}`

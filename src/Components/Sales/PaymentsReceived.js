@@ -573,6 +573,7 @@ function PaymentsReceived (){
                     {displayedItems.map((item) => (
                         <Card
                             key={item.id}
+                            onClick={() => handlePayment(item.id)}
                             sx={{
                                 borderRadius: '15px',
                                 display: 'flex',

@@ -74,7 +74,7 @@ function InventoryInvoice() {
     }
 
     useEffect(() => {
-        fetch('https://demo-server-757m.onrender.com/invoices', {
+        fetch('https://maingi-demo-server.onrender.com/invoices', {
             method:'GET',
             headers:{
                 'Authorization':`Bearer ${token}`
@@ -101,7 +101,7 @@ function InventoryInvoice() {
     }, [token]);
 
     useEffect(() => {
-        fetch('https://demo-server-757m.onrender.com/store',{
+        fetch('https://maingi-demo-server.onrender.com/store',{
             method:'GET',
             headers:{
                 'Authorization':`Bearer ${token}`
@@ -115,7 +115,7 @@ function InventoryInvoice() {
     },[token])
 
     useEffect(() => {
-        fetch('https://demo-server-757m.onrender.com/stockitems', {
+        fetch('https://maingi-demo-server.onrender.com/stockitems', {
             method:'GET',
             headers:{
                 'Authorization':`Bearer ${token}`
@@ -133,7 +133,7 @@ function InventoryInvoice() {
     }, [token, formData.customer_name]);
 
     useEffect(() => {
-        fetch('https://demo-server-757m.onrender.com/customers', {
+        fetch('https://maingi-demo-server.onrender.com/customers', {
             method:'GET',
             headers:{
                 'Authorization':`Bearer ${token}`
@@ -345,7 +345,7 @@ function InventoryInvoice() {
         };
     
         // Submit the invoice
-        fetch('https://demo-server-757m.onrender.com/inventoryinvoices', {
+        fetch('https://maingi-demo-server.onrender.com/inventoryinvoices', {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -362,7 +362,7 @@ function InventoryInvoice() {
         })
         .then((data) => {
 
-            fetch('https://demo-server-757m.onrender.com/invoices', {
+            fetch('https://maingi-demo-server.onrender.com/invoices', {
                 method:'GET',
                 headers:{
                     'Authorization':`Bearer ${token}`

@@ -232,7 +232,11 @@ function PaymentsRececivedReport(){
 
       const handleViewDetails = (customerId) => {
         navigate(`/customers/${customerId}`);
-    };
+      };
+
+      function handlePayment(madeId){
+        navigate(`/payment-report/${madeId}`)
+      }
 
     const columns = [
         { field: "id", headerName: "ID", flex: 0.05 },
@@ -250,7 +254,7 @@ function PaymentsRececivedReport(){
               alignItems: 'center', 
               cursor: 'pointer', 
             }}
-            onClick={() => handleViewDetails(params.row.customer_name)}
+            onClick={() => handleViewDetails(params.row.id)}
           >
             <Typography
                 variant="h7"
@@ -264,21 +268,33 @@ function PaymentsRececivedReport(){
             field: "customer_email",
             headerName: "Customer Email",
             flex: 0.3,
+            renderCell: (params) => (
+              <Box 
+              sx={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                cursor: 'pointer', 
+              }}
+              onClick={() => handlePayment(params.row.id)}
+            >
+              <Typography
+                  variant="h7"
+              >
+                {params.value}
+              </Typography>
+            </Box>
+            ),
         },
         {
             field: "customer_phone",
             headerName: "Customer Phone",
             flex: 0.15,
         },
+        
         {
             field: "currency",
             headerName: "Currency",
             flex: 0.1,
-        },
-        {
-            field: "bank_name",
-            headerName: "Bank Name",
-            flex: 0.3,
         },
         {
           field: "amount_received",
@@ -310,11 +326,43 @@ function PaymentsRececivedReport(){
           field: "bank_charges",
           headerName: "BANK CHARGES",
           flex: 0.17,
+          renderCell: (params) => (
+            <Box 
+            sx={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              cursor: 'pointer', 
+            }}
+            onClick={() => handlePayment(params.row.id)}
+          >
+            <Typography
+                variant="h7"
+            >
+              {params.value}
+            </Typography>
+          </Box>
+          ),
         },
         {
           field: "payment_date",
           headerName: "PAYMENT DATE",
           flex: 0.15,
+          renderCell: (params) => (
+            <Box 
+            sx={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              cursor: 'pointer', 
+            }}
+            onClick={() => handlePayment(params.row.id)}
+          >
+            <Typography
+                variant="h7"
+            >
+              {params.value}
+            </Typography>
+          </Box>
+          ),
         },
         {
           field: "payment_mode",
@@ -432,6 +480,7 @@ function PaymentsRececivedReport(){
                     {displayedItems.map((item) => (
                         <Card
                             key={item.id}
+                          onClick={() => handlePayment(item.id)}
                             sx={{
                                 borderRadius: '15px',
                                 display: 'flex',

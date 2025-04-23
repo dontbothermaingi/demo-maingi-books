@@ -215,10 +215,10 @@ function ReportForPaymentsMade(){
                         <Box display="flex" justifyContent="space-between" mb="30px">
                                 <Box>
                                     <Typography fontSize="28px" fontFamily={"GT Bold"} color="black">
-                                        EKATI HAULIERS
+                                        MAINGI LOGISTICS
                                     </Typography>
                                     <Typography fontFamily={"GT Light"} color="black">
-                                        Emali, Makueni, Kenya
+                                        Somewhere, County, Country.
                                     </Typography>
                                 </Box>
                                 <Box textAlign="right">
